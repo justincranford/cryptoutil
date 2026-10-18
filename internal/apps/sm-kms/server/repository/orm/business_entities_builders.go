@@ -7,6 +7,7 @@ package orm
 import (
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -20,8 +21,8 @@ func BuildElasticKey(tenantID, elasticKeyID googleUuid.UUID, name, description s
 		ElasticKeyDescription:       description,
 		ElasticKeyProvider:          provider,
 		ElasticKeyAlgorithm:         algorithm,
-		ElasticKeyVersioningAllowed: versioningAllowed,
-		ElasticKeyImportAllowed:     importAllowed,
+		ElasticKeyVersioningAllowed: cryptoutilSharedDBTypes.BoolInt(versioningAllowed),
+		ElasticKeyImportAllowed:     cryptoutilSharedDBTypes.BoolInt(importAllowed),
 		ElasticKeyStatus:            ElasticKeyStatusInitial(importAllowed),
 	}
 

@@ -36,6 +36,7 @@ type GetElasticKeyMaterialKeysFilters struct {
 
 // GetMaterialKeysFilters contains filter criteria for querying material keys across all elastic keys.
 type GetMaterialKeysFilters struct {
+	TenantID            googleUuid.UUID   `validate:"required"`
 	ElasticKeyID        []googleUuid.UUID `validate:"optional,min=1"`
 	MaterialKeyID       []googleUuid.UUID `validate:"optional,min=1"`
 	MinimumGenerateDate *time.Time        `validate:"optional"`

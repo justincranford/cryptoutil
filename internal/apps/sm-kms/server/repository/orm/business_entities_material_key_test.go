@@ -18,10 +18,12 @@ import (
 func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
+	var tenantID googleUuid.UUID
+
 	// Create elastic key and multiple material keys.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key.
-		tenantID := googleUuid.New()
+		tenantID = googleUuid.New()
 		ekID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
 			tenantID,
@@ -71,6 +73,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 	err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Get all material keys.
 		filters := GetMaterialKeysFilters{
+			TenantID: tenantID,
 			PageSize: cryptoutilSharedMagic.JoseJAMaxMaterials,
 		}
 		allKeys, getErr := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, &filters)
@@ -91,6 +94,93 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err)
+}
+
+// TestGetMaterialKeys_TenantScope verifies global material-key queries only return keys belonging to the requested tenant.
+func TestGetMaterialKeys_TenantScope(t *testing.T) {
+	t.Parallel()
+
+	newUUIDv7 := func() googleUuid.UUID {
+		id, err := googleUuid.NewV7()
+		require.NoError(t, err)
+
+		return id
+	}
+
+	tenantOneID := newUUIDv7()
+	tenantTwoID := newUUIDv7()
+	tenantWithoutKeysID := newUUIDv7()
+
+	seededKeys := []struct {
+		tenantID      googleUuid.UUID
+		elasticKeyID  googleUuid.UUID
+		materialKeyID googleUuid.UUID
+		name          string
+	}{
+		{tenantID: tenantOneID, elasticKeyID: newUUIDv7(), materialKeyID: newUUIDv7(), name: "tenant-one"},
+		{tenantID: tenantTwoID, elasticKeyID: newUUIDv7(), materialKeyID: newUUIDv7(), name: "tenant-two"},
+	}
+
+	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
+		for _, seededKey := range seededKeys {
+			elasticKey, buildErr := BuildElasticKey(
+				seededKey.tenantID,
+				seededKey.elasticKeyID,
+				seededKey.name,
+				"Tenant scope test",
+				cryptoutilOpenapiModel.Internal,
+				cryptoutilOpenapiModel.A256GCMDir,
+				false,
+				false,
+				false,
+				string(cryptoutilKmsServer.Active),
+			)
+			require.NoError(t, buildErr)
+			require.NoError(t, AddElasticKey(tx.GormTx(), testTelemetryService.Slogger, elasticKey))
+
+			materialKey := &MaterialKey{
+				ElasticKeyID:                  seededKey.elasticKeyID,
+				MaterialKeyID:                 seededKey.materialKeyID,
+				MaterialKeyClearPublic:        []byte("public-key-data"),
+				MaterialKeyEncryptedNonPublic: []byte("encrypted-private-key-data"),
+			}
+			require.NoError(t, AddElasticKeyMaterialKey(tx.GormTx(), testTelemetryService.Slogger, materialKey))
+		}
+
+		return nil
+	})
+	require.NoError(t, err)
+
+	tests := []struct {
+		name         string
+		tenantID     googleUuid.UUID
+		wantMaterial []googleUuid.UUID
+	}{
+		{name: "tenant one sees its key only", tenantID: tenantOneID, wantMaterial: []googleUuid.UUID{seededKeys[0].materialKeyID}},
+		{name: "tenant two sees its key only", tenantID: tenantTwoID, wantMaterial: []googleUuid.UUID{seededKeys[1].materialKeyID}},
+		{name: "tenant without keys sees none", tenantID: tenantWithoutKeysID},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
+				keys, getErr := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, &GetMaterialKeysFilters{TenantID: tc.tenantID})
+				require.NoError(t, getErr)
+
+				materialKeyIDs := make([]googleUuid.UUID, 0, len(keys))
+				for _, key := range keys {
+					materialKeyIDs = append(materialKeyIDs, key.MaterialKeyID)
+				}
+
+				require.ElementsMatch(t, tc.wantMaterial, materialKeyIDs)
+
+				return nil
+			})
+			require.NoError(t, err)
+		})
+	}
 }
 
 // Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.

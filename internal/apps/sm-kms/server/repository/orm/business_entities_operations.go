@@ -2,10 +2,12 @@
 package orm
 
 import (
+	"errors"
 	"log/slog"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"gorm.io/gorm"
@@ -24,6 +26,7 @@ var (
 	ErrFailedToGetMaterialKeysByElasticKeyID                = "failed to get Keys by Elastic Key ID"
 	ErrInvalidElasticKeyID                                  = "invalid Elastic Key ID"
 	ErrInvalidMaterialKeyID                                 = "invalid Material Key ID"
+	ErrInvalidTenantID                                      = "invalid Tenant ID"
 	ErrFailedToGetMaterialKeys                              = "failed to get Material Keys"
 	ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID = "failed to get Material Key by Elastic Key ID and Material Key ID"
 	ErrFailedToGetLatestMaterialKeyByElasticKeyID           = "failed to get latest Material Key by Elastic Key ID"
@@ -129,6 +132,14 @@ func GetMaterialKeysForElasticKey(gormTx *gorm.DB, slogger *slog.Logger, elastic
 
 // GetMaterialKeys retrieves material keys based on the provided filter criteria.
 func GetMaterialKeys(gormTx *gorm.DB, slogger *slog.Logger, getKeysFilters *GetMaterialKeysFilters) ([]MaterialKey, error) {
+	if getKeysFilters == nil {
+		return nil, toAppErr(slogger, &ErrFailedToGetMaterialKeys, errors.New(ErrInvalidTenantID))
+	}
+
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(&getKeysFilters.TenantID, ErrInvalidTenantID); err != nil {
+		return nil, toAppErr(slogger, &ErrFailedToGetMaterialKeys, err)
+	}
+
 	var keys []MaterialKey
 
 	if err := applyKeyFilters(gormTx, getKeysFilters).Find(&keys).Error; err != nil {
@@ -212,11 +223,11 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 	}
 
 	if filters.VersioningAllowed != nil {
-		db = db.Where("elastic_key_versioning_allowed=?", *filters.VersioningAllowed)
+		db = db.Where("elastic_key_versioning_allowed=?", cryptoutilSharedDBTypes.BoolInt(*filters.VersioningAllowed))
 	}
 
 	if filters.ImportAllowed != nil {
-		db = db.Where("elastic_key_import_allowed=?", *filters.ImportAllowed)
+		db = db.Where("elastic_key_import_allowed=?", cryptoutilSharedDBTypes.BoolInt(*filters.ImportAllowed))
 	}
 
 	if filters.ExportAllowed != nil {
@@ -241,6 +252,8 @@ func applyKeyFilters(db *gorm.DB, filters *GetMaterialKeysFilters) *gorm.DB {
 	if filters == nil {
 		return db
 	}
+
+	db = db.Where("elastic_key_id IN (SELECT elastic_key_id FROM elastic_keys WHERE tenant_id = ?)", filters.TenantID)
 
 	if len(filters.MaterialKeyID) > 0 {
 		db = db.Where("material_key_id IN ?", filters.MaterialKeyID)

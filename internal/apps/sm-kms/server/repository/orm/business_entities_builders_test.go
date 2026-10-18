@@ -40,8 +40,8 @@ func TestBuildElasticKey(t *testing.T) {
 		require.Equal(t, "Test Description", elasticKey.ElasticKeyDescription, "Description should match")
 		require.Equal(t, cryptoutilOpenapiModel.Internal, elasticKey.ElasticKeyProvider, "Provider should match")
 		require.Equal(t, cryptoutilOpenapiModel.A256GCMA256KW, elasticKey.ElasticKeyAlgorithm, "Algorithm should match")
-		require.True(t, elasticKey.ElasticKeyVersioningAllowed, "Versioning should be allowed")
-		require.True(t, elasticKey.ElasticKeyImportAllowed, "Import should be allowed")
+		require.True(t, bool(elasticKey.ElasticKeyVersioningAllowed), "Versioning should be allowed")
+		require.True(t, bool(elasticKey.ElasticKeyImportAllowed), "Import should be allowed")
 		require.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport), elasticKey.ElasticKeyStatus, "Status should be PendingImport when import allowed")
 	})
 
@@ -68,8 +68,8 @@ func TestBuildElasticKey(t *testing.T) {
 		require.Equal(t, "Generated Key", elasticKey.ElasticKeyDescription, "Description should match")
 		require.Equal(t, cryptoutilOpenapiModel.Internal, elasticKey.ElasticKeyProvider, "Provider should match")
 		require.Equal(t, cryptoutilOpenapiModel.A128GCMA128KW, elasticKey.ElasticKeyAlgorithm, "Algorithm should match")
-		require.False(t, elasticKey.ElasticKeyVersioningAllowed, "Versioning should not be allowed")
-		require.False(t, elasticKey.ElasticKeyImportAllowed, "Import should not be allowed")
+		require.False(t, bool(elasticKey.ElasticKeyVersioningAllowed), "Versioning should not be allowed")
+		require.False(t, bool(elasticKey.ElasticKeyImportAllowed), "Import should not be allowed")
 		require.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate), elasticKey.ElasticKeyStatus, "Status should be PendingGenerate when import not allowed")
 	})
 

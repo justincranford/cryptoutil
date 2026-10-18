@@ -248,6 +248,7 @@ func TestGetMaterialKeys_EmptyResult(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Query with filter that matches no records.
 		filters := &GetMaterialKeysFilters{
+			TenantID:     googleUuid.New(),
 			ElasticKeyID: []googleUuid.UUID{nonExistentID},
 		}
 		keys, getErr := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, filters)
@@ -257,6 +258,33 @@ func TestGetMaterialKeys_EmptyResult(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err)
+}
+
+func TestGetMaterialKeys_RequiresTenantScope(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		filters *GetMaterialKeysFilters
+	}{
+		{name: "nil filters"},
+		{name: "nil tenant ID", filters: &GetMaterialKeysFilters{}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
+				keys, getErr := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, tc.filters)
+				require.Error(t, getErr)
+				require.Nil(t, keys)
+
+				return nil
+			})
+			require.NoError(t, err)
+		})
+	}
 }
 
 // TestAddElasticKeyMaterialKey_DuplicateConstraintViolation tests database constraint error for duplicate key.

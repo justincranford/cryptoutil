@@ -221,8 +221,8 @@ func TestToOrmAddElasticKeyDefaults(t *testing.T) {
 	testify.Equal(t, testElasticKeyName, result.ElasticKeyName)
 	testify.Equal(t, cryptoutilOpenapiModel.Internal, result.ElasticKeyProvider)
 	testify.Equal(t, cryptoutilOpenapiModel.A256GCMA256KW, result.ElasticKeyAlgorithm)
-	testify.True(t, result.ElasticKeyVersioningAllowed)
-	testify.False(t, result.ElasticKeyImportAllowed)
+	testify.True(t, bool(result.ElasticKeyVersioningAllowed))
+	testify.False(t, bool(result.ElasticKeyImportAllowed))
 	testify.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate), result.ElasticKeyStatus)
 }
 
@@ -244,7 +244,7 @@ func TestToOrmAddElasticKeyImportAllowed(t *testing.T) {
 
 	result := mapper.toOrmAddElasticKey(&elasticKeyID, tenantID, create)
 
-	testify.True(t, result.ElasticKeyImportAllowed)
+	testify.True(t, bool(result.ElasticKeyImportAllowed))
 	testify.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport), result.ElasticKeyStatus)
 }
 

@@ -322,6 +322,8 @@ func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeys
 		return nil, fmt.Errorf("invalid MaterialKeysQueryParams: %w", err)
 	}
 
+	ormMaterialKeysQueryParams.TenantID = tenantID
+
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 
 	var ormMaterialKeys []cryptoutilOrmRepository.MaterialKey

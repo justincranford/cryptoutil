@@ -171,7 +171,9 @@ func TestMaterialKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
 			ekID := googleUuid.New()
+			tenantID := googleUuid.New()
 			elasticKey := &ElasticKey{
+				TenantID:                    tenantID,
 				ElasticKeyID:                ekID,
 				ElasticKeyName:              "parent-elastic-key",
 				ElasticKeyDescription:       "Parent for material keys",
@@ -264,7 +266,9 @@ func TestMaterialKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
 			ekID := googleUuid.New()
+			tenantID := googleUuid.New()
 			elasticKey := &ElasticKey{
+				TenantID:                    tenantID,
 				ElasticKeyID:                ekID,
 				ElasticKeyName:              "filter-test-parent",
 				ElasticKeyDescription:       "Parent for filter test",
@@ -291,7 +295,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 			}
 
 			// Get all material keys (no filters).
-			allKeys, err := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, &GetMaterialKeysFilters{})
+			allKeys, err := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, &GetMaterialKeysFilters{TenantID: tenantID})
 			require.NoError(t, err, "GetMaterialKeys should succeed")
 			require.GreaterOrEqual(t, len(allKeys), 4, "Should return at least 4 material keys")
 

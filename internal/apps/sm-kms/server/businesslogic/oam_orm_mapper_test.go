@@ -74,8 +74,8 @@ func TestToOrmAddElasticKey(t *testing.T) {
 	testify.Equal(t, testDescription, result.ElasticKeyDescription)
 	testify.Equal(t, cryptoutilOpenapiModel.Internal, result.ElasticKeyProvider)
 	testify.Equal(t, cryptoutilOpenapiModel.A128CBCHS256Dir, result.ElasticKeyAlgorithm)
-	testify.Equal(t, versioningAllowed, result.ElasticKeyVersioningAllowed)
-	testify.Equal(t, importAllowed, result.ElasticKeyImportAllowed)
+	testify.Equal(t, versioningAllowed, bool(result.ElasticKeyVersioningAllowed))
+	testify.Equal(t, importAllowed, bool(result.ElasticKeyImportAllowed))
 	testify.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate), result.ElasticKeyStatus)
 }
 

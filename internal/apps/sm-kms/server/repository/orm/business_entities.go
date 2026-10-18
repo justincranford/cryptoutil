@@ -7,6 +7,7 @@ package orm
 import (
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -19,8 +20,8 @@ type ElasticKey struct {
 	ElasticKeyDescription       string                                     `gorm:"type:text;not null;check:length(elastic_key_description) >= 1"`
 	ElasticKeyProvider          cryptoutilOpenapiModel.ElasticKeyProvider  `gorm:"type:text;not null;check:elastic_key_provider IN ('Internal')"`
 	ElasticKeyAlgorithm         cryptoutilOpenapiModel.ElasticKeyAlgorithm `gorm:"type:text;not null"`
-	ElasticKeyVersioningAllowed bool                                       `gorm:"type:integer;not null"`
-	ElasticKeyImportAllowed     bool                                       `gorm:"type:integer;not null"`
+	ElasticKeyVersioningAllowed cryptoutilSharedDBTypes.BoolInt            `gorm:"type:integer;not null"`
+	ElasticKeyImportAllowed     cryptoutilSharedDBTypes.BoolInt            `gorm:"type:integer;not null"`
 	ElasticKeyStatus            cryptoutilKmsServer.ElasticKeyStatus       `gorm:"type:text;not null"`
 }
 

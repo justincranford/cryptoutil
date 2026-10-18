@@ -13,6 +13,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -72,8 +73,8 @@ func (m *OamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, tenantI
 		ElasticKeyDescription:       description,
 		ElasticKeyProvider:          provider,
 		ElasticKeyAlgorithm:         algorithm,
-		ElasticKeyVersioningAllowed: versioningAllowed,
-		ElasticKeyImportAllowed:     importAllowed,
+		ElasticKeyVersioningAllowed: cryptoutilSharedDBTypes.BoolInt(versioningAllowed),
+		ElasticKeyImportAllowed:     cryptoutilSharedDBTypes.BoolInt(importAllowed),
 		ElasticKeyStatus:            toElasticKeyStatusFromImportAllowed(importAllowed),
 	}
 }
@@ -125,6 +126,8 @@ func (m *OamOrmMapper) toOamElasticKeys(ormElasticKeys []cryptoutilOrmRepository
 func (m *OamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilKmsServer.ElasticKey {
 	algorithm := string(ormElasticKey.ElasticKeyAlgorithm)
 	provider := string(ormElasticKey.ElasticKeyProvider)
+	versioningAllowed := bool(ormElasticKey.ElasticKeyVersioningAllowed)
+	importAllowed := bool(ormElasticKey.ElasticKeyImportAllowed)
 
 	return &cryptoutilKmsServer.ElasticKey{
 		ElasticKeyID:      &ormElasticKey.ElasticKeyID,
@@ -132,8 +135,8 @@ func (m *OamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.El
 		Description:       &ormElasticKey.ElasticKeyDescription,
 		Algorithm:         &algorithm,
 		Provider:          &provider,
-		VersioningAllowed: &ormElasticKey.ElasticKeyVersioningAllowed,
-		ImportAllowed:     &ormElasticKey.ElasticKeyImportAllowed,
+		VersioningAllowed: &versioningAllowed,
+		ImportAllowed:     &importAllowed,
 		Status:            &ormElasticKey.ElasticKeyStatus,
 	}
 }
