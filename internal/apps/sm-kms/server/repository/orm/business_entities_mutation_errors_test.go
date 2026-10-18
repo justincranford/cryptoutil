@@ -288,9 +288,8 @@ func TestGetMaterialKeys_RequiresTenantScope(t *testing.T) {
 }
 
 // TestAddElasticKeyMaterialKey_DuplicateConstraintViolation tests database constraint error for duplicate key.
+// Sequential: writes to shared TestMain SQLite DB; concurrent transactions can deadlock.
 func TestAddElasticKeyMaterialKey_DuplicateConstraintViolation(t *testing.T) {
-	t.Parallel()
-
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key first.
 		tenantID := googleUuid.New()

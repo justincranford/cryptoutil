@@ -97,9 +97,8 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 }
 
 // TestGetMaterialKeys_TenantScope verifies global material-key queries only return keys belonging to the requested tenant.
+// Sequential: writes to shared TestMain SQLite DB; concurrent transactions can deadlock.
 func TestGetMaterialKeys_TenantScope(t *testing.T) {
-	t.Parallel()
-
 	newUUIDv7 := func() googleUuid.UUID {
 		id, err := googleUuid.NewV7()
 		require.NoError(t, err)
@@ -163,8 +162,6 @@ func TestGetMaterialKeys_TenantScope(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 				keys, getErr := GetMaterialKeys(tx.GormTx(), testTelemetryService.Slogger, &GetMaterialKeysFilters{TenantID: tc.tenantID})
 				require.NoError(t, getErr)
