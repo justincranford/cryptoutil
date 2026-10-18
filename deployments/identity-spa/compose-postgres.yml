@@ -1,0 +1,37 @@
+services:
+  postgres-leader:
+    user: "0"
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -eu; SSL=/var/lib/postgresql/ssl
+        mkdir -p "$$SSL"
+        cp /mnt/ps-certs-src/identity-spa/postgres-tls-server-entity-leader/postgres-tls-server-entity-leader.crt "$$SSL/server.crt"
+        cp /mnt/ps-certs-src/identity-spa/postgres-tls-server-entity-leader/postgres-tls-server-entity-leader.key "$$SSL/server.key"
+        cp /mnt/ps-certs-src/identity-spa/postgres-tls-client-issuing-ca/truststore/postgres-tls-client-issuing-ca.crt "$$SSL/client-ca.crt"
+        chown 999:999 "$$SSL/server.crt" "$$SSL/server.key" "$$SSL/client-ca.crt"
+        chmod 600 "$$SSL/server.key"
+        chmod 644 "$$SSL/server.crt" "$$SSL/client-ca.crt"
+        exec docker-entrypoint.sh postgres -c config_file=/etc/postgresql/postgresql.conf
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+        restart: true
+    volumes:
+      - identity-spa-certs:/mnt/ps-certs-src:ro
+
+  postgres-follower:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+      identity-spa-app-postgresql-1:
+        condition: service_healthy
+      identity-spa-app-postgresql-2:
+        condition: service_healthy
+    environment:
+      POSTGRES_CERT_SCOPE: identity-spa
+      POSTGRES_REPLICATION_TIER: service
+      POSTGRES_REPLICATION_PSIDS: identity-spa
+    volumes:
+      - identity-spa-certs:/mnt/ps-certs-src:ro

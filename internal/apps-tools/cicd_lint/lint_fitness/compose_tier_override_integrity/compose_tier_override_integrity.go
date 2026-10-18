@@ -50,7 +50,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	}
 
 	for _, rule := range tierRules {
-		composePath := filepath.Join(rootDir, "deployments", rule.tierID, cryptoutilSharedMagic.COMPOSE_YML)
+		composePath := filepath.Join(rootDir, "deployments", rule.tierID, cryptoutilSharedMagic.COMPOSE_APPS_YML)
 
 		cf, err := readComposeFile(composePath)
 		if err != nil {
@@ -62,7 +62,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		for _, forbidden := range rule.forbiddenServices {
 			if _, exists := cf.Services[forbidden]; exists {
 				violations = append(violations, fmt.Sprintf(
-					"%s: deployments/%s/compose.yml MUST NOT define service %q",
+					"%s: deployments/%s/compose-apps.yml MUST NOT define service %q",
 					rule.tierID, rule.tierID, forbidden,
 				))
 			}
@@ -71,7 +71,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		for _, secretName := range requiredPostgresSecretNames {
 			if _, exists := cf.Secrets[secretName]; !exists {
 				violations = append(violations, fmt.Sprintf(
-					"%s: deployments/%s/compose.yml missing required postgres secret override %q",
+					"%s: deployments/%s/compose-apps.yml missing required postgres secret override %q",
 					rule.tierID, rule.tierID, secretName,
 				))
 			}

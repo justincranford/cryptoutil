@@ -1,5 +1,5 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-// Package compose_service_names validates that every product-service compose.yml
+// Package compose_service_names validates that every product-service compose-apps.yml
 // contains the four required service definitions and no unrecognised service names:
 //   - {PS-ID}-app-sqlite-1
 //   - {PS-ID}-app-sqlite-2
@@ -26,7 +26,7 @@ import (
 	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 )
 
-// composeFile represents the top-level structure of a compose.yml file.
+// composeFile represents the top-level structure of a compose-apps.yml file.
 type composeFile struct {
 	Services map[string]any `yaml:"services"`
 }
@@ -83,16 +83,16 @@ func buildValidServiceSet() map[string]struct{} {
 func checkServiceNames(rootDir, psID string, validSet map[string]struct{}) []string {
 	var violations []string
 
-	composePath := filepath.Join(rootDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_YML)
+	composePath := filepath.Join(rootDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_APPS_YML)
 
 	data, err := os.ReadFile(composePath)
 	if err != nil {
-		return []string{fmt.Sprintf("%s: cannot read deployments/%s/compose.yml: %v", psID, psID, err)}
+		return []string{fmt.Sprintf("%s: cannot read deployments/%s/compose-apps.yml: %v", psID, psID, err)}
 	}
 
 	var cf composeFile
 	if err := yaml.Unmarshal(data, &cf); err != nil {
-		return []string{fmt.Sprintf("%s: cannot parse deployments/%s/compose.yml: %v", psID, psID, err)}
+		return []string{fmt.Sprintf("%s: cannot parse deployments/%s/compose-apps.yml: %v", psID, psID, err)}
 	}
 
 	requiredServices := []string{
@@ -106,7 +106,7 @@ func checkServiceNames(rootDir, psID string, validSet map[string]struct{}) []str
 	for _, svc := range requiredServices {
 		if _, ok := cf.Services[svc]; !ok {
 			violations = append(violations, fmt.Sprintf(
-				"%s: deployments/%s/compose.yml missing required service %q",
+				"%s: deployments/%s/compose-apps.yml missing required service %q",
 				psID, psID, svc,
 			))
 		}
@@ -125,7 +125,7 @@ func checkServiceNames(rootDir, psID string, validSet map[string]struct{}) []str
 
 		if _, valid := validSet[svc]; !valid {
 			violations = append(violations, fmt.Sprintf(
-				"%s: deployments/%s/compose.yml contains unrecognised service %q (not in valid service name set)",
+				"%s: deployments/%s/compose-apps.yml contains unrecognised service %q (not in valid service name set)",
 				psID, psID, svc,
 			))
 		}

@@ -56,13 +56,13 @@ func buildComposeBlock(psID string) string {
 	return sb.String()
 }
 
-// writeComposeYML creates deployments/{psID}/compose.yml under tmpDir with the given content.
+// writeComposeYML creates deployments/{psID}/compose-apps.yml under tmpDir with the given content.
 func writeComposeYML(t *testing.T, tmpDir, psID, content string) {
 	t.Helper()
 
 	dir := filepath.Join(tmpDir, "deployments", psID)
 	require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.CICDTempDirPermissions))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services:\n"+content), cryptoutilSharedMagic.FilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_APPS_YML), []byte("services:\n"+content), cryptoutilSharedMagic.FilePermissions))
 }
 
 // setupAllComposeFiles creates correct compose files for all 10 PS-IDs in tmpDir.
@@ -117,7 +117,7 @@ func TestCheckInDir_MissingComposeFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_YML)))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_APPS_YML)))
 
 	err := CheckInDir(newLogger(), tmpDir)
 	require.Error(t, err)
@@ -134,7 +134,7 @@ func TestCheckInDir_InvalidYAML(t *testing.T) {
 	setupAllComposeFiles(t, tmpDir)
 
 	dir := filepath.Join(tmpDir, "deployments", psID)
-	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_APPS_YML), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
 
 	err := CheckInDir(newLogger(), tmpDir)
 	require.Error(t, err)

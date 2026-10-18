@@ -140,7 +140,7 @@ func ValidateComposeFile(composePath string) (*ComposeValidationResult, error) {
 	return result, nil
 }
 
-// parseComposeWithIncludes parses a compose file and merges secrets/services from included files.
+// parseComposeWithIncludes parses a compose file and merges resources from included files.
 func parseComposeWithIncludes(composePath string) (*composeFile, error) {
 	data, err := os.ReadFile(composePath)
 	if err != nil {
@@ -212,6 +212,26 @@ func mergeIncludedFileRecursive(baseDir string, includePath string, compose *com
 	for name, secret := range included.Secrets {
 		if _, exists := compose.Secrets[name]; !exists {
 			compose.Secrets[name] = secret
+		}
+	}
+
+	if compose.Volumes == nil {
+		compose.Volumes = make(map[string]any)
+	}
+
+	for name, volume := range included.Volumes {
+		if _, exists := compose.Volumes[name]; !exists {
+			compose.Volumes[name] = volume
+		}
+	}
+
+	if compose.Networks == nil {
+		compose.Networks = make(map[string]any)
+	}
+
+	for name, network := range included.Networks {
+		if _, exists := compose.Networks[name]; !exists {
+			compose.Networks[name] = network
 		}
 	}
 

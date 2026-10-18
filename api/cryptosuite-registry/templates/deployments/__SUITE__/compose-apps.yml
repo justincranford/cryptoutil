@@ -1,0 +1,78 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# __SUITE_UPPER__ SUITE application-only model (SUITE-Level)
+#
+# Purpose: Complete suite deployment with ALL 7 services across 3 products.
+# Deployment Level: SUITE (port range 28000-28999, SERVICE base + 20000 offset)
+# Each PS-ID has 4 instances: 2 SQLite + 2 PostgreSQL.
+#
+# Port formula: SUITE_PORT = SERVICE_BASE + 20000
+#
+# Usage:
+#   cd deployments/__SUITE__
+#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml down
+#
+# Product includes contain application resources only; the suite entrypoint imports the shared PostgreSQL pair once.
+
+__SUITE_INCLUDE_LIST__
+
+services:
+
+  # SUITE-level PKI init (overrides PRODUCT/PS-ID cert material).
+  pki-init:
+    image: __SUITE__-__SUITE_INIT_PS_ID__:__IMAGE_TAG__
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        /app/__SUITE_INIT_PS_ID__ init --domain=__SUITE__ --output-dir=/certs
+        chown -R 65532:65532 /certs
+        find /host-certs -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        cp -a /certs/. /host-certs/
+        for cert_dir in /certs/__SUITE__/public-https-server-entity-*-sqlite-1; do
+          [ -d "$$cert_dir" ] || continue
+          psid=$${cert_dir##*/public-https-server-entity-}
+          psid=$${psid%-sqlite-1}
+          rm -rf "/certs/$$psid"
+          ln -s "__SUITE__" "/certs/$$psid"
+        done
+    volumes:
+      - __SUITE__-certs:/certs:rw
+      - ./certs/:/host-certs/:rw
+    depends_on:
+      builder-__SUITE_INIT_PS_ID__:
+        condition: service_completed_successfully
+
+__SUITE_SERVICE_OVERRIDES__
+
+  otel-certs-init:
+    volumes:
+      - __SUITE__-certs:/certs-source:ro
+
+  grafana-otel-lgtm:
+    volumes:
+      - __SUITE__-certs:/mnt/ps-certs-src:ro
+
+secrets:
+  unseal-1of5.secret: {file: ./secrets/unseal-1of5.secret}
+  unseal-2of5.secret: {file: ./secrets/unseal-2of5.secret}
+  unseal-3of5.secret: {file: ./secrets/unseal-3of5.secret}
+  unseal-4of5.secret: {file: ./secrets/unseal-4of5.secret}
+  unseal-5of5.secret: {file: ./secrets/unseal-5of5.secret}
+  hash-pepper-v3.secret: {file: ./secrets/hash-pepper-v3.secret}
+  postgres-url.secret: {file: ./secrets/postgres-url.secret}
+  postgres-url-sm-kms.secret: {file: ./secrets/postgres-url/sm-kms.secret}
+  postgres-url-identity-authz.secret: {file: ./secrets/postgres-url/identity-authz.secret}
+  postgres-url-identity-idp.secret: {file: ./secrets/postgres-url/identity-idp.secret}
+  postgres-url-identity-rs.secret: {file: ./secrets/postgres-url/identity-rs.secret}
+  postgres-url-identity-rp.secret: {file: ./secrets/postgres-url/identity-rp.secret}
+  postgres-url-identity-spa.secret: {file: ./secrets/postgres-url/identity-spa.secret}
+  postgres-url-skeleton-template.secret: {file: ./secrets/postgres-url/skeleton-template.secret}
+  postgres-username.secret: {file: ./secrets/postgres-username.secret}
+  postgres-password.secret: {file: ./secrets/postgres-password.secret}
+  postgres-database.secret: {file: ./secrets/postgres-database.secret}
+
+volumes:
+  __SUITE__-certs:

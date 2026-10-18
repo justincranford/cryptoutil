@@ -133,16 +133,16 @@ func expectedCommand(psID, variant string) string {
 
 // checkCompose validates all 4 app-service command strings in one PS-ID compose file.
 func checkCompose(rootDir, psID string, readFileFn func(string) ([]byte, error)) []string {
-	composePath := filepath.Join(rootDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_YML)
+	composePath := filepath.Join(rootDir, "deployments", psID, cryptoutilSharedMagic.COMPOSE_APPS_YML)
 
 	data, err := readFileFn(composePath)
 	if err != nil {
-		return []string{fmt.Sprintf("%s: cannot read deployments/%s/compose.yml: %v", psID, psID, err)}
+		return []string{fmt.Sprintf("%s: cannot read deployments/%s/compose-apps.yml: %v", psID, psID, err)}
 	}
 
 	var cf composeFile
 	if err := yaml.Unmarshal(data, &cf); err != nil {
-		return []string{fmt.Sprintf("%s: cannot parse deployments/%s/compose.yml: %v", psID, psID, err)}
+		return []string{fmt.Sprintf("%s: cannot parse deployments/%s/compose-apps.yml: %v", psID, psID, err)}
 	}
 
 	var violations []string
@@ -153,7 +153,7 @@ func checkCompose(rootDir, psID string, readFileFn func(string) ([]byte, error))
 		svc, ok := cf.Services[svcName]
 		if !ok {
 			violations = append(violations, fmt.Sprintf(
-				"%s/%s: service %q not found in deployments/%s/compose.yml",
+				"%s/%s: service %q not found in deployments/%s/compose-apps.yml",
 				psID, variant, svcName, psID,
 			))
 

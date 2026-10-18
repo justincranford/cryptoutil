@@ -40,7 +40,7 @@ func findProjectRoot(t *testing.T) string {
 	}
 }
 
-// writeComposeYML writes a compose.yml with the given services block under deployments/{psID}/.
+// writeComposeYML writes a compose-apps.yml with the given services block under deployments/{psID}/.
 func writeComposeYML(t *testing.T, tmpDir, psID, servicesBlock string) {
 	t.Helper()
 
@@ -48,7 +48,7 @@ func writeComposeYML(t *testing.T, tmpDir, psID, servicesBlock string) {
 	require.NoError(t, os.MkdirAll(deployDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 
 	content := "services:\n" + servicesBlock
-	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML), []byte(content), cryptoutilSharedMagic.FilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_APPS_YML), []byte(content), cryptoutilSharedMagic.FilePermissions))
 }
 
 // correctServicesBlock generates the 4 required service entries for a PS-ID.
@@ -58,7 +58,7 @@ func correctServicesBlock(psID string) string {
 		psID, psID, psID, psID)
 }
 
-// setupAllComposeFiles creates correct compose files for all product-services.
+// setupAllComposeFiles creates correct app-only compose files for all product-services.
 func setupAllComposeFiles(t *testing.T, tmpDir string) {
 	t.Helper()
 
@@ -109,7 +109,7 @@ func TestCheckInDir_MissingComposeFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.COMPOSE_YML)))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.COMPOSE_APPS_YML)))
 
 	err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -208,9 +208,9 @@ func TestCheckInDir_InvalidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	// Overwrite sm-kms compose.yml with invalid YAML.
+	// Overwrite sm-kms compose-apps.yml with invalid YAML.
 	deployDir := filepath.Join(tmpDir, "deployments", psID)
-	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_YML), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, cryptoutilSharedMagic.COMPOSE_APPS_YML), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
 
 	err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)

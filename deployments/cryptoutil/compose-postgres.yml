@@ -1,0 +1,43 @@
+services:
+  postgres-leader:
+    volumes:
+      - cryptoutil-certs:/mnt/ps-certs-src:ro
+
+  postgres-follower:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+      sm-kms-app-postgresql-1:
+        condition: service_healthy
+      sm-kms-app-postgresql-2:
+        condition: service_healthy
+      identity-authz-app-postgresql-1:
+        condition: service_healthy
+      identity-authz-app-postgresql-2:
+        condition: service_healthy
+      identity-idp-app-postgresql-1:
+        condition: service_healthy
+      identity-idp-app-postgresql-2:
+        condition: service_healthy
+      identity-rs-app-postgresql-1:
+        condition: service_healthy
+      identity-rs-app-postgresql-2:
+        condition: service_healthy
+      identity-rp-app-postgresql-1:
+        condition: service_healthy
+      identity-rp-app-postgresql-2:
+        condition: service_healthy
+      identity-spa-app-postgresql-1:
+        condition: service_healthy
+      identity-spa-app-postgresql-2:
+        condition: service_healthy
+      skeleton-template-app-postgresql-1:
+        condition: service_healthy
+      skeleton-template-app-postgresql-2:
+        condition: service_healthy
+    environment:
+      POSTGRES_CERT_SCOPE: cryptoutil
+      POSTGRES_REPLICATION_TIER: suite
+      POSTGRES_REPLICATION_PSIDS: sm-kms,identity-authz,identity-idp,identity-rs,identity-rp,identity-spa,skeleton-template
+    volumes:
+      - cryptoutil-certs:/mnt/ps-certs-src:ro

@@ -1,0 +1,6 @@
+services:
+  postgres-leader:
+    volumes:
+      - __SUITE__-certs:/mnt/ps-certs-src:ro
+
+__SUITE_POSTGRES_OVERRIDES__

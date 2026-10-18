@@ -1,0 +1,35 @@
+services:
+  postgres-leader:
+    volumes:
+      - identity-certs:/mnt/ps-certs-src:ro
+
+  postgres-follower:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+      identity-authz-app-postgresql-1:
+        condition: service_healthy
+      identity-authz-app-postgresql-2:
+        condition: service_healthy
+      identity-idp-app-postgresql-1:
+        condition: service_healthy
+      identity-idp-app-postgresql-2:
+        condition: service_healthy
+      identity-rs-app-postgresql-1:
+        condition: service_healthy
+      identity-rs-app-postgresql-2:
+        condition: service_healthy
+      identity-rp-app-postgresql-1:
+        condition: service_healthy
+      identity-rp-app-postgresql-2:
+        condition: service_healthy
+      identity-spa-app-postgresql-1:
+        condition: service_healthy
+      identity-spa-app-postgresql-2:
+        condition: service_healthy
+    environment:
+      POSTGRES_CERT_SCOPE: identity
+      POSTGRES_REPLICATION_TIER: product
+      POSTGRES_REPLICATION_PSIDS: identity-authz,identity-idp,identity-rs,identity-rp,identity-spa
+    volumes:
+      - identity-certs:/mnt/ps-certs-src:ro

@@ -50,7 +50,8 @@ func TestBuildProductParams(t *testing.T) {
 	require.NotEmpty(t, params["__PRODUCT_SERVICE_OVERRIDES__"])
 	require.NotEmpty(t, params["__PRODUCT_INIT_PS_ID__"])
 	require.Contains(t, params["__PRODUCT_SERVICE_OVERRIDES__"], "sm-certs:/certs:ro")
-	require.Contains(t, params["__PRODUCT_SERVICE_OVERRIDES__"], "POSTGRES_REPLICATION_PSIDS: sm-kms")
+	require.NotContains(t, params["__PRODUCT_SERVICE_OVERRIDES__"], "POSTGRES_REPLICATION_PSIDS")
+	require.Contains(t, params["__PRODUCT_POSTGRES_OVERRIDES__"], "POSTGRES_REPLICATION_PSIDS: sm-kms")
 }
 
 func TestBuildSuiteParams(t *testing.T) {
@@ -61,7 +62,8 @@ func TestBuildSuiteParams(t *testing.T) {
 	require.NotEmpty(t, params["__SUITE_INCLUDE_LIST__"])
 	require.NotEmpty(t, params["__SUITE_SERVICE_OVERRIDES__"])
 	require.NotEmpty(t, params["__SUITE_INIT_PS_ID__"])
-	require.Contains(t, params["__SUITE_SERVICE_OVERRIDES__"], "POSTGRES_REPLICATION_TIER: suite")
+	require.NotContains(t, params["__SUITE_SERVICE_OVERRIDES__"], "POSTGRES_REPLICATION_TIER")
+	require.Contains(t, params["__SUITE_POSTGRES_OVERRIDES__"], "POSTGRES_REPLICATION_TIER: suite")
 }
 
 func TestBuildStaticParams(t *testing.T) {
@@ -122,7 +124,7 @@ func TestBuildProductIncludeList(t *testing.T) {
 
 	list := buildProductIncludeList([]string{cryptoutilSharedMagic.OTLPServiceSMKMS})
 	require.Contains(t, list, "include:")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.OTLPServiceSMKMS+"/compose.yml")
+	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.OTLPServiceSMKMS+"/compose-apps.yml")
 }
 
 func TestBuildProductServiceOverrides(t *testing.T) {
@@ -132,7 +134,11 @@ func TestBuildProductServiceOverrides(t *testing.T) {
 	require.Contains(t, overrides, "sm-kms-app-sqlite-1:")
 	require.Contains(t, overrides, "ports: !override")
 	require.Contains(t, overrides, "sm-kms-app-postgresql-2:")
-	require.Contains(t, overrides, "POSTGRES_REPLICATION_PSIDS: sm-kms")
+	require.NotContains(t, overrides, "POSTGRES_REPLICATION_PSIDS")
+
+	postgresOverrides := buildProductPostgresOverrides(cryptoutilSharedMagic.SMProductName, []string{cryptoutilSharedMagic.OTLPServiceSMKMS})
+	require.Contains(t, postgresOverrides, "POSTGRES_REPLICATION_PSIDS: sm-kms")
+	require.Contains(t, postgresOverrides, "POSTGRES_REPLICATION_TIER: product")
 }
 
 func TestBuildSuiteIncludeList(t *testing.T) {
@@ -145,8 +151,8 @@ func TestBuildSuiteIncludeList(t *testing.T) {
 
 	list := buildSuiteIncludeList(products)
 	require.Contains(t, list, "include:")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.SMProductName+"/compose.yml")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.IdentityProductName+"/compose.yml")
+	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.SMProductName+"/compose-apps.yml")
+	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.IdentityProductName+"/compose-apps.yml")
 }
 
 func TestBuildSuiteServiceOverrides(t *testing.T) {
@@ -157,14 +163,17 @@ func TestBuildSuiteServiceOverrides(t *testing.T) {
 	require.Contains(t, overrides, "cryptoutil-certs:/certs:ro")
 	require.Contains(t, overrides, "!override")
 	require.Contains(t, overrides, "skeleton-template-app-postgresql-2:")
-	require.Contains(t, overrides, "POSTGRES_REPLICATION_TIER: suite")
+	require.NotContains(t, overrides, "POSTGRES_REPLICATION_TIER")
+
+	postgresOverrides := buildSuitePostgresOverrides(cryptoutilSharedMagic.DefaultOTLPServiceDefault)
+	require.Contains(t, postgresOverrides, "POSTGRES_REPLICATION_TIER: suite")
 
 	psIDs := make([]string, 0, len(cryptoutilRegistry.AllProductServices()))
 	for _, ps := range cryptoutilRegistry.AllProductServices() {
 		psIDs = append(psIDs, ps.PSID)
 	}
 
-	require.Contains(t, overrides, "POSTGRES_REPLICATION_PSIDS: "+strings.Join(psIDs, ","))
+	require.Contains(t, postgresOverrides, "POSTGRES_REPLICATION_PSIDS: "+strings.Join(psIDs, ","))
 }
 
 func TestBuildProductPSIDListDisplay(t *testing.T) {

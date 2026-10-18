@@ -66,6 +66,7 @@ func buildProductParams(productID string) map[string]string {
 		"__PRODUCT_PS_ID_LIST_DISPLAY__":                    buildProductPSIDListDisplay(productID, psIDs),
 		"__PRODUCT_INCLUDE_LIST__":                          buildProductIncludeList(psIDs),
 		"__PRODUCT_SERVICE_OVERRIDES__":                     buildProductServiceOverrides(productID, psIDs),
+		"__PRODUCT_POSTGRES_OVERRIDES__":                    buildProductPostgresOverrides(productID, psIDs),
 		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
 		valueImageTag:                                       cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 	}
@@ -81,24 +82,25 @@ func buildSuiteParams(sID string) map[string]string {
 
 	return map[string]string{
 		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: sID,
-		"__SUITE_UPPER__":             strings.ToUpper(sID),
-		"__SUITE_DISPLAY_NAME__":      displayName,
-		"__SUITE_INIT_PS_ID__":        initPSID,
-		"__SUITE_INCLUDE_LIST__":      buildSuiteIncludeList(products),
-		"__SUITE_SERVICE_OVERRIDES__": buildSuiteServiceOverrides(sID),
-		valueImageTag:                 cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
-		valueBuildDate:                cryptoutilSharedMagic.CICDTemplateBuildDate,
-		valueGoVersion:                cryptoutilSharedMagic.CICDTemplateGoVersion,
-		valueAlpineVersion:            cryptoutilSharedMagic.CICDTemplateAlpineVersion,
-		valueCgoEnabled:               cryptoutilSharedMagic.CICDTemplateCGOEnabled,
-		valueContainerUid:             cryptoutilSharedMagic.CICDTemplateContainerUID,
-		valueContainerGid:             cryptoutilSharedMagic.CICDTemplateContainerGID,
-		valueGithubRepositoryURL:      cryptoutilSharedMagic.CICDTemplateGitHubRepoURL,
-		valueAuthors:                  cryptoutilSharedMagic.CICDTemplateAuthors,
-		valueHealthcheckInterval:      cryptoutilSharedMagic.CICDTemplateHealthcheckInterval,
-		valueHealthcheckTimeout:       cryptoutilSharedMagic.CICDTemplateHealthcheckTimeout,
-		valueHealthcheckStartPeriod:   cryptoutilSharedMagic.CICDTemplateHealthcheckStartPeriod,
-		valueHealthcheckRetries:       cryptoutilSharedMagic.CICDTemplateHealthcheckRetries,
+		"__SUITE_UPPER__":              strings.ToUpper(sID),
+		"__SUITE_DISPLAY_NAME__":       displayName,
+		"__SUITE_INIT_PS_ID__":         initPSID,
+		"__SUITE_INCLUDE_LIST__":       buildSuiteIncludeList(products),
+		"__SUITE_SERVICE_OVERRIDES__":  buildSuiteServiceOverrides(sID),
+		"__SUITE_POSTGRES_OVERRIDES__": buildSuitePostgresOverrides(sID),
+		valueImageTag:                  cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
+		valueBuildDate:                 cryptoutilSharedMagic.CICDTemplateBuildDate,
+		valueGoVersion:                 cryptoutilSharedMagic.CICDTemplateGoVersion,
+		valueAlpineVersion:             cryptoutilSharedMagic.CICDTemplateAlpineVersion,
+		valueCgoEnabled:                cryptoutilSharedMagic.CICDTemplateCGOEnabled,
+		valueContainerUid:              cryptoutilSharedMagic.CICDTemplateContainerUID,
+		valueContainerGid:              cryptoutilSharedMagic.CICDTemplateContainerGID,
+		valueGithubRepositoryURL:       cryptoutilSharedMagic.CICDTemplateGitHubRepoURL,
+		valueAuthors:                   cryptoutilSharedMagic.CICDTemplateAuthors,
+		valueHealthcheckInterval:       cryptoutilSharedMagic.CICDTemplateHealthcheckInterval,
+		valueHealthcheckTimeout:        cryptoutilSharedMagic.CICDTemplateHealthcheckTimeout,
+		valueHealthcheckStartPeriod:    cryptoutilSharedMagic.CICDTemplateHealthcheckStartPeriod,
+		valueHealthcheckRetries:        cryptoutilSharedMagic.CICDTemplateHealthcheckRetries,
 	}
 }
 
@@ -146,15 +148,15 @@ func pluralS(n int) string {
 // Format:
 //
 //	include:
-//	  - path: ../sm-kms/compose.yml
-//	  - path: ../sm-kms/compose.yml
+//	  - path: ../sm-kms/compose-apps.yml
+//	  - path: ../sm-kms/compose-apps.yml
 func buildProductIncludeList(psIDs []string) string {
 	var sb strings.Builder
 
 	sb.WriteString("include:\n")
 
 	for _, psID := range psIDs {
-		fmt.Fprintf(&sb, "  - path: ../%s/compose.yml\n", psID)
+		fmt.Fprintf(&sb, "  - path: ../%s/compose-apps.yml\n", psID)
 	}
 
 	return strings.TrimRight(sb.String(), "\n")
@@ -194,7 +196,14 @@ func buildProductServiceOverrides(productID string, psIDs []string) string {
 		}
 	}
 
-	fmt.Fprintf(&sb, "  postgres-follower:\n")
+	return strings.TrimRight(sb.String(), "\n")
+}
+
+// buildProductPostgresOverrides generates the product-scoped follower configuration.
+func buildProductPostgresOverrides(productID string, psIDs []string) string {
+	var sb strings.Builder
+
+	sb.WriteString("  postgres-follower:\n")
 	sb.WriteString("    depends_on:\n")
 	sb.WriteString("      pki-init:\n")
 	sb.WriteString("        condition: service_completed_successfully\n")
@@ -223,7 +232,7 @@ func buildSuiteIncludeList(products []cryptoutilRegistry.Product) string {
 	sb.WriteString("include:\n")
 
 	for _, p := range products {
-		fmt.Fprintf(&sb, "  - path: ../%s/compose.yml\n", p.ID)
+		fmt.Fprintf(&sb, "  - path: ../%s/compose-apps.yml\n", p.ID)
 	}
 
 	return strings.TrimRight(sb.String(), "\n")
@@ -235,13 +244,10 @@ func buildSuiteServiceOverrides(suiteID string) string {
 	var sb strings.Builder
 
 	allPS := cryptoutilRegistry.AllProductServices()
-
-	// Group by product for comments.
 	currentProduct := ""
 
 	for _, ps := range allPS {
 		product := cryptoutilRegistry.ProductForPSID(ps.PSID)
-
 		if product != currentProduct {
 			if currentProduct != "" {
 				sb.WriteString("\n")
@@ -249,10 +255,8 @@ func buildSuiteServiceOverrides(suiteID string) string {
 
 			basePort := cryptoutilRegistry.PublicPort(ps.PSID)
 			endPort := basePort + cryptoutilRegistry.ComposeVariantOffsetPostgres2
-
 			fmt.Fprintf(&sb, "  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
-				strings.ToUpper(ps.PSID),
-				basePort, endPort,
+				strings.ToUpper(ps.PSID), basePort, endPort,
 				basePort+cryptoutilRegistry.PortTierOffsetSuite,
 				endPort+cryptoutilRegistry.PortTierOffsetSuite)
 
@@ -260,10 +264,8 @@ func buildSuiteServiceOverrides(suiteID string) string {
 		} else {
 			basePort := cryptoutilRegistry.PublicPort(ps.PSID)
 			endPort := basePort + cryptoutilRegistry.ComposeVariantOffsetPostgres2
-
 			fmt.Fprintf(&sb, "\n  # %s: PS-PUBLIC %d-%d -> SUITE %d-%d\n",
-				strings.ToUpper(ps.PSID),
-				basePort, endPort,
+				strings.ToUpper(ps.PSID), basePort, endPort,
 				basePort+cryptoutilRegistry.PortTierOffsetSuite,
 				endPort+cryptoutilRegistry.PortTierOffsetSuite)
 		}
@@ -280,7 +282,6 @@ func buildSuiteServiceOverrides(suiteID string) string {
 			{cryptoutilSharedMagic.CICDTemplateVariantPostgres1, cryptoutilRegistry.ComposeVariantOffsetPostgres1},
 			{cryptoutilSharedMagic.CICDTemplateVariantPostgres2, cryptoutilRegistry.ComposeVariantOffsetPostgres2},
 		}
-
 		for _, v := range variants {
 			port := suitePort + v.offset
 			fmt.Fprintf(&sb, "  %s-app-%s: {ports: !override [\"%d:%d\"], volumes: [\"%s-certs:/certs:ro\"]}\n",
@@ -288,13 +289,21 @@ func buildSuiteServiceOverrides(suiteID string) string {
 		}
 	}
 
+	return strings.TrimRight(sb.String(), "\n")
+}
+
+// buildSuitePostgresOverrides generates suite-scoped follower dependencies and replication settings.
+func buildSuitePostgresOverrides(suiteID string) string {
+	var sb strings.Builder
+
+	allPS := cryptoutilRegistry.AllProductServices()
+
 	psIDs := make([]string, len(allPS))
 	for i, ps := range allPS {
 		psIDs[i] = ps.PSID
 	}
 
-	sb.WriteString("\n")
-	fmt.Fprintf(&sb, "  postgres-follower:\n")
+	sb.WriteString("  postgres-follower:\n")
 	sb.WriteString("    depends_on:\n")
 	sb.WriteString("      pki-init:\n")
 	sb.WriteString("        condition: service_completed_successfully\n")

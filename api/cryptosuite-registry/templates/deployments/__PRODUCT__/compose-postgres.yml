@@ -1,0 +1,6 @@
+services:
+  postgres-leader:
+    volumes:
+      - __PRODUCT__-certs:/mnt/ps-certs-src:ro
+
+__PRODUCT_POSTGRES_OVERRIDES__

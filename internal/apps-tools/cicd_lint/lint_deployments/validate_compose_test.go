@@ -580,6 +580,42 @@ secrets:
 	}
 }
 
+func TestParseComposeWithIncludes_MergesVolumesAndNetworksFromPathList(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	includeDir := filepath.Join(dir, "shared")
+	require.NoError(t, os.MkdirAll(includeDir, dirPermissions))
+
+	baseContent := `volumes:
+  postgres-leader-data:
+    name: cryptoutil_postgres_leader_volume
+networks:
+  postgres-network:
+    driver: bridge
+`
+	require.NoError(t, os.WriteFile(filepath.Join(includeDir, "base.yml"), []byte(baseContent), filePermissions))
+
+	overlayContent := `volumes:
+  app-certs: {}
+`
+	require.NoError(t, os.WriteFile(filepath.Join(includeDir, "overlay.yml"), []byte(overlayContent), filePermissions))
+
+	mainContent := `include:
+  - path:
+      - shared/base.yml
+      - shared/overlay.yml
+`
+	mainPath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
+	require.NoError(t, os.WriteFile(mainPath, []byte(mainContent), filePermissions))
+
+	compose, err := parseComposeWithIncludes(mainPath)
+	require.NoError(t, err)
+	require.Contains(t, compose.Volumes, "postgres-leader-data")
+	require.Contains(t, compose.Volumes, "app-certs")
+	require.Contains(t, compose.Networks, "postgres-network")
+}
+
 func TestValidateComposeFile_FileNotFound(t *testing.T) {
 	t.Parallel()
 
