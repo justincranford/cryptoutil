@@ -17,6 +17,8 @@ const (
 	StringWaiting      = "waiting"
 	// StringStatus - Status string constant.
 	StringStatus = "status"
+	// RequestCreationFailureMessage - Request creation failure message.
+	RequestCreationFailureMessage = "Failed to create request"
 	// StringStatusOK - OK status string.
 	StringStatusOK = "ok"
 	// StringStatusDegraded - Degraded status string.

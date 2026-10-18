@@ -8,6 +8,7 @@ package rs
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	http "net/http"
 	"os"
@@ -22,16 +23,72 @@ import (
 
 const (
 	configFlagShort  = "-c"
+	valueStop        = "stop"
+	valueHealth      = "health"
 	defaultAdminPort = 9090
 	httpTimeout      = 5 * time.Second
 )
 
+var osExit = os.Exit
+
+type serviceLifecycle interface {
+	SetReady(bool)
+	Start(context.Context) error
+}
+
+type requestCreator func(context.Context, string, string, io.Reader) (*http.Request, error)
+
+type requestDoer interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
+type serviceRequest struct {
+	progressMessage       string
+	method                string
+	path                  string
+	requestFailureMessage string
+	doFailureMessage      string
+	successMessage        string
+	statusFailureMessage  string
+	contentType           string
+	expectedStatus        int
+}
+
+type commandHandlers struct {
+	start  func([]string)
+	stop   func([]string)
+	status func([]string)
+	health func([]string)
+	exit   func(int)
+}
+
 // Execute handles RS service commands matching other service patterns.
 // Supports: start, stop, status, health.
 func Execute(parameters []string) {
+	execute(parameters, commandHandlers{
+		start: func(parameters []string) {
+			startService(
+				parameters,
+				cryptoutilAppsIdentityRsServerConfig.Parse,
+				func(ctx context.Context, settings *cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings) (serviceLifecycle, error) {
+					return cryptoutilAppsIdentityRsServer.NewFromConfig(ctx, settings)
+				},
+				log.Fatalf,
+			)
+		},
+		stop:   stopService,
+		status: statusService,
+		health: healthService,
+		exit:   osExit,
+	})
+}
+
+func execute(parameters []string, handlers commandHandlers) {
 	if len(parameters) < 1 {
 		printUsage()
-		os.Exit(1)
+		handlers.exit(1)
+
+		return
 	}
 
 	subcommand := parameters[0]
@@ -39,17 +96,17 @@ func Execute(parameters []string) {
 
 	switch subcommand {
 	case valueStart:
-		startService(cmdParams)
-	case "stop":
-		stopService(cmdParams)
+		handlers.start(cmdParams)
+	case valueStop:
+		handlers.stop(cmdParams)
 	case cryptoutilSharedMagic.StringStatus:
-		statusService(cmdParams)
-	case "health":
-		healthService(cmdParams)
+		handlers.status(cmdParams)
+	case valueHealth:
+		handlers.health(cmdParams)
 	default:
 		fmt.Printf("Unknown subcommand: %s\n", subcommand)
 		printUsage()
-		os.Exit(1)
+		handlers.exit(1)
 	}
 }
 
@@ -65,7 +122,12 @@ func printUsage() {
 }
 
 // startService starts the Identity Resource Server.
-func startService(parameters []string) {
+func startService[T any](
+	parameters []string,
+	parseConfig func([]string, bool) (*T, error),
+	newServer func(context.Context, *T) (serviceLifecycle, error),
+	fatalf func(string, ...any),
+) {
 	configFile := parseConfigFlag(parameters, "/app/run/identity-rs-docker.yml")
 
 	fmt.Fprintf(os.Stderr, "Starting Identity Resource Server\n")
@@ -74,18 +136,22 @@ func startService(parameters []string) {
 	// Load RS-specific configuration from YAML file.
 	parseArgs := []string{valueStart, cryptoutilSharedMagic.IdentityCLIFlagConfig, configFile}
 
-	settings, err := cryptoutilAppsIdentityRsServerConfig.Parse(parseArgs, false)
+	settings, err := parseConfig(parseArgs, false)
 	if err != nil {
-		log.Fatalf("Failed to load config from %s: %v", configFile, err)
+		fatalf("Failed to load config from %s: %v", configFile, err)
+
+		return
 	}
 
 	// Create context.
 	ctx := context.Background()
 
 	// Create RS server using template-based implementation.
-	server, err := cryptoutilAppsIdentityRsServer.NewFromConfig(ctx, settings)
+	server, err := newServer(ctx, settings)
 	if err != nil {
-		log.Fatalf("Failed to create RS server: %v", err)
+		fatalf("Failed to create RS server: %v", err)
+
+		return
 	}
 
 	// Mark server as ready.
@@ -95,104 +161,84 @@ func startService(parameters []string) {
 
 	// Start server (blocks until shutdown).
 	if err := server.Start(ctx); err != nil {
-		log.Fatalf("RS server error: %v", err)
+		fatalf("RS server error: %v", err)
 	}
 }
 
 // stopService sends shutdown request to RS admin endpoint.
 func stopService(parameters []string) {
-	adminPort := parseAdminPort(parameters, defaultAdminPort)
-
-	fmt.Fprintf(os.Stderr, "Sending shutdown request to admin endpoint (port %d)...\n", adminPort)
-
-	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/shutdown", adminPort)
-
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
-		os.Exit(1)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{Timeout: httpTimeout}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to send shutdown request: %v\n", err)
-		os.Exit(1)
-	}
-
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		fmt.Fprintf(os.Stderr, "Shutdown request failed with status: %d\n", resp.StatusCode)
-		os.Exit(1)
-	}
-
-	fmt.Fprintf(os.Stderr, "Shutdown request sent successfully\n")
+	sendServiceRequest(parameters, serviceRequest{
+		progressMessage:       "Sending shutdown request to admin endpoint (port %d)...\n",
+		method:                http.MethodPost,
+		path:                  "/admin/v1/shutdown",
+		requestFailureMessage: cryptoutilSharedMagic.RequestCreationFailureMessage,
+		doFailureMessage:      "Failed to send shutdown request",
+		successMessage:        "Shutdown request sent successfully",
+		statusFailureMessage:  "Shutdown request failed with status: %d\n",
+		contentType:           "application/json",
+		expectedStatus:        http.StatusOK,
+	}, http.NewRequestWithContext, &http.Client{Timeout: httpTimeout}, osExit)
 }
 
 // statusService checks RS service readiness.
 func statusService(parameters []string) {
-	adminPort := parseAdminPort(parameters, defaultAdminPort)
-
-	fmt.Fprintf(os.Stderr, "Checking service status (port %d)...\n", adminPort)
-
-	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/readyz", adminPort)
-
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
-		os.Exit(1)
-	}
-
-	client := &http.Client{Timeout: httpTimeout}
-
-	resp, err := client.Do(req) // #nosec G107 - URL constructed from localhost and controlled adminPort
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to check service status: %v\n", err)
-		os.Exit(1)
-	}
-
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
-		}
-	}()
-
-	if resp.StatusCode == http.StatusOK {
-		fmt.Fprintf(os.Stderr, "Service is ready\n")
-	} else {
-		fmt.Fprintf(os.Stderr, "Service is not ready (status: %d)\n", resp.StatusCode)
-		os.Exit(1)
-	}
+	sendServiceRequest(parameters, serviceRequest{
+		progressMessage:       "Checking service status (port %d)...\n",
+		method:                http.MethodGet,
+		path:                  "/admin/v1/readyz",
+		requestFailureMessage: cryptoutilSharedMagic.RequestCreationFailureMessage,
+		doFailureMessage:      "Failed to check service status",
+		successMessage:        "Service is ready",
+		statusFailureMessage:  "Service is not ready (status: %d)\n",
+		expectedStatus:        http.StatusOK,
+	}, http.NewRequestWithContext, &http.Client{Timeout: httpTimeout}, osExit)
 }
 
 // healthService checks RS service health.
 func healthService(parameters []string) {
+	sendServiceRequest(parameters, serviceRequest{
+		progressMessage:       "Checking service health (port %d)...\n",
+		method:                http.MethodGet,
+		path:                  "/admin/v1/livez",
+		requestFailureMessage: cryptoutilSharedMagic.RequestCreationFailureMessage,
+		doFailureMessage:      "Failed to check service health",
+		successMessage:        "Service is healthy",
+		statusFailureMessage:  "Service is not healthy (status: %d)\n",
+		expectedStatus:        http.StatusOK,
+	}, http.NewRequestWithContext, &http.Client{Timeout: httpTimeout}, osExit)
+}
+
+func sendServiceRequest(
+	parameters []string,
+	request serviceRequest,
+	newRequest requestCreator,
+	client requestDoer,
+	exit func(int),
+) {
 	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
-	fmt.Fprintf(os.Stderr, "Checking service health (port %d)...\n", adminPort)
+	fmt.Fprintf(os.Stderr, request.progressMessage, adminPort)
 
-	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/livez", adminPort)
+	url := fmt.Sprintf("https://127.0.0.1:%d%s", adminPort, request.path)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	req, err := newRequest(context.Background(), request.method, url, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "%s: %v\n", request.requestFailureMessage, err)
+		exit(1)
+
+		return
 	}
 
-	client := &http.Client{Timeout: httpTimeout}
+	if request.contentType != "" {
+		req.Header.Set("Content-Type", request.contentType)
+	}
 
 	resp, err := client.Do(req) // #nosec G107 - URL constructed from localhost and controlled adminPort
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to check service health: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "%s: %v\n", request.doFailureMessage, err)
+		exit(1)
+
+		return
 	}
 
 	defer func() {
@@ -201,11 +247,11 @@ func healthService(parameters []string) {
 		}
 	}()
 
-	if resp.StatusCode == http.StatusOK {
-		fmt.Fprintf(os.Stderr, "Service is healthy\n")
+	if resp.StatusCode == request.expectedStatus {
+		fmt.Fprintf(os.Stderr, "%s\n", request.successMessage)
 	} else {
-		fmt.Fprintf(os.Stderr, "Service is not healthy (status: %d)\n", resp.StatusCode)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, request.statusFailureMessage, resp.StatusCode)
+		exit(1)
 	}
 }
 
