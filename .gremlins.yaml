@@ -20,6 +20,7 @@ unleash:
     - "vendor/.*"
     - ".*mock.*\\.go$"
     - ".*_mock\\.go$"
+    - "internal/shared/magic/.*"
     - "\\.venv/.*"
     - "node_modules/.*"
 

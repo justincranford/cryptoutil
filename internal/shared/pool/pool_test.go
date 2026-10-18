@@ -361,6 +361,77 @@ func TestValidateConfig_NilGenerateFunction(t *testing.T) {
 	require.Contains(t, err.Error(), "generate function can't be nil")
 }
 
+// TestValidateConfigConditions exercises every validation predicate and its boundary cases.
+func TestValidateConfigConditions(t *testing.T) {
+	t.Parallel()
+
+	newValidConfig := func() *ValueGenPoolConfig[googleUuid.UUID] {
+		return &ValueGenPoolConfig[googleUuid.UUID]{
+			ctx:                 testCtx,
+			telemetryService:    testTelemetryService,
+			poolName:            "validation-test",
+			numWorkers:          1,
+			poolSize:            1,
+			maxLifetimeValues:   1,
+			maxLifetimeDuration: time.Second,
+			maintenanceInterval: cryptoutilSharedMagic.PoolMaintenanceInterval,
+			generateFunction:    func() (googleUuid.UUID, error) { return googleUuid.NewV7() },
+		}
+	}
+
+	tests := []struct {
+		name      string
+		mutate    func(*ValueGenPoolConfig[googleUuid.UUID])
+		nilConfig bool
+		wantErr   bool
+	}{
+		{name: "reject nil config", nilConfig: true, wantErr: true},
+		{name: "nil context", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.ctx = nil }, wantErr: true},
+		{name: "nil telemetry", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.telemetryService = nil }, wantErr: true},
+		{name: "empty pool name", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.poolName = "" }, wantErr: true},
+		{name: "zero workers", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.numWorkers = 0 }, wantErr: true},
+		{name: "zero pool size", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.poolSize = 0 }, wantErr: true},
+		{name: "zero lifetime values with duration", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.maxLifetimeValues = 0 }, wantErr: true},
+		{name: "zero duration with lifetime values", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.maxLifetimeDuration = 0 }, wantErr: true},
+		{name: "negative duration with lifetime values", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.maxLifetimeDuration = -time.Second }, wantErr: true},
+		{name: "workers exceed pool size", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.numWorkers = 2 }, wantErr: true},
+		{name: "pool size exceeds lifetime values", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.poolSize = 2 }, wantErr: true},
+		{name: "zero maintenance interval", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.maintenanceInterval = 0 }, wantErr: true},
+		{name: "nil generator", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) { config.generateFunction = nil }, wantErr: true},
+		{name: "unbounded pool", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) {
+			config.maxLifetimeValues = 0
+			config.maxLifetimeDuration = 0
+		}},
+		{name: "equal worker pool and lifetime limits", mutate: func(config *ValueGenPoolConfig[googleUuid.UUID]) {
+			config.numWorkers = 2
+			config.poolSize = 2
+			config.maxLifetimeValues = 2
+		}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			config := newValidConfig()
+			if tc.nilConfig {
+				config = nil
+			} else if tc.mutate != nil {
+				tc.mutate(config)
+			}
+
+			err := validateConfig(config)
+			if tc.wantErr {
+				require.Error(t, err)
+
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
 // TestNewValueGenPoolConfigError tests error propagation from NewValueGenPoolConfig.
 func TestNewValueGenPoolConfigError(t *testing.T) {
 	t.Parallel()

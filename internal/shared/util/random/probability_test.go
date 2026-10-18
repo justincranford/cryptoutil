@@ -181,6 +181,37 @@ func TestShouldSkipByProbability_SadPaths(t *testing.T) {
 	}
 }
 
+func TestValidateProbabilityBoundaries(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		probability float32
+		valid       bool
+	}{
+		{name: "zero is inclusive", probability: cryptoutilSharedMagic.Float32Zero, valid: true},
+		{name: "one is inclusive", probability: cryptoutilSharedMagic.Float32One, valid: true},
+		{name: "below zero", probability: -cryptoutilSharedMagic.TestProbTenth},
+		{name: "above one", probability: cryptoutilSharedMagic.Float32One + cryptoutilSharedMagic.TestProbTenth},
+		{name: "not-a-number", probability: float32(math.NaN())},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := validateProbability(tc.probability)
+			if tc.valid {
+				require.NoError(t, err)
+
+				return
+			}
+
+			require.Error(t, err)
+		})
+	}
+}
+
 func TestSamplingBool(t *testing.T) {
 	t.Parallel()
 
