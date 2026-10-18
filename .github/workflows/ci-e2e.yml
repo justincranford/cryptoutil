@@ -215,11 +215,12 @@ jobs:
         mkdir -p ./workflow-reports/e2e
 
         # Collect logs from all cryptoutil services
-          (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-app-sqlite-1) > ./workflow-reports/e2e/sm-kms-sqlite.log 2>&1 || true
-          (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-app-postgresql-1) > ./workflow-reports/e2e/sm-kms-postgresql-1.log 2>&1 || true
-          (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-app-postgresql-2) > ./workflow-reports/e2e/sm-kms-postgresql-2.log 2>&1 || true
-          (cd ./deployments/sm-kms && docker compose -f compose.yml logs sm-kms-db-postgres-1) > ./workflow-reports/e2e/sm-kms-db-postgres.log 2>&1 || true
-          (cd ./deployments/sm-kms && docker compose -f compose.yml logs opentelemetry-collector-contrib) > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
+          (cd ./deployments/sm && docker compose -f compose.yml logs sm-kms-app-sqlite-1) > ./workflow-reports/e2e/sm-kms-sqlite.log 2>&1 || true
+          (cd ./deployments/sm && docker compose -f compose.yml logs sm-kms-app-postgresql-1) > ./workflow-reports/e2e/sm-kms-postgresql-1.log 2>&1 || true
+          (cd ./deployments/sm && docker compose -f compose.yml logs sm-kms-app-postgresql-2) > ./workflow-reports/e2e/sm-kms-postgresql-2.log 2>&1 || true
+          (cd ./deployments/sm && docker compose -f compose.yml logs postgres-leader) > ./workflow-reports/e2e/sm-kms-db-postgres.log 2>&1 || true
+          (cd ./deployments/sm && docker compose -f compose.yml logs opentelemetry-collector-contrib) > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
+          (cd ./deployments/sm && docker compose -f compose.yml logs healthcheck-opentelemetry-collector-contrib) > ./workflow-reports/e2e/otel-healthcheck.log 2>&1 || true
 
         # Collect SM service logs
           (cd ./deployments/sm && docker compose -f compose.yml logs sm-kms-app-sqlite-1) > ./workflow-reports/e2e/sm-kms.log 2>&1 || true
