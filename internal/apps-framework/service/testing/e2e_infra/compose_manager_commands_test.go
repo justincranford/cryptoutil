@@ -9,10 +9,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -208,6 +210,81 @@ func TestComposeManagerSyncCertOutputDirFromPkiInit(t *testing.T) {
 	require.Equal(t, []string{"cp", "test-service-pki-init-1:/certs/.", hostCertsDir}, gotArgs)
 	_, err := os.Stat(filepath.Join(hostCertsDir, "stale.pem"))
 	require.ErrorIs(t, err, os.ErrNotExist)
+}
+
+func TestComposeManagerSyncCertOutputDirFromPkiInitMakesHostCertTreeWritableBeforeRemoval(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	composeDir := filepath.Join(tempDir, "deployments", "test-service")
+	require.NoError(t, os.MkdirAll(composeDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+	composeFile := filepath.Join(composeDir, cryptoutilSharedMagic.COMPOSE_YML)
+	require.NoError(t, os.WriteFile(composeFile, []byte("services: {}"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	hostCACertPath := filepath.Join(tempDir, "deep", "one", "two", "three", "four", "ca.pem")
+	hostCertsDir := filepath.Clean(filepath.Join(hostCACertPath, "..", "..", "..", ".."))
+	adminDir := filepath.Join(hostCertsDir, "admin")
+	adminKeyPath := filepath.Join(adminDir, "admin.key")
+	require.NoError(t, os.MkdirAll(adminDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.WriteFile(adminKeyPath, []byte("private key"), cryptoutilSharedMagic.CacheFilePermissions))
+	t.Cleanup(func() {
+		if err := makeWritableRecursive(hostCertsDir); err != nil {
+			assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "make temporary host cert tree writable for cleanup: %v", err)
+		}
+	})
+
+	readOnlyDirPermissions := fs.FileMode(cryptoutilSharedMagic.CICDTempDirPermissions &^ cryptoutilSharedMagic.CICDFileOwnerWritePermission)
+	readOnlyFilePermissions := fs.FileMode(cryptoutilSharedMagic.CacheFilePermissions &^ cryptoutilSharedMagic.CICDFileOwnerWritePermission)
+	require.NoError(t, os.Chmod(adminKeyPath, readOnlyFilePermissions))
+	require.NoError(t, os.Chmod(adminDir, readOnlyDirPermissions))
+	require.NoError(t, os.Chmod(hostCertsDir, readOnlyDirPermissions))
+
+	cm := NewComposeManager(composeFile)
+	writablePrepared := false
+	cm.makeWritableFn = func(path string) error {
+		require.Equal(t, hostCertsDir, path)
+
+		if err := makeWritableRecursive(path); err != nil {
+			return err
+		}
+
+		for _, directory := range []string{hostCertsDir, adminDir} {
+			info, err := os.Stat(directory)
+			require.NoError(t, err)
+			require.NotZero(t, info.Mode().Perm()&cryptoutilSharedMagic.CICDFileOwnerWritePermission)
+		}
+
+		keyInfo, err := os.Stat(adminKeyPath)
+		require.NoError(t, err)
+
+		if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+			require.NotZero(t, keyInfo.Mode().Perm()&cryptoutilSharedMagic.CICDFileOwnerWritePermission)
+		} else {
+			require.Equal(t, readOnlyFilePermissions, keyInfo.Mode().Perm())
+		}
+
+		writablePrepared = true
+
+		return nil
+	}
+	cm.removeAllFn = func(path string) error {
+		require.Equal(t, hostCertsDir, path)
+		require.True(t, writablePrepared, "host cert tree must be made writable before removal")
+
+		return os.RemoveAll(path)
+	}
+	cm.runCommandFn = func(_ context.Context, command string, args ...string) error {
+		require.Equal(t, "docker", command)
+		require.Equal(t, []string{"cp", "test-service-pki-init-1:/certs/.", hostCertsDir}, args)
+
+		return nil
+	}
+
+	require.NoError(t, cm.SyncCertOutputDirFromPkiInit(context.Background(), hostCACertPath))
+
+	_, err := os.Stat(adminKeyPath)
+	require.ErrorIs(t, err, os.ErrNotExist)
+	require.DirExists(t, hostCertsDir)
 }
 
 func TestComposeManagerSyncCertOutputDirFromPkiInitCopyError(t *testing.T) {

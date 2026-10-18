@@ -125,6 +125,45 @@ func TestComposeManagerFilesystemErrors(t *testing.T) {
 			wantErr: "mkdir host certs dir",
 		},
 		{
+			name: "stat host certificates directory error",
+			setup: func(cm *ComposeManager, _ string) error {
+				cm.lstatFn = func(string) (os.FileInfo, error) {
+					return nil, errors.New("injected host certs stat error")
+				}
+
+				return nil
+			},
+			run: func(cm *ComposeManager) error {
+				return cm.SyncCertOutputDirFromPkiInit(
+					context.Background(),
+					filepath.Join(filepath.Dir(cm.ComposeFile), "a", "b", "c", "d", "ca.pem"),
+				)
+			},
+			wantErr: "lstat host certs dir",
+		},
+		{
+			name: "make host certificates directory writable error",
+			setup: func(cm *ComposeManager, composeDir string) error {
+				hostCertsDir := filepath.Join(composeDir, "a")
+				if err := os.MkdirAll(hostCertsDir, cryptoutilSharedMagic.CICDTempDirPermissions); err != nil {
+					return err
+				}
+
+				cm.makeWritableFn = func(string) error {
+					return errors.New("injected host certs chmod error")
+				}
+
+				return nil
+			},
+			run: func(cm *ComposeManager) error {
+				return cm.SyncCertOutputDirFromPkiInit(
+					context.Background(),
+					filepath.Join(filepath.Dir(cm.ComposeFile), "a", "b", "c", "d", "ca.pem"),
+				)
+			},
+			wantErr: "make writable host certs dir",
+		},
+		{
 			name: "stat certificates directory error",
 			setup: func(cm *ComposeManager, _ string) error {
 				cm.statFn = func(string) (os.FileInfo, error) {

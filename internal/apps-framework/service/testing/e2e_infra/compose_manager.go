@@ -35,6 +35,7 @@ type ComposeManager struct {
 	removeAllFn        func(path string) error
 	mkdirAllFn         func(path string, perm fs.FileMode) error
 	statFn             func(path string) (os.FileInfo, error)
+	lstatFn            func(path string) (os.FileInfo, error)
 	makeWritableFn     func(path string) error
 }
 
@@ -101,6 +102,16 @@ func (cm *ComposeManager) SyncCertOutputDirFromPkiInit(ctx context.Context, host
 	composeDir := filepath.Dir(cm.ComposeFile)
 	hostCertsDir := filepath.Clean(filepath.Join(hostCACertPath, "..", "..", "..", ".."))
 	containerName := fmt.Sprintf("%s-pki-init-1", filepath.Base(composeDir))
+
+	if info, err := cm.lstat(hostCertsDir); err == nil {
+		if info.IsDir() {
+			if err := cm.makeWritable(hostCertsDir); err != nil {
+				return fmt.Errorf("make writable host certs dir %s: %w", hostCertsDir, err)
+			}
+		}
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("lstat host certs dir %s: %w", hostCertsDir, err)
+	}
 
 	if err := cm.removeAll(hostCertsDir); err != nil {
 		return fmt.Errorf("remove host certs dir %s: %w", hostCertsDir, err)
@@ -210,6 +221,23 @@ func statWithFn(path string, statFn func(string) (os.FileInfo, error)) (os.FileI
 	info, err := statFn(path)
 	if err != nil {
 		return nil, fmt.Errorf("stat path %q: %w", path, err)
+	}
+
+	return info, nil
+}
+
+func (cm *ComposeManager) lstat(path string) (os.FileInfo, error) {
+	if cm.lstatFn != nil {
+		return cm.lstatFn(path)
+	}
+
+	return lstatWithFn(path, os.Lstat)
+}
+
+func lstatWithFn(path string, lstatFn func(string) (os.FileInfo, error)) (os.FileInfo, error) {
+	info, err := lstatFn(path)
+	if err != nil {
+		return nil, fmt.Errorf("lstat path %q: %w", path, err)
 	}
 
 	return info, nil
