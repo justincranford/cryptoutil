@@ -1,6 +1,6 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Implementation phases 1–4 are complete; Phase 5 quality-gate acceptance remains in progress. Phase 6 knowledge propagation is complete, and its final commit/push is in progress under the user's local-code milestone directive. Review follow-up is tracked in `tasks.md`.
+**Status**: Implementation phases 1–4 are complete; Phase 5 quality-gate acceptance remains in progress. Phase 6 knowledge propagation and the local-code commit/push milestone are complete. The validated code and prior local history were pushed as `e3c9c60ce`; this final tracker reconciliation is being pushed as a documentation-only follow-up. Review follow-up is tracked in `tasks.md`.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-18
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
@@ -395,7 +395,7 @@ golangci-lint, unit/integration tests, coverage, cicd-lint suite.
 what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix
 tasks immediately.
 
-### Phase 6: Knowledge Propagation (0.5d) [Status: IN PROGRESS — final commit/push pending]
+### Phase 6: Knowledge Propagation (0.5d) [Status: COMPLETE — local-code commit/push verified]
 
 **Objective**: Apply lessons learned across all permanent artifacts. Review lessons.md from all
 prior phases. Update ENG-HANDBOOK.md, agents, skills, instructions, code, tests, workflows,

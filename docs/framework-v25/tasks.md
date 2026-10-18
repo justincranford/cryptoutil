@@ -15,10 +15,10 @@ and 323 eligible packages meeting their thresholds. Its focused ASN.1 package re
 (139 tests). The focused sysinfo profile reports 100.0%, and the fresh CI-mode SM-KMS businesslogic
 profile is 95.4%.
 Historical aggregate comparison, literal zero-skip, supported-Engine race/lifecycle, mutation,
-authenticated load, and legacy-volume provenance gates remain open. Preserve the inherited
-external-gate findings; the user has now authorized final local staging, commit, and push. The
-current `main` branch is 52 commits ahead of `origin/main`; local changes are being validated
-before publishing.
+authenticated load, and legacy-volume provenance gates remain open. The validated local changes
+and all prior local commits have been pushed to `origin/main` in commit `e3c9c60ce` (the remote
+advanced from `fd586f6ae`); the pre-push worktree was clean. This final tracker reconciliation is
+being pushed as a documentation-only follow-up.
 **Last Updated**: 2026-10-18
 **Created**: 2026-05-25
 
@@ -1496,7 +1496,7 @@ ENG-HANDBOOK.md, agents, skills, instructions, and active docs. Remove stale pki
 from current project documentation while retaining migration history where it is relevant.
 Verify propagation integrity.
 
-**Status**: Phase 6 documentation and propagation work is complete; the phase remains in progress for its final commit/push and clean-worktree verification. The user authorized the local-code milestone. Phase 5 quality acceptance remains open for the separately listed external and zero-skip gates.
+**Status**: Phase 6 documentation and propagation work and the local-code commit/push milestone are complete. The final status reconciliation is included in this documentation-only follow-up. Phase 5 quality acceptance remains open for the separately listed external and zero-skip gates.
 
 ---
 
@@ -1550,10 +1550,10 @@ Verify propagation integrity.
 
 ### Task 6.4: Final Commit and Cleanup
 
-- **Status**: In progress — the user has superseded the previous no-stage/no-commit/no-push
-  constraint and expressly authorized the local-code milestone. Full local builds, shuffled tests,
-  linters, repository validators, and pinned coverage thresholds now pass. Commit and push are
-  pending.
+- **Status**: Complete — all validated working-tree changes and prior local commits were pushed
+  to `origin/main` as `e3c9c60ce`, advancing the remote from `fd586f6ae`. The pre-push worktree
+  was clean; this final tracker reconciliation is included in the documentation-only follow-up
+  push.
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Dependencies**: Task 6.3
@@ -1562,9 +1562,9 @@ Verify propagation integrity.
   coverage artifacts out of the commit. The lessons.md Executive Summary and Actions sections are
   complete.
 - **Acceptance Criteria**:
-  - [ ] Commit local changes and confirm the worktree is clean
+  - [x] Commit validated local changes and confirm the pre-push worktree was clean
   - [x] lessons.md Executive Summary and Actions sections filled
-  - [ ] Push all local commits to `origin/main`
+  - [x] Push all validated local changes and prior commits to `origin/main`; verify a clean worktree
 
 ---
 
@@ -1729,7 +1729,7 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
 | 11 | Partially verified | `postgres-continuity-restart.log` verifies PostgreSQL restart continuity for certificate, encrypted-key envelope, and revocation state; this is not an existing-volume upgrade test. | Execute the data-preserving upgrade against an existing PostgreSQL volume and retain a named upgrade artifact. |
 | 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` retains below-target coverage and the open full-repository race gate; `review-follow-up-plan.md` aligns its introduction and Recommendation 12. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` now matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `go run ./cmd/cicd-lint lint-docs -q` passing. The earlier failure log is retained for history. | Phase 5 remains open pending final post-remediation coverage and full-repository race evidence. |
-| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, and all 11 relevant repository validators pass after ECDH PKIX changes; evidence: `test-output/reviewfollowup/framework-v25-post-ecdh-quality-gates-20261018.log`. The latest shuffled full-tree run `test-output/reviewfollowup/full-suite-shuffle-after-certchain-20261018.jsonl` exits 0 with no failures (325 passing packages, 17,706 passing test events, 34 test-level skips, 41 package-level no-test events). The post-ECDH full-inventory coverage profile passes all 323 thresholds. | Keep literal zero-skip, supported-Engine Linux race/lifecycle, authenticated load, mutation, and legacy-volume provenance gates open. Local commit/push is tracked separately by Task 6.4. |
+| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, and all 14 repository validators pass; the final repository validator run after tracker changes is clean. The latest shuffled full-tree run `test-output/reviewfollowup/full-suite-shuffle-after-certchain-20261018.jsonl` exits 0 with no failures (325 passing packages, 17,706 passing test events, 34 test-level skips, 41 package-level no-test events). The post-ECDH full-inventory coverage profile passes all 323 thresholds. | Keep literal zero-skip, supported-Engine Linux race/lifecycle, authenticated load, mutation, and legacy-volume provenance gates open. The validated local changes and existing history were pushed as `e3c9c60ce`; the tracking update is part of a documentation-only follow-up push. |
 | 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on every task commit from the recorded baseline through the implementation, disposition, and post-review fix commits. | None. |
 | 15 | Partially verified | The application-role access check is described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving application-role access. |
 | 16 | Partially verified | Ownership normalization and malformed-publication rejection are described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving ownership normalization and malformed-publication rejection. |
