@@ -57,7 +57,7 @@ on:
   workflow_dispatch:
     inputs:
       load_profile:
-        description: 'Load test profile'
+        description: 'Load test profile (complete exercises every encryption algorithm)'
         required: false
         default: 'quick'
         type: choice
@@ -65,6 +65,7 @@ on:
           - quick
           - standard
           - stress
+          - complete
       virtual_clients:
         description: 'Number of virtual clients (overrides profile defaults)'
         required: false
@@ -180,6 +181,10 @@ jobs:
             CLIENTS=200
             DURATION=300
             ;;
+          complete)
+            CLIENTS=1
+            DURATION=60
+            ;;
           *)
             echo "❌ Invalid load profile: $LOAD_PROFILE" >&2
             exit 1
@@ -275,7 +280,7 @@ jobs:
         echo "⏱️ Infrastructure monitoring startup completed in: ${DURATION}s"
 
     - name: Run Gatling load tests (informational)
-      continue-on-error: true
+      continue-on-error: ${{ env.LOAD_PROFILE != 'complete' }}
       working-directory: ./test/load
       env:
         LOAD_PROFILE: ${{ env.LOAD_PROFILE }}
