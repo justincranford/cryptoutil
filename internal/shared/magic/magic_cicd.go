@@ -187,6 +187,8 @@ const (
 
 	// CacheFilePermissions is the cache file permissions (owner read/write only).
 	CacheFilePermissions = 0o600
+	// CICDFileOwnerWritePermission is the owner-write bit in a file mode.
+	CICDFileOwnerWritePermission = 0o200
 
 	// CacheDuration is the duration after which cache entries expire.
 	CacheDuration = 5 * time.Minute

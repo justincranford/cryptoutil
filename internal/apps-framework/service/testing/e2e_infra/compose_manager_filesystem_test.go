@@ -15,11 +15,39 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const currentDirectory = "."
+const (
+	currentDirectory = "."
+	nestedDirectory  = "nested"
+)
 
 type testWritableRoot struct {
 	chmodErr   error
 	chmodCalls *[]string
+}
+
+type testDirEntryInfoError struct {
+	isDir   bool
+	infoErr error
+}
+
+func (entry testDirEntryInfoError) Name() string {
+	return currentDirectory
+}
+
+func (entry testDirEntryInfoError) IsDir() bool {
+	return entry.isDir
+}
+
+func (entry testDirEntryInfoError) Type() fs.FileMode {
+	if entry.isDir {
+		return fs.ModeDir
+	}
+
+	return 0
+}
+
+func (entry testDirEntryInfoError) Info() (fs.FileInfo, error) {
+	return nil, entry.infoErr
 }
 
 func (root testWritableRoot) Chmod(name string, _ fs.FileMode) error {
@@ -140,11 +168,14 @@ func TestComposeManagerFilesystemErrors(t *testing.T) {
 	}
 }
 
-func TestMakeWritableRecursiveWithOpsSkipsRootChmodWhenPermissionsMatch(t *testing.T) {
+func TestMakeWritableRecursiveWithOpsSkipsMatchingDirectoryPermissions(t *testing.T) {
 	t.Parallel()
 
 	rootPath := t.TempDir()
-	dirInfo, err := os.Stat(rootPath)
+	nestedPath := filepath.Join(rootPath, nestedDirectory)
+	require.NoError(t, os.Mkdir(nestedPath, cryptoutilSharedMagic.CICDTempDirPermissions))
+
+	dirInfo, err := os.Stat(nestedPath)
 	require.NoError(t, err)
 
 	rootEntry := fs.FileInfoToDirEntry(testFileInfoMode{
@@ -163,10 +194,46 @@ func TestMakeWritableRecursiveWithOpsSkipsRootChmodWhenPermissionsMatch(t *testi
 			return root, nil
 		},
 		func(_ string, walkFn fs.WalkDirFunc) error {
-			return walkFn(rootPath, rootEntry, nil)
+			return walkFn(nestedPath, rootEntry, nil)
+		},
+		func(_, _ string) (string, error) {
+			return nestedDirectory, nil
+		},
+	)
+
+	require.NoError(t, err)
+	require.Empty(t, chmodCalls)
+}
+
+func TestMakeWritableRecursiveWithOpsSkipsOwnerWritableFiles(t *testing.T) {
+	t.Parallel()
+
+	rootPath := t.TempDir()
+	filePath := filepath.Join(rootPath, "writable.pem")
+	require.NoError(t, os.WriteFile(filePath, []byte("certificate"), cryptoutilSharedMagic.FilePermissions))
+
+	fileInfo, err := os.Stat(filePath)
+	require.NoError(t, err)
+
+	fileEntry := fs.FileInfoToDirEntry(testFileInfoMode{
+		FileInfo: fileInfo,
+		mode:     cryptoutilSharedMagic.FilePermissions,
+	})
+	chmodCalls := []string{}
+	root := testWritableRoot{
+		chmodErr:   errors.New("writable file chmod must not be called"),
+		chmodCalls: &chmodCalls,
+	}
+	err = makeWritableRecursiveWithOps(
+		rootPath,
+		func(string) (writableRoot, error) {
+			return root, nil
+		},
+		func(_ string, walkFn fs.WalkDirFunc) error {
+			return walkFn(filePath, fileEntry, nil)
 		},
 		func(string, string) (string, error) {
-			return currentDirectory, nil
+			return "writable.pem", nil
 		},
 	)
 
@@ -186,8 +253,14 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 	fileInfo, err := os.Stat(filePath)
 	require.NoError(t, err)
 
-	dirEntry := fs.FileInfoToDirEntry(dirInfo)
-	fileEntry := fs.FileInfoToDirEntry(fileInfo)
+	dirEntry := fs.FileInfoToDirEntry(testFileInfoMode{
+		FileInfo: dirInfo,
+		mode:     fs.ModeDir,
+	})
+	fileEntry := fs.FileInfoToDirEntry(testFileInfoMode{
+		FileInfo: fileInfo,
+		mode:     fileInfo.Mode() &^ cryptoutilSharedMagic.CICDFileOwnerWritePermission,
+	})
 	injectedErr := errors.New("injected filesystem error")
 
 	tests := []struct {
@@ -213,11 +286,23 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 			wantErr:  "rel path",
 		},
 		{
+			name:     "directory info error",
+			walkPath: tempDir,
+			entry:    testDirEntryInfoError{isDir: true, infoErr: injectedErr},
+			wantErr:  "stat dir",
+		},
+		{
 			name:     "directory chmod error",
 			walkPath: tempDir,
 			entry:    dirEntry,
 			chmodErr: injectedErr,
 			wantErr:  "chmod dir",
+		},
+		{
+			name:     "file info error",
+			walkPath: filePath,
+			entry:    testDirEntryInfoError{infoErr: injectedErr},
+			wantErr:  "stat file",
 		},
 		{
 			name:     "file chmod error",
