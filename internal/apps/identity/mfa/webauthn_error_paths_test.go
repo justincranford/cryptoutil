@@ -277,14 +277,14 @@ func TestWebAuthnService_FinishRegistrationErrors(t *testing.T) {
 	tests := []struct {
 		name              string
 		sessionData       []byte
-		expiresAt         time.Time
+		expiresAtOffset   time.Duration
 		wantErr           string
 		wantIdentityError error
 	}{
 		{name: testWebAuthnMissingSessionCaseName, wantErr: testWebAuthnSessionNotFoundError, wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnSessionNotFound},
-		{name: testWebAuthnExpiredSessionCaseName, sessionData: []byte("{}"), expiresAt: time.Now().UTC().Add(-time.Minute), wantErr: testWebAuthnSessionExpiredError, wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired},
-		{name: testWebAuthnInvalidSessionDataCase, sessionData: []byte("{"), expiresAt: time.Now().UTC().Add(time.Minute), wantErr: testWebAuthnSessionUnmarshalError},
-		{name: "invalid registration response", sessionData: []byte("{}"), expiresAt: time.Now().UTC().Add(time.Minute), wantErr: "failed to create credential", wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnVerificationFailed},
+		{name: testWebAuthnExpiredSessionCaseName, sessionData: []byte("{}"), expiresAtOffset: -time.Minute, wantErr: testWebAuthnSessionExpiredError, wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired},
+		{name: testWebAuthnInvalidSessionDataCase, sessionData: []byte("{"), expiresAtOffset: time.Minute, wantErr: testWebAuthnSessionUnmarshalError},
+		{name: "invalid registration response", sessionData: []byte("{}"), expiresAtOffset: time.Minute, wantErr: "failed to create credential", wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnVerificationFailed},
 	}
 
 	for _, tc := range tests {
@@ -299,13 +299,15 @@ func TestWebAuthnService_FinishRegistrationErrors(t *testing.T) {
 			user := &cryptoutilIdentityMfa.WebAuthnUser{ID: googleUuid.Must(googleUuid.NewV7()), Name: testTestuser, DisplayName: testTestUser}
 
 			sessionID := googleUuid.Must(googleUuid.NewV7())
+
 			if tc.name != testWebAuthnMissingSessionCaseName {
+				expiresAt := time.Now().UTC().Add(tc.expiresAtOffset)
 				session := &cryptoutilIdentityMfa.WebAuthnSession{
 					ID:           sessionID,
 					UserID:       user.ID,
 					SessionData:  tc.sessionData,
 					CeremonyType: string(cryptoutilIdentityMfa.WebAuthnCeremonyRegistration),
-					ExpiresAt:    tc.expiresAt,
+					ExpiresAt:    expiresAt,
 				}
 				require.NoError(t, db.Create(session).Error)
 			}
@@ -328,14 +330,14 @@ func TestWebAuthnService_FinishAuthenticationErrors(t *testing.T) {
 	tests := []struct {
 		name              string
 		sessionData       []byte
-		expiresAt         time.Time
+		expiresAtOffset   time.Duration
 		wantErr           string
 		wantIdentityError error
 	}{
 		{name: testWebAuthnMissingSessionCaseName, wantErr: testWebAuthnSessionNotFoundError, wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnSessionNotFound},
-		{name: testWebAuthnExpiredSessionCaseName, sessionData: []byte("{}"), expiresAt: time.Now().UTC().Add(-time.Minute), wantErr: testWebAuthnSessionExpiredError, wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired},
-		{name: testWebAuthnInvalidSessionDataCase, sessionData: []byte("{"), expiresAt: time.Now().UTC().Add(time.Minute), wantErr: testWebAuthnSessionUnmarshalError},
-		{name: "invalid assertion response", sessionData: []byte("{}"), expiresAt: time.Now().UTC().Add(time.Minute), wantErr: "failed to validate login", wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnVerificationFailed},
+		{name: testWebAuthnExpiredSessionCaseName, sessionData: []byte("{}"), expiresAtOffset: -time.Minute, wantErr: testWebAuthnSessionExpiredError, wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired},
+		{name: testWebAuthnInvalidSessionDataCase, sessionData: []byte("{"), expiresAtOffset: time.Minute, wantErr: testWebAuthnSessionUnmarshalError},
+		{name: "invalid assertion response", sessionData: []byte("{}"), expiresAtOffset: time.Minute, wantErr: "failed to validate login", wantIdentityError: cryptoutilIdentityAppErr.ErrWebAuthnVerificationFailed},
 	}
 
 	for _, tc := range tests {
@@ -350,13 +352,15 @@ func TestWebAuthnService_FinishAuthenticationErrors(t *testing.T) {
 			user := &cryptoutilIdentityMfa.WebAuthnUser{ID: googleUuid.Must(googleUuid.NewV7()), Name: testTestuser, DisplayName: testTestUser}
 
 			sessionID := googleUuid.Must(googleUuid.NewV7())
+
 			if tc.name != testWebAuthnMissingSessionCaseName {
+				expiresAt := time.Now().UTC().Add(tc.expiresAtOffset)
 				session := &cryptoutilIdentityMfa.WebAuthnSession{
 					ID:           sessionID,
 					UserID:       user.ID,
 					SessionData:  tc.sessionData,
 					CeremonyType: string(cryptoutilIdentityMfa.WebAuthnCeremonyAuthentication),
-					ExpiresAt:    tc.expiresAt,
+					ExpiresAt:    expiresAt,
 				}
 				require.NoError(t, db.Create(session).Error)
 			}
