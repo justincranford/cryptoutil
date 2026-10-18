@@ -152,44 +152,44 @@ services:
       - identity-certs:/certs-source:ro
 
 secrets:
-  # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
+  # PRODUCT-level secrets override PS-ID secrets (paths resolve from the first included app compose file).
   # CRITICAL: ALL IDENTITY instances MUST use the SAME unseal secrets
   # to enable shared encryption/decryption of data in the database.
   # NEVER create instance-specific or PS-ID-specific secrets.
   unseal-1of5.secret:
-    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
+    file: ../identity/secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:
-    file: ./secrets/unseal-2of5.secret
+    file: ../identity/secrets/unseal-2of5.secret
   unseal-3of5.secret:
-    file: ./secrets/unseal-3of5.secret
+    file: ../identity/secrets/unseal-3of5.secret
   unseal-4of5.secret:
-    file: ./secrets/unseal-4of5.secret
+    file: ../identity/secrets/unseal-4of5.secret
   unseal-5of5.secret:
-    file: ./secrets/unseal-5of5.secret
+    file: ../identity/secrets/unseal-5of5.secret
   hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret
+    file: ../identity/secrets/hash-pepper-v3.secret
   postgres-url.secret:
-    file: ./secrets/postgres-url.secret
+    file: ../identity/secrets/postgres-url.secret
   postgres-url-sm-kms.secret:
-    file: ./secrets/postgres-url/sm-kms.secret
+    file: ../identity/secrets/postgres-url/sm-kms.secret
   postgres-url-identity-authz.secret:
-    file: ./secrets/postgres-url/identity-authz.secret
+    file: ../identity/secrets/postgres-url/identity-authz.secret
   postgres-url-identity-idp.secret:
-    file: ./secrets/postgres-url/identity-idp.secret
+    file: ../identity/secrets/postgres-url/identity-idp.secret
   postgres-url-identity-rs.secret:
-    file: ./secrets/postgres-url/identity-rs.secret
+    file: ../identity/secrets/postgres-url/identity-rs.secret
   postgres-url-identity-rp.secret:
-    file: ./secrets/postgres-url/identity-rp.secret
+    file: ../identity/secrets/postgres-url/identity-rp.secret
   postgres-url-identity-spa.secret:
-    file: ./secrets/postgres-url/identity-spa.secret
+    file: ../identity/secrets/postgres-url/identity-spa.secret
   postgres-url-skeleton-template.secret:
-    file: ./secrets/postgres-url/skeleton-template.secret
+    file: ../identity/secrets/postgres-url/skeleton-template.secret
   postgres-username.secret:
-    file: ./secrets/postgres-username.secret
+    file: ../identity/secrets/postgres-username.secret
   postgres-password.secret:
-    file: ./secrets/postgres-password.secret
+    file: ../identity/secrets/postgres-password.secret
   postgres-database.secret:
-    file: ./secrets/postgres-database.secret
+    file: ../identity/secrets/postgres-database.secret
 
 volumes:
   identity-certs:
