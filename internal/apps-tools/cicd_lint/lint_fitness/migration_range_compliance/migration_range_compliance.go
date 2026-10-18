@@ -162,6 +162,10 @@ func checkDirWithReadDir(
 ) ([]string, error) {
 	entries, err := readDirFn(dir)
 	if err != nil {
+		if info, statErr := os.Stat(dir); statErr == nil && !info.IsDir() {
+			return nil, fmt.Errorf("not a directory: %s", dir)
+		}
+
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("directory not found: %s", dir)
 		}

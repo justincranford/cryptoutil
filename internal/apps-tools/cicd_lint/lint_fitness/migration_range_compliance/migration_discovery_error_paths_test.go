@@ -31,9 +31,11 @@ func TestCheckAndCheckDirErrors(t *testing.T) {
 	fileAsDirectory := filepath.Join(t.TempDir(), "not-a-directory")
 	require.NoError(t, os.WriteFile(fileAsDirectory, nil, cryptoutilSharedMagic.CacheFilePermissions))
 	_, err = checkDir(fileAsDirectory, 1, 2, false)
-	require.ErrorContains(t, err, "directory not found")
+	require.ErrorContains(t, err, "not a directory")
 
-	_, err = checkDirWithReadDir(fileAsDirectory, 1, 2, false, func(string) ([]os.DirEntry, error) {
+	readErrorDirectory := filepath.Join(t.TempDir(), testAppsDirectoryName)
+	require.NoError(t, os.Mkdir(readErrorDirectory, cryptoutilSharedMagic.DirPermissions))
+	_, err = checkDirWithReadDir(readErrorDirectory, 1, 2, false, func(string) ([]os.DirEntry, error) {
 		return nil, errors.New("injected read failure")
 	})
 	require.ErrorContains(t, err, "read dir")
