@@ -29,7 +29,7 @@ new support claim.
 | Tool | Minimum / Project Pin | Current recommendation | Purpose | Required For |
 |------|-----------------------|------------------------|---------|--------------|
 | **Go** | 1.27.2+ | 1.27.2 (project pin) | Primary language | All development |
-| **Docker** | 29.9.1+ Engine | 29.9.1 Engine / Desktop 4.95.0 | Containerization | PostgreSQL, E2E tests, deployments |
+| **Docker** | 29.8.2+ Engine | 29.8.2 Engine / Desktop 4.95.0 | Containerization | PostgreSQL, E2E tests, deployments |
 | **Docker Compose** | v5.6.0+ | v5.6.0 | Container orchestration | Multi-service deployments, recursive includes |
 | **Python** | 3.14+ | 3.15.0 (latest stable; no LTS) | Pre-commit hooks, utilities | Code quality automation |
 | **Node.js** | 24.22.0+ LTS | v24.22.0 (Node 24 LTS) | Spell checking, markdown linting | Pre-commit hooks |
@@ -389,7 +389,7 @@ source ~/.bashrc
 # Verify
 go version
 
-# Install Docker Engine 29.9.1+ and Compose v5.6.0+ using Docker's official repository:
+# Install Docker Engine 29.8.2+ and Compose v5.6.0+ using Docker's official repository:
 # https://docs.docker.com/engine/install/ubuntu/
 sudo systemctl start docker
 sudo systemctl enable docker
@@ -450,7 +450,7 @@ sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.27.2.linux-amd64.ta
 echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 
-# Install Docker Engine 29.9.1+ and Compose v5.6.0+ using Docker's official repository:
+# Install Docker Engine 29.8.2+ and Compose v5.6.0+ using Docker's official repository:
 # https://docs.docker.com/engine/install/fedora/
 sudo systemctl start docker
 sudo systemctl enable docker

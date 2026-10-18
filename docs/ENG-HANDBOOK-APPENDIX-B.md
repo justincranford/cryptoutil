@@ -15,7 +15,7 @@
 - Java: 21 LTS (Gatling load tests; project pin, Java 25 is newer LTS)
 - Maven: 3.10.0+
 - pre-commit: 2.20.0+
-- Docker: 29.9.1+ Engine (Docker Desktop 4.95.0)
+- Docker: 29.8.2+ Engine (Docker Desktop 4.95.0 bundles Engine 29.8.2)
 - Docker Compose: v5.6.0+
 <!-- @/to-appendix -->
 
