@@ -14,11 +14,18 @@ import (
 
 // NewPostgresTestContainer creates and starts a new PostgreSQL test container.
 func NewPostgresTestContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
+	return newPostgresTestContainer(ctx, postgres.Run)
+}
+
+func newPostgresTestContainer(
+	ctx context.Context,
+	runPostgresFn func(context.Context, string, ...testcontainers.ContainerCustomizer) (*postgres.PostgresContainer, error),
+) (*postgres.PostgresContainer, error) {
 	dbName := fmt.Sprintf("test_%s", googleUuid.NewString())
 	username := fmt.Sprintf("user_%s", googleUuid.NewString())
 	password := fmt.Sprintf("pass_%s", googleUuid.NewString())
 
-	container, err := postgres.Run(ctx,
+	container, err := runPostgresFn(ctx,
 		"postgres:latest",
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(username),
@@ -30,7 +37,12 @@ func NewPostgresTestContainer(ctx context.Context) (*postgres.PostgresContainer,
 		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start container: %w", err)
+		startErr := fmt.Errorf("failed to start container: %w", err)
+		if container != nil {
+			startErr = cleanupTestContainerAfterError(ctx, container, startErr, "failed to clean up container after startup failure")
+		}
+
+		return nil, startErr
 	}
 
 	return container, nil

@@ -11,6 +11,7 @@ const (
 	testDefaultConfig                    = "default config"
 	testDefaultSrcNone                   = "default-src 'none'"
 	testHTTPSExampleComWellKnownJwksJson = "https://example.com/.well-known/jwks.json"
+	testInjectedBuilderOperationError    = "injected builder operation error"
 	testInvalidMode                      = "invalid-mode"
 	testMigrations0001InitUpSQL          = "migrations/0001_init.up.sql"
 	testMigrations1001TemplateUpSQL      = "migrations/1001_template.up.sql"

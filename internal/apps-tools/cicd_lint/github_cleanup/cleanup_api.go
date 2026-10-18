@@ -25,6 +25,17 @@ var registeredCleaners = []struct {
 // Continues on failure, collecting all errors before returning.
 // Flags: --confirm, --max-age-days=N, --keep-min-runs=N, --repo=owner/repo.
 func Cleanup(logger *cryptoutilCmdCicdCommon.Logger, args []string) error {
+	return cleanupWithCleaners(logger, args, registeredCleaners)
+}
+
+func cleanupWithCleaners(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	args []string,
+	cleaners []struct {
+		name    string
+		cleaner CleanerFunc
+	},
+) error {
 	cfg := NewDefaultConfig(logger)
 
 	if err := ParseArgs(args, cfg); err != nil {
@@ -33,7 +44,7 @@ func Cleanup(logger *cryptoutilCmdCicdCommon.Logger, args []string) error {
 
 	var errs []error
 
-	for _, c := range registeredCleaners {
+	for _, c := range cleaners {
 		logger.Log(fmt.Sprintf("Running %s", c.name))
 
 		if err := c.cleaner(cfg); err != nil {

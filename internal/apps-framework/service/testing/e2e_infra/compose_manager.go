@@ -28,7 +28,13 @@ type ComposeManager struct {
 	HTTPClient         *http.Client
 	healthPollInterval time.Duration
 	// psOutputFn provides docker compose ps JSON output; injectable for testing.
-	psOutputFn func(ctx context.Context) ([]byte, error)
+	psOutputFn         func(ctx context.Context) ([]byte, error)
+	runCommandFn       func(ctx context.Context, command string, args ...string) error
+	runCommandOutputFn func(ctx context.Context, command string, args ...string) ([]byte, error)
+	removeAllFn        func(path string) error
+	mkdirAllFn         func(path string, perm fs.FileMode) error
+	statFn             func(path string) (os.FileInfo, error)
+	makeWritableFn     func(path string) error
 }
 
 // NewComposeManager creates a compose manager with TLS-enabled HTTP client.
@@ -48,9 +54,9 @@ func NewComposeManager(composeFile string, profiles ...string) *ComposeManager {
 
 // defaultPsOutput runs the real docker compose ps command.
 func (cm *ComposeManager) defaultPsOutput(ctx context.Context) ([]byte, error) {
-	psCmd := exec.CommandContext(ctx, "docker", valueCompose, valueF, cm.ComposeFile, "ps", "-a", "--format", "json")
-
-	output, err := psCmd.CombinedOutput()
+	output, err := cm.runCommandOutput(
+		ctx, "docker", valueCompose, valueF, cm.ComposeFile, "ps", "-a", "--format", "json",
+	)
 	if err != nil {
 		return output, fmt.Errorf("docker compose ps failed: %w", err)
 	}
@@ -81,11 +87,7 @@ func (cm *ComposeManager) Start(ctx context.Context) error {
 	}
 
 	args := cm.buildComposeArgs("up", "-d", "--build")
-	startCmd := exec.CommandContext(ctx, "docker", args...)
-	startCmd.Stdout = os.Stdout
-	startCmd.Stderr = os.Stderr
-
-	if err := startCmd.Run(); err != nil {
+	if err := cm.runCommand(ctx, "docker", args...); err != nil {
 		return fmt.Errorf("failed to start docker compose: %w", err)
 	}
 
@@ -99,23 +101,125 @@ func (cm *ComposeManager) SyncCertOutputDirFromPkiInit(ctx context.Context, host
 	hostCertsDir := filepath.Clean(filepath.Join(hostCACertPath, "..", "..", "..", ".."))
 	containerName := fmt.Sprintf("%s-pki-init-1", filepath.Base(composeDir))
 
-	if err := os.RemoveAll(hostCertsDir); err != nil {
+	if err := cm.removeAll(hostCertsDir); err != nil {
 		return fmt.Errorf("remove host certs dir %s: %w", hostCertsDir, err)
 	}
 
-	if err := os.MkdirAll(hostCertsDir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
+	if err := cm.mkdirAll(hostCertsDir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
 		return fmt.Errorf("mkdir host certs dir %s: %w", hostCertsDir, err)
 	}
 
-	copyCmd := exec.CommandContext(ctx, "docker", "cp", containerName+":/certs/.", hostCertsDir)
-	copyCmd.Stdout = os.Stdout
-	copyCmd.Stderr = os.Stderr
-
-	if err := copyCmd.Run(); err != nil {
+	if err := cm.runCommand(ctx, "docker", "cp", containerName+":/certs/.", hostCertsDir); err != nil {
 		return fmt.Errorf("copy certs from %s to %s: %w", containerName, hostCertsDir, err)
 	}
 
 	return nil
+}
+
+func (cm *ComposeManager) runCommand(ctx context.Context, command string, args ...string) error {
+	if cm.runCommandFn != nil {
+		return cm.runCommandFn(ctx, command, args...)
+	}
+
+	return runCommandWithFn(ctx, command, args, (*exec.Cmd).Run)
+}
+
+func runCommandWithFn(
+	ctx context.Context,
+	command string,
+	args []string,
+	runFn func(*exec.Cmd) error,
+) error {
+	cmd := exec.CommandContext(ctx, command, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := runFn(cmd); err != nil {
+		return fmt.Errorf("run command %q: %w", command, err)
+	}
+
+	return nil
+}
+
+func (cm *ComposeManager) runCommandOutput(ctx context.Context, command string, args ...string) ([]byte, error) {
+	if cm.runCommandOutputFn != nil {
+		return cm.runCommandOutputFn(ctx, command, args...)
+	}
+
+	return runCommandOutputWithFn(ctx, command, args, (*exec.Cmd).CombinedOutput)
+}
+
+func runCommandOutputWithFn(
+	ctx context.Context,
+	command string,
+	args []string,
+	runFn func(*exec.Cmd) ([]byte, error),
+) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, command, args...)
+
+	output, err := runFn(cmd)
+	if err != nil {
+		return output, fmt.Errorf("run command %q and capture output: %w", command, err)
+	}
+
+	return output, nil
+}
+
+func (cm *ComposeManager) removeAll(path string) error {
+	if cm.removeAllFn != nil {
+		return cm.removeAllFn(path)
+	}
+
+	return removeAllWithFn(path, os.RemoveAll)
+}
+
+func removeAllWithFn(path string, removeAllFn func(string) error) error {
+	if err := removeAllFn(path); err != nil {
+		return fmt.Errorf("remove path %q: %w", path, err)
+	}
+
+	return nil
+}
+
+func (cm *ComposeManager) mkdirAll(path string, perm fs.FileMode) error {
+	if cm.mkdirAllFn != nil {
+		return cm.mkdirAllFn(path, perm)
+	}
+
+	return mkdirAllWithFn(path, perm, os.MkdirAll)
+}
+
+func mkdirAllWithFn(path string, perm fs.FileMode, mkdirAllFn func(string, fs.FileMode) error) error {
+	if err := mkdirAllFn(path, perm); err != nil {
+		return fmt.Errorf("create directory %q: %w", path, err)
+	}
+
+	return nil
+}
+
+func (cm *ComposeManager) stat(path string) (os.FileInfo, error) {
+	if cm.statFn != nil {
+		return cm.statFn(path)
+	}
+
+	return statWithFn(path, os.Stat)
+}
+
+func statWithFn(path string, statFn func(string) (os.FileInfo, error)) (os.FileInfo, error) {
+	info, err := statFn(path)
+	if err != nil {
+		return nil, fmt.Errorf("stat path %q: %w", path, err)
+	}
+
+	return info, nil
+}
+
+func (cm *ComposeManager) makeWritable(path string) error {
+	if cm.makeWritableFn != nil {
+		return cm.makeWritableFn(path)
+	}
+
+	return makeWritableRecursive(path)
 }
 
 // resetCertOutputDir makes the compose cert output directory writable.
@@ -125,13 +229,13 @@ func (cm *ComposeManager) resetCertOutputDir() error {
 	composeDir := filepath.Dir(cm.ComposeFile)
 	certsDir := filepath.Join(composeDir, "certs")
 
-	if _, err := os.Stat(certsDir); errors.Is(err, fs.ErrNotExist) {
+	if _, err := cm.stat(certsDir); errors.Is(err, fs.ErrNotExist) {
 		return nil
 	} else if err != nil {
 		return fmt.Errorf("stat certs dir %s: %w", certsDir, err)
 	}
 
-	if err := makeWritableRecursive(certsDir); err != nil {
+	if err := cm.makeWritable(certsDir); err != nil {
 		return fmt.Errorf("make writable certs dir %s: %w", certsDir, err)
 	}
 
@@ -141,7 +245,28 @@ func (cm *ComposeManager) resetCertOutputDir() error {
 // makeWritableRecursive clears read-only attributes recursively so pki-init can
 // rewrite cert output on Windows and Unix.
 func makeWritableRecursive(path string) error {
-	root, err := os.OpenRoot(path)
+	return makeWritableRecursiveWithOps(
+		path,
+		func(rootPath string) (writableRoot, error) {
+			return os.OpenRoot(rootPath)
+		},
+		filepath.WalkDir,
+		filepath.Rel,
+	)
+}
+
+type writableRoot interface {
+	Chmod(name string, mode fs.FileMode) error
+	Close() error
+}
+
+func makeWritableRecursiveWithOps(
+	path string,
+	openRootFn func(path string) (writableRoot, error),
+	walkDirFn func(root string, fn fs.WalkDirFunc) error,
+	relFn func(basepath, targpath string) (string, error),
+) error {
+	root, err := openRootFn(path)
 	if err != nil {
 		return fmt.Errorf("open root %s: %w", path, err)
 	}
@@ -150,12 +275,12 @@ func makeWritableRecursive(path string) error {
 		_ = root.Close()
 	}()
 
-	if err := filepath.WalkDir(path, func(walkPath string, d fs.DirEntry, walkErr error) error {
+	if err := walkDirFn(path, func(walkPath string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return fmt.Errorf("walk %s: %w", walkPath, walkErr)
 		}
 
-		relPath, relErr := filepath.Rel(path, walkPath)
+		relPath, relErr := relFn(path, walkPath)
 		if relErr != nil {
 			return fmt.Errorf("rel path %s: %w", walkPath, relErr)
 		}
@@ -185,11 +310,7 @@ func (cm *ComposeManager) Stop(ctx context.Context) error {
 	fmt.Println("Stopping docker compose stack...")
 
 	args := cm.buildComposeArgs("down", "-v")
-	downCmd := exec.CommandContext(ctx, "docker", args...)
-	downCmd.Stdout = os.Stdout
-	downCmd.Stderr = os.Stderr
-
-	if err := downCmd.Run(); err != nil {
+	if err := cm.runCommand(ctx, "docker", args...); err != nil {
 		return fmt.Errorf("failed to stop docker compose: %w", err)
 	}
 
@@ -245,32 +366,37 @@ func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration)
 			fmt.Printf("[WaitForHealth] TIMEOUT for %s after %d attempts\n", healthURL, attempts)
 
 			return fmt.Errorf("health check timeout after %v (%d attempts)", timeout, attempts)
-		case <-ticker.C:
-			attempts++
+		default:
+		}
 
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
-			if err != nil {
-				fmt.Printf("[WaitForHealth] Attempt %d for %s: request creation error: %v\n", attempts, healthURL, err)
+		attempts++
 
-				continue // Retry on request creation errors.
-			}
-
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+		if err != nil {
+			fmt.Printf("[WaitForHealth] Attempt %d for %s: request creation error: %v\n", attempts, healthURL, err)
+		} else {
 			resp, err := cm.HTTPClient.Do(req)
 			if err != nil {
 				fmt.Printf("[WaitForHealth] Attempt %d for %s: connection error: %v\n", attempts, healthURL, err)
+			} else {
+				_ = resp.Body.Close()
 
-				continue // Retry on connection errors.
+				if resp.StatusCode == http.StatusOK {
+					fmt.Printf("[WaitForHealth] SUCCESS for %s after %d attempts\n", healthURL, attempts)
+
+					return nil
+				}
+
+				fmt.Printf("[WaitForHealth] Attempt %d for %s: HTTP %d\n", attempts, healthURL, resp.StatusCode)
 			}
+		}
 
-			_ = resp.Body.Close()
+		select {
+		case <-timeoutCh:
+			fmt.Printf("[WaitForHealth] TIMEOUT for %s after %d attempts\n", healthURL, attempts)
 
-			if resp.StatusCode == http.StatusOK {
-				fmt.Printf("[WaitForHealth] SUCCESS for %s after %d attempts\n", healthURL, attempts)
-
-				return nil // Healthy!
-			}
-
-			fmt.Printf("[WaitForHealth] Attempt %d for %s: HTTP %d\n", attempts, healthURL, resp.StatusCode)
+			return fmt.Errorf("health check timeout after %v (%d attempts)", timeout, attempts)
+		case <-ticker.C:
 		}
 	}
 }

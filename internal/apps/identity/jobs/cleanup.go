@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -37,7 +38,9 @@ type CleanupJob struct {
 	repoFactory *cryptoutilIdentityRepository.RepositoryFactory
 	logger      *slog.Logger
 	interval    time.Duration
-	stopChan    chan struct{}
+	stopCtx     context.Context
+	stopCancel  context.CancelFunc
+	stopOnce    sync.Once
 	metrics     *CleanupJobMetrics
 }
 
@@ -47,24 +50,35 @@ func NewCleanupJob(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, 
 		interval = defaultCleanupInterval
 	}
 
+	stopCtx, stopCancel := context.WithCancel(context.Background())
+
 	return &CleanupJob{
 		repoFactory: repoFactory,
 		logger:      logger,
 		interval:    interval,
-		stopChan:    make(chan struct{}),
+		stopCtx:     stopCtx,
+		stopCancel:  stopCancel,
 		metrics:     &CleanupJobMetrics{},
 	}
 }
 
 // Start begins the cleanup job loop.
 func (j *CleanupJob) Start(ctx context.Context) {
+	runCtx, cancel := context.WithCancel(ctx)
+
+	stopAfterFunc := context.AfterFunc(j.stopCtx, cancel)
+	defer func() {
+		stopAfterFunc()
+		cancel()
+	}()
+
 	j.logger.Info("Starting cleanup job", "interval", j.interval)
 
 	ticker := time.NewTicker(j.interval)
 	defer ticker.Stop()
 
 	// Run cleanup immediately on start.
-	j.cleanup(ctx)
+	j.cleanup(runCtx)
 
 	for {
 		select {
@@ -72,19 +86,21 @@ func (j *CleanupJob) Start(ctx context.Context) {
 			j.logger.Info("Cleanup job stopped due to context cancellation")
 
 			return
-		case <-j.stopChan:
+		case <-j.stopCtx.Done():
 			j.logger.Info("Cleanup job stopped")
 
 			return
 		case <-ticker.C:
-			j.cleanup(ctx)
+			j.cleanup(runCtx)
 		}
 	}
 }
 
 // Stop stops the cleanup job.
 func (j *CleanupJob) Stop() {
-	close(j.stopChan)
+	j.stopOnce.Do(func() {
+		j.stopCancel()
+	})
 }
 
 // cleanup performs the actual cleanup work.

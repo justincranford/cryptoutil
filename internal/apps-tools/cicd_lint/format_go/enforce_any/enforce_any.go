@@ -80,6 +80,10 @@ func Enforce(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string
 // This function is protected from self-modification by exclusion patterns.
 // Returns the number of replacements made and any error encountered.
 func ProcessGoFile(filePath string) (int, error) {
+	return processGoFile(filePath, cryptoutilSharedUtilFiles.WriteFile)
+}
+
+func processGoFile(filePath string, writeFileFn func(string, any, os.FileMode) error) (int, error) {
 	// Read the file.
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -110,7 +114,7 @@ func ProcessGoFile(filePath string) (int, error) {
 
 	// Only write if content actually changed.
 	if originalContent != modifiedContent {
-		err = cryptoutilSharedUtilFiles.WriteFile(filePath, modifiedContent, cryptoutilSharedMagic.FilePermissionsDefault)
+		err = writeFileFn(filePath, modifiedContent, cryptoutilSharedMagic.FilePermissionsDefault)
 		if err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
 		}

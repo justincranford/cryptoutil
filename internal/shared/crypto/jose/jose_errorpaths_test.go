@@ -4,11 +4,19 @@
 package crypto
 
 import (
+	ecdsa "crypto/ecdsa"
+	"crypto/elliptic"
+	crand "crypto/rand"
+	"crypto/x509"
+	"encoding/base64"
+	"math/big"
 	"testing"
+	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
+	joseCert "github.com/lestrrat-go/jwx/v3/cert"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
@@ -286,6 +294,30 @@ func TestLogJWSInfo_ExoticHeaders(t *testing.T) {
 	require.NoError(t, headers.Set("x5u", "https://example.com/cert"))
 	require.NoError(t, headers.Set("x5t", "dGVzdA"))      // base64 "test".
 	require.NoError(t, headers.Set("x5t#S256", "dGVzdA")) // base64 "test".
+
+	kid, err := googleUuid.NewV7()
+	require.NoError(t, err)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	require.NoError(t, err)
+
+	certificateTemplate := &x509.Certificate{
+		SerialNumber: new(big.Int).SetBytes(kid[:]),
+		NotBefore:    time.Now().UTC().Add(-time.Minute),
+		NotAfter:     time.Now().UTC().Add(time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+	}
+	certificateDER, err := x509.CreateCertificate(
+		crand.Reader,
+		certificateTemplate,
+		certificateTemplate,
+		&privateKey.PublicKey,
+		privateKey,
+	)
+	require.NoError(t, err)
+
+	certificateChain := &joseCert.Chain{}
+	require.NoError(t, certificateChain.Add([]byte(base64.StdEncoding.EncodeToString(certificateDER))))
+	require.NoError(t, headers.Set(joseJws.X509CertChainKey, certificateChain))
 
 	key, err := GenerateHMACJWK(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)

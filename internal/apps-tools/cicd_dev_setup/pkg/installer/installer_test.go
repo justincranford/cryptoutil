@@ -117,7 +117,7 @@ func TestInstall_Sad(t *testing.T) {
 			name: "Invalid install command format",
 			dep: &cryptoutilAppsToolsDevSetupConfig.Dependency{
 				Name:       cryptoutilSharedMagic.DevSetupTestInvalidToolName,
-				InstallCmd: "",
+				InstallCmd: "   ",
 			},
 			expectErr: true,
 		},

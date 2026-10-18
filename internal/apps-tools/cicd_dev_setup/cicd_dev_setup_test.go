@@ -3,11 +3,17 @@ package cicd_dev_setup
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilAppsToolsDevSetupChecker "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/checker"
 	cryptoutilAppsToolsDevSetupConfig "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/config"
+	cryptoutilAppsToolsDevSetupInstaller "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/installer"
 	cryptoutilAppsToolsDevSetupReporter "cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/reporter"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -47,7 +53,10 @@ func (si *stubInstaller) Install(_ context.Context, _ *cryptoutilAppsToolsDevSet
 	return si.err
 }
 
-const testVersion200 = "2.0.0"
+const (
+	testVersion200  = "2.0.0"
+	testProjectRoot = "project-root"
+)
 
 func oneDepConfig() *cryptoutilAppsToolsDevSetupConfig.Config {
 	return &cryptoutilAppsToolsDevSetupConfig.Config{
@@ -150,12 +159,13 @@ func TestRunSetup_CheckCommandErrors(t *testing.T) {
 // forwards it and always returns nil (post-checkout must never block on tool issues).
 type stubReporter struct {
 	received *cryptoutilAppsToolsDevSetupReporter.Summary
+	err      error
 }
 
 func (sr *stubReporter) ReportSummary(s *cryptoutilAppsToolsDevSetupReporter.Summary) error {
 	sr.received = s
 
-	return nil
+	return sr.err
 }
 
 func TestInternalMainWithSetup_NeverBlocksOnDependencyErrors(t *testing.T) {
@@ -181,6 +191,235 @@ func TestInternalMainWithSetup_NilSetup(t *testing.T) {
 
 	err := internalMainWithSetup(context.Background(), nil)
 	require.Error(t, err, "expected error for nil setup")
+}
+
+func TestInternalMainWithInjectedDependencies(t *testing.T) {
+	t.Parallel()
+
+	runner := internalMain(
+		func() (*cryptoutilAppsToolsDevSetupConfig.Config, error) {
+			return &cryptoutilAppsToolsDevSetupConfig.Config{}, nil
+		},
+		func() (string, error) {
+			return testProjectRoot, nil
+		},
+		newSetup,
+	)
+
+	var stdout, stderr strings.Builder
+	require.NoError(t, runner(&stdout, &stderr))
+	require.Contains(t, stdout.String(), "All dependencies installed successfully")
+}
+
+func TestInternalMainWithSetup_SetupRunnerFailure(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("injected setup runner failure")
+	setup := &Setup{Reporter: &stubReporter{}}
+
+	err := internalMainWithSetupWithRunner(context.Background(), setup, func(
+		context.Context,
+		*cryptoutilAppsToolsDevSetupConfig.Config,
+		cryptoutilAppsToolsDevSetupChecker.Checker,
+		cryptoutilAppsToolsDevSetupInstaller.Installer,
+		cryptoutilAppsToolsDevSetupReporter.Reporter,
+	) (*cryptoutilAppsToolsDevSetupReporter.Summary, error) {
+		return nil, expectedErr
+	})
+	require.ErrorIs(t, err, expectedErr)
+}
+
+func TestInternalMainWithDependencies(t *testing.T) {
+	t.Parallel()
+
+	configError := fmt.Errorf("config unavailable")
+	rootError := fmt.Errorf("root unavailable")
+	reportError := fmt.Errorf("report unavailable")
+	tests := []struct {
+		name       string
+		loadConfig func() (*cryptoutilAppsToolsDevSetupConfig.Config, error)
+		findRoot   func() (string, error)
+		reportErr  error
+		wantErr    string
+	}{
+		{
+			name: "configuration load fails",
+			loadConfig: func() (*cryptoutilAppsToolsDevSetupConfig.Config, error) {
+				return nil, configError
+			},
+			findRoot: func() (string, error) {
+				return "", errors.New("root lookup should not be called")
+			},
+			wantErr: "failed to load configuration",
+		},
+		{
+			name: "project root lookup fails",
+			loadConfig: func() (*cryptoutilAppsToolsDevSetupConfig.Config, error) {
+				return &cryptoutilAppsToolsDevSetupConfig.Config{}, nil
+			},
+			findRoot: func() (string, error) {
+				return "", rootError
+			},
+			wantErr: "failed to determine project root",
+		},
+		{
+			name: "reporter fails after setup",
+			loadConfig: func() (*cryptoutilAppsToolsDevSetupConfig.Config, error) {
+				return &cryptoutilAppsToolsDevSetupConfig.Config{}, nil
+			},
+			findRoot: func() (string, error) {
+				return testProjectRoot, nil
+			},
+			reportErr: reportError,
+			wantErr:   "failed to report results",
+		},
+		{
+			name: "empty configuration completes",
+			loadConfig: func() (*cryptoutilAppsToolsDevSetupConfig.Config, error) {
+				return &cryptoutilAppsToolsDevSetupConfig.Config{}, nil
+			},
+			findRoot: func() (string, error) {
+				return testProjectRoot, nil
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			stdout := &strings.Builder{}
+			stderr := &strings.Builder{}
+			err := internalMainWithDependencies(stdout, stderr, tc.loadConfig, tc.findRoot, func(
+				cfg *cryptoutilAppsToolsDevSetupConfig.Config,
+				projectRoot string,
+				out, errOut io.Writer,
+			) *Setup {
+				require.Equal(t, testProjectRoot, projectRoot)
+				require.NotNil(t, cfg)
+
+				return &Setup{
+					Config:    cfg,
+					Checker:   &stubChecker{},
+					Installer: &stubInstaller{},
+					Reporter:  &stubReporter{err: tc.reportErr},
+				}
+			})
+
+			if tc.wantErr == "" {
+				require.NoError(t, err)
+
+				return
+			}
+
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
+}
+
+func TestMainWithRunner(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		run      func(io.Writer, io.Writer) error
+		wantCode int
+		wantText string
+	}{
+		{
+			name:     "success",
+			run:      func(io.Writer, io.Writer) error { return nil },
+			wantCode: exitCodeSuccess,
+		},
+		{
+			name:     "failure",
+			run:      func(io.Writer, io.Writer) error { return errors.New("setup failure") },
+			wantCode: exitCodeFailure,
+			wantText: "setup failure",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var stdout, stderr strings.Builder
+			require.Equal(t, tc.wantCode, mainWithRunner(&stdout, &stderr, tc.run))
+
+			if tc.wantText != "" {
+				require.Contains(t, stderr.String(), tc.wantText)
+			}
+		})
+	}
+}
+
+func TestGetProjectRootWith(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		getwd   func() (string, error)
+		stat    func(string) (os.FileInfo, error)
+		wantErr string
+		wantDir string
+	}{
+		{
+			name: "working directory lookup fails",
+			getwd: func() (string, error) {
+				return "", errors.New("cwd unavailable")
+			},
+			stat:    os.Stat,
+			wantErr: "failed to get current working directory",
+		},
+		{
+			name: "finds root in parent directory",
+			getwd: func() (string, error) {
+				return filepath.Join("project", "nested"), nil
+			},
+			stat: func(path string) (os.FileInfo, error) {
+				if path == filepath.Join("project", "go.mod") {
+					return nil, nil
+				}
+
+				return nil, os.ErrNotExist
+			},
+			wantDir: "project",
+		},
+		{
+			name: "root without go.mod fails",
+			getwd: func() (string, error) {
+				return string(filepath.Separator), nil
+			},
+			stat: func(string) (os.FileInfo, error) {
+				return nil, os.ErrNotExist
+			},
+			wantErr: "project root not found",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			root, err := getProjectRootWith(tc.getwd, tc.stat)
+			if tc.wantErr != "" {
+				require.ErrorContains(t, err, tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.wantDir, root)
+		})
+	}
+}
+
+func TestGetProjectRoot_FindsRepositoryRoot(t *testing.T) {
+	t.Parallel()
+
+	root, err := getProjectRoot()
+	require.NoError(t, err)
+	require.FileExists(t, filepath.Join(root, "go.mod"))
 }
 
 var _ cryptoutilAppsToolsDevSetupChecker.Checker = (*stubChecker)(nil)

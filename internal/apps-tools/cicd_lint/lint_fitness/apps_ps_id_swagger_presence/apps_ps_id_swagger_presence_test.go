@@ -139,6 +139,34 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheckInDir_ExplicitlyExcludedPSID(t *testing.T) {
+	t.Parallel()
+
+	services := cryptoutilFitnessRegistry.AllProductServices()
+	require.NotEmpty(t, services)
+	excludedPSID := services[0].PSID
+
+	tmpDir := t.TempDir()
+
+	for _, ps := range services {
+		if ps.PSID == excludedPSID {
+			continue
+		}
+
+		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
+		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	}
+
+	err := ExportedCheckInDirWithExclusions(
+		cryptoutilCmdCicdCommon.NewLogger("test"),
+		tmpDir,
+		map[string]bool{excludedPSID: true},
+	)
+	require.NoError(t, err)
+}
+
 func TestCheckPSIDSwaggerFiles_MissingPSIDDir(t *testing.T) {
 	t.Parallel()
 
@@ -203,45 +231,4 @@ func TestCheckPSIDSwaggerFiles_AllPresent(t *testing.T) {
 
 	errs := ExportedCheckPSIDSwaggerFiles(tmpDir, "test-psid")
 	require.Empty(t, errs)
-}
-
-func TestCheckInDir_ExcludedPSIDPassesWithoutSwagger(t *testing.T) {
-	t.Parallel()
-
-	// Verify excluded PS-IDs don't trigger an error when swagger is absent.
-	var excludedPSID string
-
-	for psid := range knownExclusions {
-		excludedPSID = psid
-
-		break
-	}
-
-	if excludedPSID == "" {
-		t.Skip("no excluded PS-IDs in knownExclusions")
-	}
-
-	tmpDir := t.TempDir()
-
-	// Create only the excluded PS-ID directory (no swagger files).
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps", excludedPSID, cryptoutilSharedMagic.CMD_SERVER), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	// Create all other PS-IDs fully (including swagger if non-excluded).
-	for _, ps := range cryptoutilFitnessRegistry.AllProductServices() {
-		if ps.PSID == excludedPSID {
-			continue
-		}
-
-		serverDir := filepath.Join(tmpDir, "internal", "apps", ps.PSID, cryptoutilSharedMagic.CMD_SERVER)
-		require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-		if !knownExclusions[ps.PSID] {
-			require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
-			require.NoError(t, os.WriteFile(filepath.Join(serverDir, "swagger_test.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
-		}
-	}
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckInDir(logger, tmpDir)
-	require.NoError(t, err)
 }

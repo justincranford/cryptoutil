@@ -6,6 +6,7 @@ package builder
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"testing"
@@ -21,6 +22,9 @@ import (
 	cryptoutilAppsFrameworkServiceServerListener "cryptoutil/internal/apps-framework/service/server/listener"
 
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	_ "modernc.org/sqlite"
 )
 
 // TestBuild_SimpleErrors tests Build error paths that do not require full service initialization.
@@ -70,63 +74,114 @@ func TestBuild_OperationErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		configure func(*serverBuilderOperations)
-		wantErr   string
+		name             string
+		configureBuilder func(*ServerBuilder)
+		configure        func(*serverBuilderOperations)
+		wantErr          string
+		wantCause        string
 	}{
 		{
 			name: "admin server creation error",
+			configureBuilder: func(builder *ServerBuilder) {
+				builder.config.PublicBrowserAPIContextPath = "/custom/browser"
+				builder.config.PublicServiceAPIContextPath = "/custom/service"
+			},
 			configure: func(operations *serverBuilderOperations) {
 				operations.newAdminHTTPServer = func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, error) {
-					return nil, errors.New("injected builder operation error")
+					return nil, errors.New(testInjectedBuilderOperationError)
 				}
 			},
-			wantErr: "failed to create admin server",
+			wantErr:   "failed to create admin server",
+			wantCause: testInjectedBuilderOperationError,
+		},
+		{
+			name: "database sql handle retrieval error",
+			configure: func(operations *serverBuilderOperations) {
+				operations.startCore = func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error) {
+					return &cryptoutilAppsFrameworkServiceServerApplication.Core{
+						DB: &gorm.DB{Config: &gorm.Config{ConnPool: &fakeConnPool{}}},
+					}, nil
+				}
+			},
+			wantErr: "failed to get sql.DB from GORM",
 		},
 		{
 			name: "application core start error",
 			configure: func(operations *serverBuilderOperations) {
 				operations.startCore = func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error) {
-					return nil, errors.New("injected builder operation error")
+					return nil, errors.New(testInjectedBuilderOperationError)
 				}
 			},
-			wantErr: "failed to start application core",
+			wantErr:   "failed to start application core",
+			wantCause: testInjectedBuilderOperationError,
 		},
 		{
 			name: "service initialization error",
 			configure: func(operations *serverBuilderOperations) {
 				operations.initServicesOnCore = func(context.Context, *cryptoutilAppsFrameworkServiceServerApplication.Core, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices, error) {
-					return nil, errors.New("injected builder operation error")
+					return nil, errors.New(testInjectedBuilderOperationError)
 				}
 			},
-			wantErr: "failed to initialize services on core",
+			wantErr:   "failed to initialize services on core",
+			wantCause: testInjectedBuilderOperationError,
 		},
 		{
 			name: "public TLS material generation error",
 			configure: func(operations *serverBuilderOperations) {
 				operations.generateTLSMaterial = func(*cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
-					return nil, errors.New("injected builder operation error")
+					return nil, errors.New(testInjectedBuilderOperationError)
 				}
 			},
-			wantErr: "failed to generate public TLS material",
+			wantErr:   "failed to generate public TLS material",
+			wantCause: testInjectedBuilderOperationError,
 		},
 		{
 			name: "public server creation error",
 			configure: func(operations *serverBuilderOperations) {
+				operations.startCore = func(_ context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error) {
+					sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, settings.DatabaseURL)
+					if err != nil {
+						return nil, err
+					}
+
+					db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
+					if err != nil {
+						_ = sqlDB.Close()
+
+						return nil, err
+					}
+
+					sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+
+					return &cryptoutilAppsFrameworkServiceServerApplication.Core{DB: db}, nil
+				}
+				operations.initServicesOnCore = func(_ context.Context, core *cryptoutilAppsFrameworkServiceServerApplication.Core, _ *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices, error) {
+					return &cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices{Core: core}, nil
+				}
 				operations.newPublicServerBase = func(*cryptoutilAppsFrameworkServiceServer.PublicServerConfig) (*cryptoutilAppsFrameworkServiceServer.PublicServerBase, error) {
-					return nil, errors.New("injected builder operation error")
+					return nil, errors.New(testInjectedBuilderOperationError)
 				}
 			},
-			wantErr: "failed to create public server base",
+			wantErr:   "failed to create public server base",
+			wantCause: testInjectedBuilderOperationError,
 		},
 		{
 			name: "application creation error",
 			configure: func(operations *serverBuilderOperations) {
 				operations.newApplication = func(context.Context, cryptoutilAppsFrameworkServiceServer.IPublicServer, cryptoutilAppsFrameworkServiceServer.IAdminServer) (*cryptoutilAppsFrameworkServiceServer.Application, error) {
-					return nil, errors.New("injected builder operation error")
+					return nil, errors.New(testInjectedBuilderOperationError)
 				}
 			},
-			wantErr: "failed to create application",
+			wantErr:   "failed to create application",
+			wantCause: testInjectedBuilderOperationError,
+		},
+		{
+			name: "swagger ui registration error",
+			configureBuilder: func(builder *ServerBuilder) {
+				builder.swaggerUIConfig = &SwaggerUIConfig{}
+			},
+			wantErr:   "failed to register swagger UI",
+			wantCause: "OpenAPI spec JSON is required",
 		},
 	}
 
@@ -135,15 +190,38 @@ func TestBuild_OperationErrors(t *testing.T) {
 			t.Parallel()
 
 			builder := NewServerBuilder(context.Background(), getMinimalSettings())
+			if tc.configureBuilder != nil {
+				tc.configureBuilder(builder)
+			}
+
 			operations := defaultServerBuilderOperations()
-			tc.configure(&operations)
+			if tc.configure != nil {
+				tc.configure(&operations)
+			}
 
 			resources, err := builder.buildWithOperations(operations)
 			require.Nil(t, resources)
 			require.ErrorContains(t, err, tc.wantErr)
-			require.ErrorContains(t, err, "injected builder operation error")
+
+			if tc.wantCause != "" {
+				require.ErrorContains(t, err, tc.wantCause)
+			}
 		})
 	}
+}
+
+func TestApplyMigrations_PostgreSQLDatabaseURL(t *testing.T) {
+	t.Parallel()
+
+	settings := getMinimalSettings()
+	settings.DatabaseURL = "postgres://localhost/framework-test"
+	builder := NewServerBuilder(context.Background(), settings)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, sqlDB.Close()) })
+
+	err = builder.applyMigrations(sqlDB)
+	require.ErrorContains(t, err, "failed to apply migrations")
 }
 
 func TestBuild_PublicRouteRegistrationError(t *testing.T) {
@@ -257,6 +335,7 @@ func TestBuild_Success(t *testing.T) {
 		require.NotNil(t, res.BarrierService)
 		require.NotNil(t, res.UnsealKeysService)
 		require.NotNil(t, res.SessionManager)
+		require.NotNil(t, res.UserRepository)
 		require.NotNil(t, res.RealmService)
 		require.NotNil(t, res.RealmRepository)
 		require.NotNil(t, res.ShutdownCore)
@@ -282,6 +361,7 @@ func TestBuild_Success(t *testing.T) {
 	require.NotNil(t, resources.UnsealKeysService)
 	require.NotNil(t, resources.SessionManager)
 	require.NotNil(t, resources.RegistrationService)
+	require.NotNil(t, resources.UserRepository)
 	require.NotNil(t, resources.RealmService)
 	require.NotNil(t, resources.RealmRepository)
 	require.NotNil(t, resources.Application)

@@ -8,6 +8,8 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -207,7 +209,8 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 func TestCleanupJob_Integration_ScheduledExecution(t *testing.T) {
 	t.Parallel()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	runObserver := &cleanupRunObserver{}
+	logger := slog.New(slog.NewTextHandler(runObserver, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	repoFactory := createTestRepoFactory(t)
 
 	// Run migrations before test execution.
@@ -216,7 +219,7 @@ func TestCleanupJob_Integration_ScheduledExecution(t *testing.T) {
 	err := repoFactory.AutoMigrate(ctx)
 	testify.NoError(t, err, "Failed to run migrations")
 
-	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Create cleanup job with very short interval.
@@ -230,8 +233,20 @@ func TestCleanupJob_Integration_ScheduledExecution(t *testing.T) {
 		close(done)
 	}()
 
-	// Wait for job to run at least 2 times (initial + 1 scheduled).
-	time.Sleep(600 * time.Millisecond)
+	t.Cleanup(func() {
+		cancel()
+
+		select {
+		case <-done:
+		case <-time.After(2 * time.Second):
+			t.Error("Job did not stop during test cleanup")
+		}
+	})
+
+	// Wait for the initial cleanup and at least one scheduled cleanup.
+	testify.Eventually(t, func() bool {
+		return runObserver.completedRuns.Load() >= 2
+	}, 5*time.Second, 10*time.Millisecond, "Expected at least 2 cleanup runs")
 
 	// Stop job.
 	job.Stop()
@@ -248,6 +263,18 @@ func TestCleanupJob_Integration_ScheduledExecution(t *testing.T) {
 	metrics := job.GetMetrics()
 	testify.GreaterOrEqual(t, metrics.TotalRunCount, 2, "Expected at least 2 cleanup runs")
 	testify.Equal(t, 0, metrics.ErrorCount, "Expected no errors during scheduled execution")
+}
+
+type cleanupRunObserver struct {
+	completedRuns atomic.Int32
+}
+
+func (observer *cleanupRunObserver) Write(message []byte) (int, error) {
+	if strings.Contains(string(message), "Cleanup tasks completed") {
+		observer.completedRuns.Add(1)
+	}
+
+	return len(message), nil
 }
 
 func TestCleanupJob_Integration_HealthCheck(t *testing.T) {

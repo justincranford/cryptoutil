@@ -2,9 +2,9 @@ package lint_deployments
 
 import (
 	json "encoding/json"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -345,26 +345,11 @@ func TestWriteListingFile_WriteError(t *testing.T) {
 func TestGenerateDirectoryListing_WalkError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	tmpDir := t.TempDir()
-
-	// Create a subdirectory then remove read permission.
-	subDir := filepath.Join(tmpDir, "restricted")
-	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	createTestFile(t, subDir, "file.txt", "data")
-
-	// Remove read permission on subdirectory.
-	require.NoError(t, os.Chmod(subDir, 0o000))
-
-	t.Cleanup(func() {
-		// Restore permission for cleanup.
-		_ = os.Chmod(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	_, err := generateDirectoryListingWithWalkDir(tmpDir, func(root string, walkFn fs.WalkDirFunc) error {
+		return walkFn(filepath.Join(root, "restricted"), nil, os.ErrPermission)
 	})
 
-	_, err := GenerateDirectoryListing(tmpDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to walk directory")
 }

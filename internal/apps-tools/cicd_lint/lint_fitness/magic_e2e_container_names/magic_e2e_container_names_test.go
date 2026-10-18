@@ -72,6 +72,21 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: changes the process working directory.
+func TestCheck_FromWorkspaceRoot(t *testing.T) {
+	root := findProjectRoot(t)
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(root))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	require.NoError(t, lintFitnessMagicE2EContainerNames.Check(newTestLogger()))
+}
+
 func TestCheckInDir_AllCorrect(t *testing.T) {
 	t.Parallel()
 

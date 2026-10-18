@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"os/user"
+	"strconv"
 	"testing"
 	"time"
 
@@ -17,7 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var errInjected = errors.New("injected failure")
+const sysinfoInjectedFailureMessage = "injected failure"
+
+var errInjected = errors.New(sysinfoInjectedFailureMessage)
 
 // TestCPUInfo_Success tests the happy path when gopsutil returns valid CPU info.
 func TestCPUInfo_Success(t *testing.T) {
@@ -60,48 +63,143 @@ func TestCPUInfo_NoCPU(t *testing.T) {
 	require.Contains(t, err.Error(), "no CPU info")
 }
 
-// TestRAMSize_Error tests error path when gopsutil fails.
-func TestRAMSize_Error(t *testing.T) {
-	t.Parallel()
+func runSysInfoErrorTests(t *testing.T) {
+	t.Helper()
 
-	_, err := ramSizeWithFn(context.Background(), func(_ context.Context) (*mem.VirtualMemoryStat, error) {
-		return nil, errInjected
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get RAM info")
+	tests := []struct {
+		name        string
+		wantErr     string
+		wantValues  []string
+		collectInfo func() ([]string, error)
+	}{
+		{
+			name:       "ram_size_error_handling",
+			wantErr:    "failed to get RAM info",
+			wantValues: []string{"0"},
+			collectInfo: func() ([]string, error) {
+				size, err := ramSizeWithFn(context.Background(), func(_ context.Context) (*mem.VirtualMemoryStat, error) {
+					return nil, errInjected
+				})
+
+				return []string{strconv.FormatUint(size, 10)}, err
+			},
+		},
+		{
+			name:       "os_hostname_error_handling",
+			wantErr:    "failed to get OS hostname",
+			wantValues: []string{EmptyString},
+			collectInfo: func() ([]string, error) {
+				hostname, err := osHostnameWithFn(func() (string, error) {
+					return EmptyString, errInjected
+				})
+
+				return []string{hostname}, err
+			},
+		},
+		{
+			name:       "host_id_error_handling",
+			wantErr:    "failed to get host ID",
+			wantValues: []string{EmptyString},
+			collectInfo: func() ([]string, error) {
+				hostID, err := hostIDWithFn(context.Background(), func(_ context.Context) (string, error) {
+					return EmptyString, errInjected
+				})
+
+				return []string{hostID}, err
+			},
+		},
+		{
+			name:       "user_info_error_handling",
+			wantErr:    "failed to get user info",
+			wantValues: []string{EmptyString, EmptyString, EmptyString},
+			collectInfo: func() ([]string, error) {
+				userID, groupID, username, err := userInfoWithFn(func() (*user.User, error) {
+					return nil, errInjected
+				})
+
+				return []string{userID, groupID, username}, err
+			},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			values, err := tc.collectInfo()
+			require.ErrorIs(t, err, errInjected)
+			require.ErrorContains(t, err, tc.wantErr)
+			require.Equal(t, tc.wantValues, values)
+		})
+	}
 }
 
-// TestOSHostname_Error tests error path when os.Hostname fails.
-func TestOSHostname_Error(t *testing.T) {
+func TestGetAllInfoWithTimeout_ProviderErrors(t *testing.T) {
 	t.Parallel()
 
-	_, err := osHostnameWithFn(func() (string, error) {
-		return "", errInjected
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get OS hostname")
-}
+	tests := []struct {
+		name       string
+		inject     func(*DefaultSysInfoProvider)
+		wantErrMsg string
+	}{
+		{
+			name: "cpu info error",
+			inject: func(provider *DefaultSysInfoProvider) {
+				provider.cpuInfoFn = func() (string, string, string, string, error) {
+					return "", "", "", "", errInjected
+				}
+			},
+			wantErrMsg: sysinfoInjectedFailureMessage,
+		},
+		{
+			name: "ram size error",
+			inject: func(provider *DefaultSysInfoProvider) {
+				provider.ramSizeFn = func() (uint64, error) {
+					return 0, errInjected
+				}
+			},
+			wantErrMsg: sysinfoInjectedFailureMessage,
+		},
+		{
+			name: "hostname error",
+			inject: func(provider *DefaultSysInfoProvider) {
+				provider.osHostnameFn = func() (string, error) {
+					return "", errInjected
+				}
+			},
+			wantErrMsg: sysinfoInjectedFailureMessage,
+		},
+		{
+			name: "host ID error",
+			inject: func(provider *DefaultSysInfoProvider) {
+				provider.hostIDFn = func() (string, error) {
+					return "", errInjected
+				}
+			},
+			wantErrMsg: sysinfoInjectedFailureMessage,
+		},
+		{
+			name: "user info error",
+			inject: func(provider *DefaultSysInfoProvider) {
+				provider.userInfoFn = func() (string, string, string, error) {
+					return "", "", "", errInjected
+				}
+			},
+			wantErrMsg: sysinfoInjectedFailureMessage,
+		},
+	}
 
-// TestHostID_Error tests error path when gopsutil fails.
-func TestHostID_Error(t *testing.T) {
-	t.Parallel()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	_, err := hostIDWithFn(context.Background(), func(_ context.Context) (string, error) {
-		return "", errInjected
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get host ID")
-}
+			provider := newPortableDefaultSysInfoProvider()
+			tc.inject(provider)
 
-// TestUserInfo_Error tests error path when user.Current fails.
-func TestUserInfo_Error(t *testing.T) {
-	t.Parallel()
-
-	_, _, _, err := userInfoWithFn(func() (*user.User, error) {
-		return nil, errInjected
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get user info")
+			_, err := GetAllInfoWithTimeout(provider, cryptoutilSharedMagic.DefaultSysInfoAllTimeout)
+			require.ErrorIs(t, err, errInjected)
+			require.ErrorContains(t, err, tc.wantErrMsg)
+		})
+	}
 }
 
 // blockingProviderForTimeout is a SysInfoProvider that blocks until released.
@@ -149,8 +247,8 @@ func (p *blockingProviderForTimeout) UserInfo() (string, string, string, error) 
 	return "", "", "", nil
 }
 
-// TestGetAllInfoWithTimeout_Timeout tests that timeout paths are triggered.
-func TestGetAllInfoWithTimeout_Timeout(t *testing.T) {
+// TestSysInfoAll_Timeout verifies that provider calls exceeding the deadline report timeouts.
+func TestSysInfoAll_Timeout(t *testing.T) {
 	t.Parallel()
 
 	releaseCh := make(chan struct{})
@@ -162,5 +260,16 @@ func TestGetAllInfoWithTimeout_Timeout(t *testing.T) {
 	// 1ms timeout — all goroutines should hit the timeout path.
 	_, err := GetAllInfoWithTimeout(provider, time.Millisecond)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to collect system information")
+	require.ErrorContains(t, err, "failed to collect system information")
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+
+	for _, timeoutMessage := range []string{
+		"CPU info timeout",
+		"RAM info timeout",
+		"hostname info timeout",
+		"host ID info timeout",
+		"user info timeout",
+	} {
+		require.ErrorContains(t, err, timeoutMessage)
+	}
 }

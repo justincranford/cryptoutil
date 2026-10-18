@@ -181,8 +181,11 @@ func TestPerUserRateLimiterWindowExpiration(t *testing.T) {
 	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
 	require.NoError(t, err)
 
-	// Use very short window for test: 100ms.
-	limiter, err := NewPerUserRateLimiter(store, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, 2, noop.NewMeterProvider())
+	window := time.Minute
+	now := time.Now().UTC()
+	store.nowFn = func() time.Time { return now }
+
+	limiter, err := NewPerUserRateLimiter(store, window, 2, noop.NewMeterProvider())
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -193,7 +196,7 @@ func TestPerUserRateLimiterWindowExpiration(t *testing.T) {
 		err = limiter.CheckLimit(ctx, userID)
 		require.NoError(t, err)
 
-		err = limiter.RecordAttempt(ctx, userID)
+		err = store.RecordAttempt(ctx, userID.String(), now)
 		require.NoError(t, err)
 	}
 
@@ -201,10 +204,8 @@ func TestPerUserRateLimiterWindowExpiration(t *testing.T) {
 	err = limiter.CheckLimit(ctx, userID)
 	require.Error(t, err)
 
-	// Wait for window to expire.
-	time.Sleep(150 * time.Millisecond)
+	now = now.Add(window + time.Millisecond)
 
-	// After window expiration, attempts should succeed again.
 	err = limiter.CheckLimit(ctx, userID)
 	require.NoError(t, err, "Rate limit should reset after window expiration")
 }

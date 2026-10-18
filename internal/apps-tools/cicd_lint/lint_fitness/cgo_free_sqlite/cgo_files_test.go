@@ -4,7 +4,6 @@ package cgo_free_sqlite
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -107,37 +106,6 @@ func TestCheckGoFilesForCGO_SkipsExcludedDirectories(t *testing.T) {
 	require.Empty(t, violations, "excluded directories should be skipped")
 }
 
-// Sequential: changes the process working directory with os.Chdir.
-func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
-	}
-
-	// Save current directory.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.Chdir(origDir))
-	}()
-
-	// Create temp directory.
-	tempDir := t.TempDir()
-	require.NoError(t, os.Chdir(tempDir))
-
-	// Create an unreadable Go file.
-	require.NoError(t, os.WriteFile("unreadable.go", []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.Chmod("unreadable.go", 0o000))
-
-	defer func() {
-		_ = os.Chmod(filepath.Join(tempDir, "unreadable.go"), cryptoutilSharedMagic.CacheFilePermissions)
-	}()
-
-	// Test - should get error.
-	_, err = CheckGoFilesForCGO()
-	require.Error(t, err)
-}
-
 func TestCheckGoFileForCGO_ScannerError(t *testing.T) {
 	t.Parallel()
 
@@ -151,4 +119,33 @@ func TestCheckGoFileForCGO_ScannerError(t *testing.T) {
 	_, err := CheckGoFileForCGO(goFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "error reading")
+}
+
+func TestCheckGoFilesForCGO_ListError(t *testing.T) {
+	t.Parallel()
+
+	_, err := checkGoFilesForCGO(func(string) (map[string][]string, error) {
+		return nil, os.ErrPermission
+	})
+	require.ErrorIs(t, err, os.ErrPermission)
+	require.ErrorContains(t, err, "error listing project files")
+}
+
+func TestCheckGoFilesForCGO_FileError(t *testing.T) {
+	t.Parallel()
+
+	missingPath := filepath.Join(t.TempDir(), "missing.go")
+	_, err := checkGoFilesForCGO(func(string) (map[string][]string, error) {
+		return map[string][]string{"go": {missingPath}}, nil
+	})
+	require.ErrorContains(t, err, "error checking")
+	require.ErrorContains(t, err, "failed to open")
+}
+
+func TestCheckGoFileForCGO_OpenError(t *testing.T) {
+	t.Parallel()
+
+	missingPath := filepath.Join(t.TempDir(), "missing.go")
+	_, err := CheckGoFileForCGO(missingPath)
+	require.ErrorContains(t, err, "failed to open")
 }

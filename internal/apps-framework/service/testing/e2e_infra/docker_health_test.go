@@ -50,10 +50,25 @@ func TestParseDockerComposePsOutput(t *testing.T) {
 			wantErrContain: testNoServicesFound,
 		},
 		{
+			name:           "empty JSON array",
+			input:          `[]`,
+			wantErrContain: testNoServicesFound,
+		},
+		{
 			name: "malformed newline-delimited JSON",
 			input: `{"Name":"compose-cryptoutil-sqlite-1","State":"running"
 invalid json line`,
 			wantErrContain: "failed to parse Docker service JSON",
+		},
+		{
+			name:           "newline-delimited null entry",
+			input:          "null\n{\"Service\":\"cryptoutil-sqlite\"}",
+			wantErrContain: testMalformedContainerEntry,
+		},
+		{
+			name:         "newline-delimited output skips blank lines",
+			input:        "{\"Service\":\"cryptoutil-sqlite\"}\n\n{\"Service\":\"postgres\"}",
+			wantServices: []string{cryptoutilSharedMagic.DockerServiceCryptoutilSqlite, cryptoutilSharedMagic.DockerServicePostgres},
 		},
 		{
 			name:           "malformed array entry",

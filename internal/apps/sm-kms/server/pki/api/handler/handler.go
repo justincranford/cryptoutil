@@ -280,7 +280,7 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 	// Parse request body.
 	var req cryptoutilApiCaServer.RevocationRequest
 	if err := c.BodyParser(&req); err != nil {
-		return h.errorResponse(c, fiber.StatusBadRequest, cryptoutilSharedMagic.ErrorInvalidRequest, "failed to parse request body")
+		return h.errorResponse(c, fiber.StatusBadRequest, cryptoutilSharedMagic.ErrorInvalidRequest, cryptoutilSharedMagic.PKIMessageFailedToParseRequestBody)
 	}
 
 	if req.Reason == cryptoutilApiCaServer.RemoveFromCRL {
@@ -363,7 +363,7 @@ func mapAPIRevocationReasonToStorage(reason cryptoutilApiCaServer.RevocationReas
 func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 	var req cryptoutilApiCaServer.EnrollmentRequest
 	if err := c.BodyParser(&req); err != nil {
-		return h.errorResponse(c, fiber.StatusBadRequest, cryptoutilSharedMagic.ErrorInvalidRequest, "failed to parse request body")
+		return h.errorResponse(c, fiber.StatusBadRequest, cryptoutilSharedMagic.ErrorInvalidRequest, cryptoutilSharedMagic.PKIMessageFailedToParseRequestBody)
 	}
 
 	// Validate required fields.

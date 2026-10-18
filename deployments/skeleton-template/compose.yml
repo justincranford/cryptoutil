@@ -415,6 +415,21 @@ services:
     volumes:
       - skeleton-template-certs:/mnt/ps-certs-src:ro
 
+  postgres-follower:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+      skeleton-template-app-postgresql-1:
+        condition: service_healthy
+      skeleton-template-app-postgresql-2:
+        condition: service_healthy
+    environment:
+      POSTGRES_CERT_SCOPE: skeleton-template
+      POSTGRES_REPLICATION_TIER: service
+      POSTGRES_REPLICATION_PSIDS: skeleton-template
+    volumes:
+      - skeleton-template-certs:/mnt/ps-certs-src:ro
+
 volumes:
   skeleton-template-certs:
   skeleton-template-otel-certs:

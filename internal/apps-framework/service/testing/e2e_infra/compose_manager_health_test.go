@@ -7,7 +7,9 @@ import (
 	"context"
 	"errors"
 	"io"
+	"io/fs"
 	http "net/http"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -61,9 +63,9 @@ func TestWaitForHealth(t *testing.T) {
 		wantNoRoundTrips bool
 	}{
 		{
-			name:       "timeout without a poll",
+			name:       "zero timeout does not poll",
 			url:        testHealthURL,
-			timeout:    cryptoutilSharedMagic.TestUnitPollInterval / 2,
+			timeout:    0,
 			statusCode: http.StatusServiceUnavailable,
 			wantErr:    testHealthTimeoutError,
 		},
@@ -76,7 +78,7 @@ func TestWaitForHealth(t *testing.T) {
 		{
 			name:          "connection errors retry until timeout",
 			url:           testHealthURL,
-			timeout:       cryptoutilSharedMagic.TestUnitShortTimeout,
+			timeout:       cryptoutilSharedMagic.TestUnitHealthCheckTimeout,
 			responseErr:   errors.New("injected connection error"),
 			wantErr:       testHealthTimeoutError,
 			wantRoundTrip: true,
@@ -84,7 +86,7 @@ func TestWaitForHealth(t *testing.T) {
 		{
 			name:          "non-success status retries until timeout",
 			url:           testHealthURL,
-			timeout:       cryptoutilSharedMagic.TestUnitMediumTimeout,
+			timeout:       cryptoutilSharedMagic.TestUnitHealthCheckTimeout,
 			statusCode:    http.StatusServiceUnavailable,
 			wantErr:       testHealthTimeoutError,
 			wantRoundTrip: true,
@@ -92,7 +94,7 @@ func TestWaitForHealth(t *testing.T) {
 		{
 			name:          "success status returns nil",
 			url:           testHealthURL,
-			timeout:       cryptoutilSharedMagic.TestUnitMediumTimeout,
+			timeout:       cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 			statusCode:    http.StatusOK,
 			wantRoundTrip: true,
 		},
@@ -144,6 +146,23 @@ func TestWaitForHealth(t *testing.T) {
 	}
 }
 
+func TestWaitForHealth_DefaultPollInterval(t *testing.T) {
+	t.Parallel()
+
+	var calls atomic.Int32
+
+	cm := &ComposeManager{
+		HTTPClient: newTestHealthHTTPClient(http.StatusOK, nil, &calls),
+	}
+
+	err := cm.WaitForHealth(
+		testHealthURL,
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout,
+	)
+	require.NoError(t, err)
+	require.Equal(t, int32(1), calls.Load())
+}
+
 func TestWaitForMultipleServices(t *testing.T) {
 	t.Parallel()
 
@@ -172,7 +191,7 @@ func TestWaitForMultipleServices(t *testing.T) {
 			name:         "all healthy services succeed",
 			serviceNames: []string{"svc-a", "svc-b"},
 			statusCode:   http.StatusOK,
-			timeout:      cryptoutilSharedMagic.TestUnitHealthCheckTimeout,
+			timeout:      cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 			wantRequests: true,
 		},
 	}
@@ -278,6 +297,18 @@ func TestDefaultTestmainFactoryDeps_ClosureBodies(t *testing.T) {
 
 	err := deps.startFn(ctx, cm)
 	require.Error(t, err, "startFn must fail with nonexistent compose file")
+
+	certsDir := filepath.Join(t.TempDir(), "certs")
+	cm.mkdirAllFn = func(_ string, _ fs.FileMode) error {
+		return errors.New("injected mkdir failure")
+	}
+	err = deps.syncCertsFn(
+		ctx,
+		cm,
+		filepath.Join(certsDir, "one", "two", "three", "four", "ca.pem"),
+	)
+	require.ErrorContains(t, err, "mkdir host certs dir")
+	require.ErrorContains(t, err, "injected mkdir failure")
 
 	err = deps.waitForServicesFn(cm, map[string]string{}, cryptoutilSharedMagic.TestTLSClientRetryWait)
 	require.NoError(t, err, "waitForServicesFn with empty services must return nil")

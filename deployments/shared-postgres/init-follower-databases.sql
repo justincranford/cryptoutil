@@ -1,65 +1,30 @@
 -- PostgreSQL Follower Initialization Script
--- Creates grouped databases for OLAP analytics with schemas
--- Read-only replica with logical replication from leader
+-- Creates one subscriber database for each published leader database.
+-- Native logical replication requires matching relation names and schemas.
 
--- Suite-level: 1 database with 7 schemas (all active services across all products)
-CREATE DATABASE cryptoutil;
-\c cryptoutil
-CREATE SCHEMA sm_kms;
-CREATE SCHEMA identity_authz;
-CREATE SCHEMA identity_idp;
-CREATE SCHEMA identity_rs;
-CREATE SCHEMA identity_rp;
-CREATE SCHEMA identity_spa;
-CREATE SCHEMA skeleton_template;
+-- Suite-level deployment databases (7).
+CREATE DATABASE "suitedeployment-sm-kms";
+CREATE DATABASE "suitedeployment-identity-authz";
+CREATE DATABASE "suitedeployment-identity-idp";
+CREATE DATABASE "suitedeployment-identity-rs";
+CREATE DATABASE "suitedeployment-identity-rp";
+CREATE DATABASE "suitedeployment-identity-spa";
+CREATE DATABASE "suitedeployment-skeleton-template";
 
--- Product-level: 3 product databases with schemas grouped by product
+-- Product-level deployment databases (7).
+CREATE DATABASE "productdeployment-sm-kms";
+CREATE DATABASE "productdeployment-identity-authz";
+CREATE DATABASE "productdeployment-identity-idp";
+CREATE DATABASE "productdeployment-identity-rs";
+CREATE DATABASE "productdeployment-identity-rp";
+CREATE DATABASE "productdeployment-identity-spa";
+CREATE DATABASE "productdeployment-skeleton-template";
 
-CREATE DATABASE sm;
-\c sm
-CREATE SCHEMA kms;
-
-CREATE DATABASE identity;
-\c identity
-CREATE SCHEMA authz;
-CREATE SCHEMA idp;
-CREATE SCHEMA rs;
-CREATE SCHEMA rp;
-CREATE SCHEMA spa;
-
-CREATE DATABASE skeleton;
-\c skeleton
-CREATE SCHEMA template;
-
--- Service-level: 8 databases with 1:1 schema mapping
-
-CREATE DATABASE "sm-kms";
-\c "sm-kms"
-CREATE SCHEMA kms;
-
-CREATE DATABASE "identity-authz";
-\c "identity-authz"
-CREATE SCHEMA authz;
-
-CREATE DATABASE "identity-idp";
-\c "identity-idp"
-CREATE SCHEMA idp;
-
-CREATE DATABASE "identity-rs";
-\c "identity-rs"
-CREATE SCHEMA rs;
-
-CREATE DATABASE "identity-rp";
-\c "identity-rp"
-CREATE SCHEMA rp;
-
-CREATE DATABASE "identity-spa";
-\c "identity-spa"
-CREATE SCHEMA spa;
-
-CREATE DATABASE "skeleton-template";
-\c "skeleton-template"
-CREATE SCHEMA template;
-
--- Note: Logical replication subscriptions will be created by setup-logical-replication.sh
--- after tables are created in the leader databases
+-- Service-level deployment databases (7).
+CREATE DATABASE "servicedeployment-sm-kms";
+CREATE DATABASE "servicedeployment-identity-authz";
+CREATE DATABASE "servicedeployment-identity-idp";
+CREATE DATABASE "servicedeployment-identity-rs";
+CREATE DATABASE "servicedeployment-identity-rp";
+CREATE DATABASE "servicedeployment-identity-spa";
+CREATE DATABASE "servicedeployment-skeleton-template";

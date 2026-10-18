@@ -138,6 +138,7 @@ func TestCheckInDir_HappyPaths(t *testing.T) {
 
 				profilesDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDSMKMSProfilesDir))
 				require.NoError(t, os.WriteFile(filepath.Join(profilesDir, "profile-schema.json"), []byte("{}"), cryptoutilSharedMagic.FilePermissionsDefault))
+				require.NoError(t, os.WriteFile(filepath.Join(profilesDir, "profile-schema.yaml"), []byte("invalid: ["), cryptoutilSharedMagic.FilePermissionsDefault))
 			},
 		},
 	}
@@ -255,7 +256,7 @@ func TestCheckInDir_Violations(t *testing.T) {
 			wantErr: "absolute cap",
 		},
 		{
-			name: "empty allowed algorithms",
+			name: testEmptyAllowedAlgorithmsCaseName,
 			file: "no-alg.yaml",
 			yaml: `profile:
   name: "test"
@@ -387,12 +388,36 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	rootDir := buildProfileRoot(t)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir, os.ReadFile, func(_ string, _ fs.WalkDirFunc) error {
-		return errors.New("injected walk error")
-	})
+	tests := []struct {
+		name    string
+		walkDir func(string, fs.WalkDirFunc) error
+		wantErr string
+	}{
+		{
+			name: "walker returns error",
+			walkDir: func(_ string, _ fs.WalkDirFunc) error {
+				return errors.New("injected walk error")
+			},
+			wantErr: "injected walk error",
+		},
+		{
+			name: "callback receives error",
+			walkDir: func(root string, walkFn fs.WalkDirFunc) error {
+				return walkFn(root, nil, errors.New("injected callback walk error"))
+			},
+			wantErr: "injected callback walk error",
+		},
+	}
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "injected walk error")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := CheckInDir(logger, rootDir, os.ReadFile, tc.walkDir)
+
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
 }
 
 func TestCheckInDir_ReadFileError(t *testing.T) {

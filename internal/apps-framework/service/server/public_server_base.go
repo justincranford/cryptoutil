@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -23,6 +25,8 @@ type PublicServerBase struct {
 	tlsMaterial   *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
 	app           *fiber.App
 	appListenerFn func(app *fiber.App, ln net.Listener) error
+	listenFn      func(context.Context, string, string) (net.Listener, error)
+	appShutdownFn func(*fiber.App) error
 	mu            sync.RWMutex
 	shutdown      bool
 	actualPort    int
@@ -59,16 +63,40 @@ func newPublicServerBaseInternal(cfg *PublicServerConfig, appListenerFn func(app
 	}
 
 	s := &PublicServerBase{
-		bindAddress:   cfg.BindAddress,
-		port:          cfg.Port,
-		tlsMaterial:   cfg.TLSMaterial,
-		app:           fiber.New(fiber.Config{DisableStartupMessage: true}),
+		bindAddress: cfg.BindAddress,
+		port:        cfg.Port,
+		tlsMaterial: cfg.TLSMaterial,
+		app: fiber.New(fiber.Config{
+			DisableStartupMessage: true,
+			ErrorHandler:          publicServerErrorHandler,
+		}),
 		appListenerFn: appListenerFn,
+		listenFn:      (&net.ListenConfig{}).Listen,
+		appShutdownFn: func(app *fiber.App) error { return app.Shutdown() },
 	}
 
 	s.registerHealthEndpoints()
 
 	return s, nil
+}
+
+func publicServerErrorHandler(c *fiber.Ctx, err error) error {
+	var appErr *cryptoutilSharedApperr.Error
+	if errors.As(err, &appErr) {
+		if responseErr := c.Status(int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode)).JSON(fiber.Map{
+			cryptoutilSharedMagic.StringError: appErr.Summary,
+		}); responseErr != nil {
+			return fmt.Errorf("failed to send public API application error response: %w", responseErr)
+		}
+
+		return nil
+	}
+
+	if responseErr := fiber.DefaultErrorHandler(c, err); responseErr != nil {
+		return fmt.Errorf("failed to send public API error response: %w", responseErr)
+	}
+
+	return nil
 }
 
 // registerHealthEndpoints registers standard health check endpoints.
@@ -124,9 +152,7 @@ func (s *PublicServerBase) Start(ctx context.Context) error {
 	serverCtx := s.ctx
 	s.mu.Unlock()
 
-	listenConfig := &net.ListenConfig{}
-
-	listener, err := listenConfig.Listen(serverCtx, "tcp", net.JoinHostPort(s.bindAddress, strconv.Itoa(s.port)))
+	listener, err := s.listenFn(serverCtx, "tcp", net.JoinHostPort(s.bindAddress, strconv.Itoa(s.port)))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}
@@ -184,7 +210,7 @@ func (s *PublicServerBase) Shutdown(_ context.Context) error {
 	}
 
 	if s.app != nil {
-		if err := s.app.Shutdown(); err != nil {
+		if err := s.appShutdownFn(s.app); err != nil {
 			return fmt.Errorf("failed to shutdown fiber app: %w", err)
 		}
 	}

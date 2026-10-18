@@ -28,15 +28,23 @@ var highEntropySecretPatterns = []string{ //nolint:gochecknoglobals // package-l
 //   - High-entropy secrets meet minimum length (>=43 chars)
 //   - All files are in /run/secrets/ (enforced by Docker, verified by path)
 func ValidateSecretsCommand(args []string, stdout, stderr io.Writer) int {
+	return validateSecretsCommand(args, stdout, stderr, cryptoutilSharedMagic.DockerSecretsDir, os.ReadDir, os.ReadFile)
+}
+
+func validateSecretsCommand(
+	args []string,
+	stdout, stderr io.Writer,
+	secretsDir string,
+	readDirFn func(string) ([]os.DirEntry, error),
+	readFileFn func(string) ([]byte, error),
+) int {
 	if IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stdout, "Usage: <service> validate-secrets\n\nValidates Docker secrets mounted at /run/secrets/.")
 
 		return 0
 	}
 
-	secretsDir := cryptoutilSharedMagic.DockerSecretsDir
-
-	entries, err := os.ReadDir(secretsDir)
+	entries, err := readDirFn(secretsDir)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "validate-secrets: cannot read %s: %v\n", secretsDir, err)
 
@@ -66,7 +74,7 @@ func ValidateSecretsCommand(args []string, stdout, stderr io.Writer) int {
 
 		filePath := filepath.Join(secretsDir, name)
 
-		content, readErr := os.ReadFile(filePath)
+		content, readErr := readFileFn(filePath)
 		if readErr != nil {
 			errors = append(errors, fmt.Sprintf("cannot read secret file '%s': %v", name, readErr))
 

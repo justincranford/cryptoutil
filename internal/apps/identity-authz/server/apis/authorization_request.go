@@ -67,16 +67,18 @@ type AuthorizationRequestStore interface {
 
 // InMemoryAuthorizationRequestStore implements AuthorizationRequestStore using in-memory storage.
 type InMemoryAuthorizationRequestStore struct {
-	mu       sync.RWMutex
-	requests map[googleUuid.UUID]*AuthorizationRequest
-	codeIdx  map[string]googleUuid.UUID // Index by authorization code.
+	mu               sync.RWMutex
+	requests         map[googleUuid.UUID]*AuthorizationRequest
+	codeIdx          map[string]googleUuid.UUID // Index by authorization code.
+	requestCodeIndex map[googleUuid.UUID]string // Tracks each request's indexed code.
 }
 
 // NewInMemoryAuthorizationRequestStore creates a new in-memory authorization request store.
 func NewInMemoryAuthorizationRequestStore() *InMemoryAuthorizationRequestStore {
 	store := &InMemoryAuthorizationRequestStore{
-		requests: make(map[googleUuid.UUID]*AuthorizationRequest),
-		codeIdx:  make(map[string]googleUuid.UUID),
+		requests:         make(map[googleUuid.UUID]*AuthorizationRequest),
+		codeIdx:          make(map[string]googleUuid.UUID),
+		requestCodeIndex: make(map[googleUuid.UUID]string),
 	}
 
 	// Start cleanup goroutine.
@@ -90,12 +92,9 @@ func (s *InMemoryAuthorizationRequestStore) Store(_ context.Context, request *Au
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	s.removeCodeIndex(request.RequestID)
 	s.requests[request.RequestID] = request
-
-	// If code is set, update code index.
-	if request.Code != "" {
-		s.codeIdx[request.Code] = request.RequestID
-	}
+	s.addCodeIndex(request)
 
 	return nil
 }
@@ -132,6 +131,10 @@ func (s *InMemoryAuthorizationRequestStore) GetByCode(_ context.Context, code st
 		return nil, fmt.Errorf("authorization request not found")
 	}
 
+	if request.Code != code {
+		return nil, fmt.Errorf("authorization code not found")
+	}
+
 	if time.Now().UTC().After(request.ExpiresAt) {
 		return nil, fmt.Errorf("authorization code expired")
 	}
@@ -148,12 +151,9 @@ func (s *InMemoryAuthorizationRequestStore) Update(_ context.Context, request *A
 		return fmt.Errorf("authorization request not found")
 	}
 
+	s.removeCodeIndex(request.RequestID)
 	s.requests[request.RequestID] = request
-
-	// Update code index if code changed.
-	if request.Code != "" {
-		s.codeIdx[request.Code] = request.RequestID
-	}
+	s.addCodeIndex(request)
 
 	return nil
 }
@@ -163,14 +163,26 @@ func (s *InMemoryAuthorizationRequestStore) Delete(_ context.Context, requestID 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	request, ok := s.requests[requestID]
-	if ok && request.Code != "" {
-		delete(s.codeIdx, request.Code)
-	}
-
+	s.removeCodeIndex(requestID)
 	delete(s.requests, requestID)
 
 	return nil
+}
+
+func (s *InMemoryAuthorizationRequestStore) addCodeIndex(request *AuthorizationRequest) {
+	if request.Code != "" {
+		s.codeIdx[request.Code] = request.RequestID
+		s.requestCodeIndex[request.RequestID] = request.Code
+	}
+}
+
+func (s *InMemoryAuthorizationRequestStore) removeCodeIndex(requestID googleUuid.UUID) {
+	code, ok := s.requestCodeIndex[requestID]
+	if ok && s.codeIdx[code] == requestID {
+		delete(s.codeIdx, code)
+	}
+
+	delete(s.requestCodeIndex, requestID)
 }
 
 // cleanup removes expired authorization requests.
@@ -179,20 +191,18 @@ func (s *InMemoryAuthorizationRequestStore) cleanup() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		s.mu.Lock()
+		s.cleanupExpired(time.Now().UTC())
+	}
+}
 
-		now := time.Now().UTC()
+func (s *InMemoryAuthorizationRequestStore) cleanupExpired(now time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-		for id, request := range s.requests {
-			if now.After(request.ExpiresAt) {
-				if request.Code != "" {
-					delete(s.codeIdx, request.Code)
-				}
-
-				delete(s.requests, id)
-			}
+	for id, request := range s.requests {
+		if now.After(request.ExpiresAt) {
+			s.removeCodeIndex(id)
+			delete(s.requests, id)
 		}
-
-		s.mu.Unlock()
 	}
 }

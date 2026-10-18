@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"io"
 	http "net/http"
 	"sync"
 	"testing"
@@ -23,8 +24,9 @@ import (
 )
 
 const (
-	testPublicBaseURL = "https://127.0.0.1:14080"
-	testAdminBaseURL  = "https://127.0.0.1:14090"
+	testPublicBaseURL     = "https://127.0.0.1:14080"
+	testAdminBaseURL      = "https://127.0.0.1:14090"
+	testHealthEndpointURL = "https://localhost/health"
 )
 
 const (
@@ -223,6 +225,174 @@ func TestStartIntegrationServerForTestMain_Table(t *testing.T) {
 	}
 }
 
+func TestStartIntegrationServer_ExportedWrapper(t *testing.T) {
+	t.Parallel()
+
+	_, err := StartIntegrationServer(
+		context.Background(),
+		t,
+		&fakeServiceServer{startErr: errors.New("injected server start failure")},
+		nil,
+	)
+
+	require.ErrorContains(t, err, integrationServerStartFailure)
+}
+
+func TestStartIntegrationServerForTestMain_ExportedWrapper(t *testing.T) {
+	t.Parallel()
+
+	_, err := StartIntegrationServerForTestMain(
+		context.Background(),
+		&fakeServiceServer{startErr: errors.New("injected server start failure")},
+		nil,
+	)
+
+	require.ErrorContains(t, err, integrationServerStartFailure)
+}
+
+func TestWaitForServerReadiness_ContextCanceled(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	srv := &fakeServiceServer{
+		publicRootCAs: x509.NewCertPool(),
+		adminRootCAs:  x509.NewCertPool(),
+		publicBaseURL: testPublicBaseURL,
+		adminBaseURL:  testAdminBaseURL,
+	}
+
+	err := waitForServerReadiness(ctx, srv)
+
+	require.ErrorIs(t, err, context.Canceled)
+}
+
+func TestWaitForServerReadinessWithProbe_InvalidInputs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		ctx     context.Context
+		srv     cryptoutilAppsFrameworkServiceServer.ServiceServer
+		probe   readinessProbeFn
+		wantErr string
+	}{
+		{name: "nil context", srv: &fakeServiceServer{}, probe: func(context.Context, *http.Client, string) (int, error) { return http.StatusOK, nil }, wantErr: integrationContextCannotBeNil},
+		{name: "nil server", ctx: context.Background(), probe: func(context.Context, *http.Client, string) (int, error) { return http.StatusOK, nil }, wantErr: integrationServerCannotBeNil},
+		{name: "nil probe", ctx: context.Background(), srv: &fakeServiceServer{}, wantErr: "readiness probe cannot be nil"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := waitForServerReadinessWithProbe(tc.ctx, tc.srv, tc.probe)
+
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (fn roundTripperFunc) RoundTrip(request *http.Request) (*http.Response, error) {
+	return fn(request)
+}
+
+type failingCloseBody struct{}
+
+func (failingCloseBody) Read([]byte) (int, error) { return 0, io.EOF }
+
+func (failingCloseBody) Close() error { return errors.New("injected response close failure") }
+
+func TestRequestHealthEndpoint_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		prepare    func(*testing.T) (*http.Client, string)
+		wantStatus int
+		wantErr    string
+	}{
+		{
+			name: "healthy HTTP response",
+			prepare: func(*testing.T) (*http.Client, string) {
+				client := &http.Client{
+					Transport: roundTripperFunc(func(request *http.Request) (*http.Response, error) {
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Header:     make(http.Header),
+							Body:       http.NoBody,
+							Request:    request,
+						}, nil
+					}),
+				}
+
+				return client, testHealthEndpointURL
+			},
+			wantStatus: http.StatusNoContent,
+		},
+		{
+			name: "invalid endpoint URL",
+			prepare: func(*testing.T) (*http.Client, string) {
+				return http.DefaultClient, "%"
+			},
+			wantErr: "create readiness request",
+		},
+		{
+			name: "transport failure",
+			prepare: func(*testing.T) (*http.Client, string) {
+				client := &http.Client{
+					Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+						return nil, errors.New("injected HTTP transport failure")
+					}),
+				}
+
+				return client, testHealthEndpointURL
+			},
+			wantErr: "send readiness request",
+		},
+		{
+			name: "response body close failure",
+			prepare: func(*testing.T) (*http.Client, string) {
+				client := &http.Client{
+					Transport: roundTripperFunc(func(request *http.Request) (*http.Response, error) {
+						return &http.Response{
+							StatusCode: http.StatusOK,
+							Header:     make(http.Header),
+							Body:       failingCloseBody{},
+							Request:    request,
+						}, nil
+					}),
+				}
+
+				return client, testHealthEndpointURL
+			},
+			wantErr: "close readiness response",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			client, endpointURL := tc.prepare(t)
+			statusCode, err := requestHealthEndpoint(context.Background(), client, endpointURL)
+
+			if tc.wantErr != "" {
+				require.Zero(t, statusCode)
+				require.ErrorContains(t, err, tc.wantErr)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.wantStatus, statusCode)
+		})
+	}
+}
+
 type readinessProbeResult struct {
 	statusCode int
 	err        error
@@ -232,15 +402,16 @@ func TestWaitForServerReadinessWithProbe_Table(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name          string
-		publicRootCAs *x509.CertPool
-		adminRootCAs  *x509.CertPool
-		publicBaseURL string
-		adminBaseURL  string
-		probeResults  []readinessProbeResult
-		ctxTimeout    time.Duration
-		wantError     string
-		wantProbeURLs []string
+		name                  string
+		publicRootCAs         *x509.CertPool
+		adminRootCAs          *x509.CertPool
+		publicBaseURL         string
+		adminBaseURL          string
+		probeResults          []readinessProbeResult
+		ctxTimeout            time.Duration
+		wantError             string
+		wantProbeURLs         []string
+		repeatLastProbeResult bool
 	}{
 		{
 			name:          "both HTTPS listeners healthy",
@@ -261,15 +432,16 @@ func TestWaitForServerReadinessWithProbe_Table(t *testing.T) {
 			wantProbeURLs: []string{testPublicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint, testPublicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint, testAdminBaseURL + cryptoutilSharedMagic.DefaultAdminLivezEndpoint},
 		},
 		{
-			name:          "non-success listener status fails after timeout",
-			publicRootCAs: x509.NewCertPool(),
-			adminRootCAs:  x509.NewCertPool(),
-			publicBaseURL: testPublicBaseURL,
-			adminBaseURL:  testAdminBaseURL,
-			probeResults:  []readinessProbeResult{{statusCode: 503}},
-			ctxTimeout:    cryptoutilSharedMagic.TestUnitShortTimeout,
-			wantError:     "public health endpoint returned HTTP 503",
-			wantProbeURLs: []string{testPublicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint},
+			name:                  "non-success listener status fails after timeout",
+			publicRootCAs:         x509.NewCertPool(),
+			adminRootCAs:          x509.NewCertPool(),
+			publicBaseURL:         testPublicBaseURL,
+			adminBaseURL:          testAdminBaseURL,
+			probeResults:          []readinessProbeResult{{statusCode: 503}},
+			ctxTimeout:            cryptoutilSharedMagic.TestUnitShortTimeout,
+			wantError:             "public health endpoint returned HTTP 503",
+			wantProbeURLs:         []string{testPublicBaseURL + cryptoutilSharedMagic.DefaultServiceHealthEndpoint},
+			repeatLastProbeResult: true,
 		},
 		{
 			name:          "missing public trust pool is rejected",
@@ -329,6 +501,12 @@ func TestWaitForServerReadinessWithProbe_Table(t *testing.T) {
 				probeURLs = append(probeURLs, endpointURL)
 
 				if probeIndex >= len(tc.probeResults) {
+					if tc.repeatLastProbeResult && len(tc.probeResults) > 0 {
+						lastResult := tc.probeResults[len(tc.probeResults)-1]
+
+						return lastResult.statusCode, lastResult.err
+					}
+
 					return 0, errors.New("unexpected extra readiness probe")
 				}
 
@@ -345,7 +523,15 @@ func TestWaitForServerReadinessWithProbe_Table(t *testing.T) {
 				require.ErrorContains(t, err, tc.wantError)
 			}
 
-			require.Equal(t, tc.wantProbeURLs, probeURLs)
+			if tc.repeatLastProbeResult {
+				require.NotEmpty(t, probeURLs)
+
+				for _, probedURL := range probeURLs {
+					require.Equal(t, tc.wantProbeURLs[0], probedURL)
+				}
+			} else {
+				require.Equal(t, tc.wantProbeURLs, probeURLs)
+			}
 		})
 	}
 }

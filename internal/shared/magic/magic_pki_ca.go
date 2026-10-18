@@ -35,6 +35,31 @@ const (
 	PKIErrorRemoveFromCRLUnsupported = "removeFromCRL is unsupported because only complete CRLs are generated"
 )
 
+const (
+	// PKICRLFormatDER selects DER-encoded CRL output.
+	PKICRLFormatDER = "der"
+	// PKICRLFormatPEM selects PEM-encoded CRL output.
+	PKICRLFormatPEM = "pem"
+	// PKIHeaderContentDisposition identifies a downloadable PKI response.
+	PKIHeaderContentDisposition = "Content-Disposition"
+	// PKIHeaderContentTransferEncoding identifies the EST body transfer encoding.
+	PKIHeaderContentTransferEncoding = "Content-Transfer-Encoding"
+	// PKIContentTransferEncodingBase64 identifies base64-encoded EST bodies.
+	PKIContentTransferEncodingBase64 = "base64"
+	// PKIContentTypeCRLDER identifies DER-encoded CRL output.
+	PKIContentTypeCRLDER = "application/pkix-crl"
+	// PKIContentTypeCRLPEM identifies PEM-encoded CRL output.
+	PKIContentTypeCRLPEM = "application/x-pem-file"
+	// PKIContentTypeOCSPResponse identifies OCSP response payloads.
+	PKIContentTypeOCSPResponse = "application/ocsp-response"
+	// PKIContentTypePKCS7CertsOnly identifies EST CA certificate responses.
+	PKIContentTypePKCS7CertsOnly = "application/pkcs7-mime; smime-type=certs-only"
+	// PKIContentTypeTimestampReply identifies RFC 3161 timestamp responses.
+	PKIContentTypeTimestampReply = "application/timestamp-reply"
+	// PKIMessageFailedToParseRequestBody describes malformed JSON request bodies.
+	PKIMessageFailedToParseRequestBody = "failed to parse request body"
+)
+
 // PKI CA hierarchy and status labels.
 const (
 	ROOT         = "root"

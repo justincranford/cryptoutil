@@ -4,6 +4,7 @@ package openapi_version
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -177,4 +178,25 @@ info:
 	err = Check(logger, map[string][]string{valueYAML: {specFile}})
 
 	require.NoError(t, err, "single-quoted version should be accepted")
+}
+
+func TestCheck_MissingSpecFile(t *testing.T) {
+	t.Parallel()
+
+	missingSpec := filepath.Join(t.TempDir(), "api", "service", "openapi_spec.yaml")
+	err := Check(cryptoutilCmdCicdCommon.NewLogger(t.Name()), map[string][]string{valueYAML: {missingSpec}})
+
+	require.ErrorContains(t, err, "openapi-version")
+}
+
+func TestExtractOpenAPIVersion_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	specFile := filepath.Join(t.TempDir(), "openapi_spec.yaml")
+	content := strings.Repeat("x", 70*1024)
+	require.NoError(t, os.WriteFile(specFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+	_, err := extractOpenAPIVersion(specFile)
+
+	require.ErrorContains(t, err, "scanner error")
 }

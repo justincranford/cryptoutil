@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -131,6 +132,52 @@ func TestCheckInDir_BadRootDir_Error(t *testing.T) {
 
 	err := CheckInDir(newTestLogger(), "/nonexistent/path/xyz")
 	require.Error(t, err)
+}
+
+func TestCheckInDir_AbsolutePathError(t *testing.T) {
+	t.Parallel()
+
+	err := checkInDirWithAbs(newTestLogger(), t.TempDir(), func(_ string) (string, error) {
+		return "", fmt.Errorf("injected absolute path error")
+	}, filepath.Walk)
+
+	require.ErrorContains(t, err, "failed to resolve root dir")
+	require.ErrorContains(t, err, "injected absolute path error")
+}
+
+func TestCollectServices_SkipsFilesAndTools(t *testing.T) {
+	t.Parallel()
+
+	appsDir := filepath.Join(t.TempDir(), "internal", "apps")
+	require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(appsDir, "README.md"), nil, cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.MkdirAll(
+		filepath.Join(appsDir, toolsDirName, cryptoutilSharedMagic.CMD_SERVER),
+		cryptoutilSharedMagic.DirPermissions,
+	))
+
+	services, err := collectServices(appsDir)
+
+	require.NoError(t, err)
+	require.Empty(t, services)
+}
+
+func TestCheckInDir_ImportScannerError(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	mkServiceDir(t, rootDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
+	largeImportFile := filepath.Join(rootDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER, "large.go")
+	require.NoError(t, os.WriteFile(
+		largeImportFile,
+		[]byte("package server\n"+strings.Repeat("x", 70*1024)),
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+
+	err := CheckInDir(newTestLogger(), rootDir)
+
+	require.ErrorContains(t, err, "failed to scan service")
+	require.ErrorContains(t, err, "token too long")
 }
 
 func TestCollectServices_EmptyAppsDir(t *testing.T) {

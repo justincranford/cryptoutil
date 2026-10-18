@@ -69,7 +69,7 @@ func TestValidateProfile(t *testing.T) {
 			pf: baseProfile(func(p *ProfileSpec) {
 				p.Key = nil
 			}),
-			wantErr: "profile.key is required",
+			wantErr: testProfileKeyRequiredError,
 		},
 		{
 			name: "algorithm missing name",

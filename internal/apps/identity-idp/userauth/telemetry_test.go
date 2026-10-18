@@ -3,13 +3,102 @@ package userauth
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
+
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
+
+const telemetryTestInjectedInstrumentError = "injected metric instrument creation failure"
+
+type telemetryFailingMeter struct {
+	metric.Meter
+	instrumentName string
+}
+
+type telemetryTestMeterProvider struct {
+	metric.MeterProvider
+	meter metric.Meter
+}
+
+func (p telemetryTestMeterProvider) Meter(_ string, _ ...metric.MeterOption) metric.Meter {
+	return p.meter
+}
+
+func (m telemetryFailingMeter) Float64Histogram(
+	name string,
+	options ...metric.Float64HistogramOption,
+) (metric.Float64Histogram, error) {
+	if name == m.instrumentName {
+		return nil, errors.New(telemetryTestInjectedInstrumentError)
+	}
+
+	return m.Meter.Float64Histogram(name, options...)
+}
+
+func (m telemetryFailingMeter) Int64Counter(
+	name string,
+	options ...metric.Int64CounterOption,
+) (metric.Int64Counter, error) {
+	if name == m.instrumentName {
+		return nil, errors.New(telemetryTestInjectedInstrumentError)
+	}
+
+	return m.Meter.Int64Counter(name, options...)
+}
+
+func TestNewTelemetryAuditLogger_InstrumentCreationErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		instrumentName string
+		wantError      string
+	}{
+		{
+			name:           "generation counter",
+			instrumentName: "identity.audit.token.generated",
+			wantError:      "failed to create generation counter",
+		},
+		{
+			name:           "validation counter",
+			instrumentName: "identity.audit.token.validated",
+			wantError:      "failed to create validation counter",
+		},
+		{
+			name:           "invalidation counter",
+			instrumentName: "identity.audit.token.invalidated",
+			wantError:      "failed to create invalidation counter",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			baseMeter := noop.NewMeterProvider().Meter(meterName)
+			meterProvider := telemetryTestMeterProvider{
+				MeterProvider: noop.NewMeterProvider(),
+				meter: telemetryFailingMeter{
+					Meter:          baseMeter,
+					instrumentName: tc.instrumentName,
+				},
+			}
+
+			logger, err := NewTelemetryAuditLogger(meterProvider)
+
+			require.Nil(t, logger)
+			require.ErrorContains(t, err, tc.wantError)
+			require.ErrorContains(t, err, telemetryTestInjectedInstrumentError)
+		})
+	}
+}
 
 func TestNewTelemetryRecorder(t *testing.T) {
 	t.Parallel()
@@ -35,6 +124,47 @@ func TestNewTelemetryRecorder(t *testing.T) {
 	require.NotNil(t, recorder.allowedOperationsCounter)
 	require.NotNil(t, recorder.riskAssessmentErrorCounter)
 	require.NotNil(t, recorder.policyLoadErrorCounter)
+}
+
+func TestNewTelemetryRecorder_InstrumentCreationErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		instrumentName string
+		wantError      string
+	}{
+		{name: "risk score histogram", instrumentName: "identity.risk.score", wantError: "failed to create risk score histogram"},
+		{name: "risk level counter", instrumentName: "identity.risk.level.total", wantError: "failed to create risk level counter"},
+		{name: "confidence score histogram", instrumentName: "identity.risk.confidence", wantError: "failed to create confidence score histogram"},
+		{name: "step-up triggered counter", instrumentName: "identity.stepup.triggered.total", wantError: "failed to create step-up triggered counter"},
+		{name: "step-up method counter", instrumentName: "identity.stepup.method.total", wantError: "failed to create step-up method counter"},
+		{name: "step-up success counter", instrumentName: "identity.stepup.success.total", wantError: "failed to create step-up success counter"},
+		{name: "step-up failure counter", instrumentName: "identity.stepup.failure.total", wantError: "failed to create step-up failure counter"},
+		{name: "policy evaluation histogram", instrumentName: "identity.policy.evaluation.duration", wantError: "failed to create policy evaluation duration histogram"},
+		{name: "policy load histogram", instrumentName: "identity.policy.load.duration", wantError: "failed to create policy load duration histogram"},
+		{name: "policy reload counter", instrumentName: "identity.policy.reload.total", wantError: "failed to create policy reload counter"},
+		{name: "blocked operations counter", instrumentName: "identity.operations.blocked.total", wantError: "failed to create blocked operations counter"},
+		{name: "allowed operations counter", instrumentName: "identity.operations.allowed.total", wantError: "failed to create allowed operations counter"},
+		{name: "risk assessment error counter", instrumentName: "identity.risk.assessment.errors.total", wantError: "failed to create risk assessment error counter"},
+		{name: "policy load error counter", instrumentName: "identity.policy.load.errors.total", wantError: "failed to create policy load error counter"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			baseMeter := noop.NewMeterProvider().Meter(meterName)
+			recorder, err := newTelemetryRecorder(telemetryFailingMeter{
+				Meter:          baseMeter,
+				instrumentName: tc.instrumentName,
+			})
+
+			require.Nil(t, recorder)
+			require.ErrorContains(t, err, tc.wantError)
+			require.ErrorContains(t, err, telemetryTestInjectedInstrumentError)
+		})
+	}
 }
 
 func TestRecordRiskScore(t *testing.T) {

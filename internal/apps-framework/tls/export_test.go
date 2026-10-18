@@ -41,8 +41,11 @@ func ExportedNewTestGenerator(
 	return &Generator{
 		getKeyPairFn:        getKeyPairFn,
 		mkdirAllFn:          mkdirAllFn,
+		mkdirTempFn:         os.MkdirTemp,
 		writeFileFn:         writeFileFn,
 		renameFn:            os.Rename,
+		removeAllFn:         os.RemoveAll,
+		secureStagingDirFn:  securePrivateStagingDirectory,
 		createCAFn:          createCAFn,
 		createLeafFn:        createLeafFn,
 		encodePKCS12Fn:      encodePKCS12Fn,

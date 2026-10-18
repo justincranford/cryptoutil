@@ -35,6 +35,7 @@ type DatabaseRateLimitStore struct {
 	attempts      map[string][]time.Time // In-memory for now, will be DB-backed
 	meterProvider metric.MeterProvider
 	counter       metric.Int64Counter
+	nowFn         func() time.Time
 }
 
 // NewDatabaseRateLimitStore creates a new database-backed rate limit store.
@@ -53,6 +54,7 @@ func NewDatabaseRateLimitStore(meterProvider metric.MeterProvider) (*DatabaseRat
 		attempts:      make(map[string][]time.Time),
 		meterProvider: meterProvider,
 		counter:       counter,
+		nowFn:         time.Now,
 	}, nil
 }
 
@@ -85,7 +87,7 @@ func (s *DatabaseRateLimitStore) CountAttempts(_ context.Context, key string, wi
 		return 0, nil
 	}
 
-	cutoff := time.Now().UTC().Add(-window)
+	cutoff := s.nowFn().UTC().Add(-window)
 	count := 0
 
 	for _, timestamp := range attempts {
@@ -102,7 +104,7 @@ func (s *DatabaseRateLimitStore) CleanupExpired(_ context.Context, retention tim
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	cutoff := time.Now().UTC().Add(-retention)
+	cutoff := s.nowFn().UTC().Add(-retention)
 
 	for key, attempts := range s.attempts {
 		filtered := make([]time.Time, 0, len(attempts))

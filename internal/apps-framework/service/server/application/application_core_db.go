@@ -155,6 +155,24 @@ func openSQLiteInternal(
 	sqlOpenFn func(driverName, dataSourceName string) (*sql.DB, error),
 	gormOpenSQLiteFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
 ) (*gorm.DB, error) {
+	return openSQLiteInternalWithExec(ctx, databaseURL, debugMode, sqlOpenFn, gormOpenSQLiteFn, func(ctx context.Context, sqlDB *sql.DB, query string) error {
+		_, err := sqlDB.ExecContext(ctx, query)
+		if err != nil {
+			return fmt.Errorf("execute SQLite statement: %w", err)
+		}
+
+		return nil
+	})
+}
+
+func openSQLiteInternalWithExec(
+	ctx context.Context,
+	databaseURL string,
+	debugMode bool,
+	sqlOpenFn func(driverName, dataSourceName string) (*sql.DB, error),
+	gormOpenSQLiteFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
+	execContextFn func(context.Context, *sql.DB, string) error,
+) (*gorm.DB, error) {
 	// Open database connection using database/sql.
 	sqlDB, err := sqlOpenFn("sqlite", databaseURL)
 	if err != nil {
@@ -168,14 +186,14 @@ func openSQLiteInternal(
 		strings.Contains(databaseURL, "mode=memory")
 
 	if !isInMemory {
-		if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
+		if err := execContextFn(ctx, sqlDB, "PRAGMA journal_mode=WAL;"); err != nil {
 			_ = sqlDB.Close()
 
 			return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
 		}
 	}
 
-	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
+	if err := execContextFn(ctx, sqlDB, "PRAGMA busy_timeout = 30000;"); err != nil {
 		_ = sqlDB.Close()
 
 		return nil, fmt.Errorf("failed to set busy timeout: %w", err)
@@ -215,6 +233,17 @@ func openSQLiteInternal(
 // (prevents duplicate sslmode params when the DSN URL already contains sslmode=disable),
 // then the new sslmode and cert/key/rootcert params are appended.
 func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool, sslMode, sslCert, sslKey, sslRootCert string) (*gorm.DB, error) {
+	return openPostgreSQLInternal(databaseURL, debugMode, sslMode, sslCert, sslKey, sslRootCert, func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error) {
+		return gorm.Open(dialector, config)
+	})
+}
+
+func openPostgreSQLInternal(
+	databaseURL string,
+	debugMode bool,
+	sslMode, sslCert, sslKey, sslRootCert string,
+	gormOpenFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
+) (*gorm.DB, error) {
 	if sslMode != "" {
 		databaseURL = stripQueryParam(databaseURL, valueSslmode)
 
@@ -243,7 +272,7 @@ func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool, sslMo
 		gormConfig.Logger = logger.Default.LogMode(cryptoutilSharedMagic.GormLogModeInfo)
 	}
 
-	db, err := gorm.Open(postgres.Open(databaseURL), gormConfig)
+	db, err := gormOpenFn(postgres.Open(databaseURL), gormConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
 	}

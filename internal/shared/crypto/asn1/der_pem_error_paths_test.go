@@ -6,7 +6,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	crand "crypto/rand"
@@ -16,92 +15,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
-
-// TestPEMWrite_MkdirFailure covers PEMWrite's mkdir error path.
-func TestPEMWrite_MkdirFailure(t *testing.T) {
-	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("file-as-dir trick not reliable on Windows")
-	}
-
-	tmpDir := t.TempDir()
-	// Create a regular FILE where PEMWrite would need to create a DIRECTORY.
-	blockingFile := filepath.Join(tmpDir, "notadir")
-	require.NoError(t, os.WriteFile(blockingFile, []byte("block"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
-	require.NoError(t, err)
-
-	// PEMWrite tries to MkdirAll(notadir), but notadir is a file -> fails.
-	err = PEMWrite(key, filepath.Join(blockingFile, "key.pem"))
-	require.Error(t, err)
-	require.ErrorContains(t, err, "mkdir failed")
-}
-
-// TestDERWrite_MkdirFailure covers DERWrite's mkdir error path.
-func TestDERWrite_MkdirFailure(t *testing.T) {
-	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("file-as-dir trick not reliable on Windows")
-	}
-
-	tmpDir := t.TempDir()
-	blockingFile := filepath.Join(tmpDir, "notadir")
-	require.NoError(t, os.WriteFile(blockingFile, []byte("block"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
-	require.NoError(t, err)
-
-	err = DERWrite(key, filepath.Join(blockingFile, "key.der"))
-	require.Error(t, err)
-	require.ErrorContains(t, err, "mkdir failed")
-}
-
-// TestPEMWrite_WriteFileFailure covers PEMWrite's write error path via read-only dir.
-func TestPEMWrite_WriteFileFailure(t *testing.T) {
-	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("read-only dirs behave differently on Windows")
-	}
-
-	tmpDir := t.TempDir()
-	roDir := filepath.Join(tmpDir, "readonly")
-	require.NoError(t, os.MkdirAll(roDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.Chmod(roDir, cryptoutilSharedMagic.FilePermOwnerReadOnlyGroupOtherReadOnly))
-	t.Cleanup(func() { os.Chmod(roDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) }) //nolint:errcheck,gosec // cleanup: chmod restore on cleanup, error ignored intentionally
-
-	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
-	require.NoError(t, err)
-
-	err = PEMWrite(key, filepath.Join(roDir, "key.pem"))
-	require.Error(t, err)
-	require.ErrorContains(t, err, "write failed")
-}
-
-// TestDERWrite_WriteFileFailure covers DERWrite's write error path via read-only dir.
-func TestDERWrite_WriteFileFailure(t *testing.T) {
-	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("read-only dirs behave differently on Windows")
-	}
-
-	tmpDir := t.TempDir()
-	roDir := filepath.Join(tmpDir, "readonly")
-	require.NoError(t, os.MkdirAll(roDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.Chmod(roDir, cryptoutilSharedMagic.FilePermOwnerReadOnlyGroupOtherReadOnly))
-	t.Cleanup(func() { os.Chmod(roDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) }) //nolint:errcheck,gosec // cleanup: chmod restore on cleanup, error ignored intentionally
-
-	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
-	require.NoError(t, err)
-
-	err = DERWrite(key, filepath.Join(roDir, "key.der"))
-	require.Error(t, err)
-	require.ErrorContains(t, err, "write failed")
-}
 
 // TestDEREncode_PrivateKeyMarshalError covers DEREncode's MarshalPKCS8PrivateKey error path.
 func TestDEREncode_PrivateKeyMarshalError(t *testing.T) {

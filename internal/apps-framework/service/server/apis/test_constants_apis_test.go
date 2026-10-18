@@ -17,4 +17,6 @@ const (
 	testUserExampleCom                       = "user@example.com"
 	testApprovedTrue                         = "{\"approved\": true}"
 	testInvalid                              = "{invalid"
+	testInvalidJSONCaseName                  = "invalid JSON"
+	testTenantNameLengthInvalid              = "tenant_name length is invalid"
 )

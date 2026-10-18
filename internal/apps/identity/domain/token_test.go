@@ -80,8 +80,8 @@ func TestToken_IsExpired(t *testing.T) {
 			expired:   false,
 		},
 		{
-			name:      "token expiring now",
-			expiresAt: time.Now().UTC().Add(1 * time.Second),
+			name:      "token expiring soon",
+			expiresAt: time.Now().UTC().Add(1 * time.Minute),
 			expired:   false,
 		},
 	}

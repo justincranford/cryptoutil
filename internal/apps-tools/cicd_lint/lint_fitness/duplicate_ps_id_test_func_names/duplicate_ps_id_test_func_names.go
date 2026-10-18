@@ -89,10 +89,18 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 // FindDuplicates returns test function names (sorted by descending occurrence count)
 // that appear in ≥ DuplicateThreshold PS-ID server packages under rootDir.
 func FindDuplicates(rootDir string) ([]FuncOccurrence, error) {
+	return findDuplicatesWith(rootDir, filepath.WalkDir, collectTestFuncNames)
+}
+
+func findDuplicatesWith(
+	rootDir string,
+	walkDirFn func(string, fs.WalkDirFunc) error,
+	collectTestFuncNamesFn func(string) ([]string, error),
+) ([]FuncOccurrence, error) {
 	// funcToPSIDs maps test function name → set of PS-ID dirs that contain it.
 	funcToPSIDs := make(map[string]map[string]bool)
 
-	err := filepath.WalkDir(rootDir, func(path string, d fs.DirEntry, walkErr error) error {
+	err := walkDirFn(rootDir, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -117,7 +125,7 @@ func FindDuplicates(rootDir string) ([]FuncOccurrence, error) {
 			return nil
 		}
 
-		names, err := collectTestFuncNames(path)
+		names, err := collectTestFuncNamesFn(path)
 		if err != nil {
 			return err
 		}

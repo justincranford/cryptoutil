@@ -35,7 +35,15 @@ type Setup struct {
 // Main is the CLI entry point invoked by cmd/cicd-dev-setup/main.go.
 // It accepts args/stdin/stdout/stderr for testability and returns a process exit code.
 func Main(_ []string, _ io.Reader, stdout, stderr io.Writer) int {
-	if err := internalMain(stdout, stderr); err != nil {
+	return mainWithRunner(stdout, stderr, internalMain(
+		cryptoutilAppsToolsDevSetupConfig.Load,
+		getProjectRoot,
+		newSetup,
+	))
+}
+
+func mainWithRunner(stdout, stderr io.Writer, run func(io.Writer, io.Writer) error) int {
+	if err := run(stdout, stderr); err != nil {
 		_, _ = fmt.Fprintf(stderr, "ERROR: %v\n", err)
 
 		return exitCodeFailure
@@ -46,47 +54,75 @@ func Main(_ []string, _ io.Reader, stdout, stderr io.Writer) int {
 
 // internalMain is the testable main function that accepts injected dependencies via Setup.
 // This enables unit tests to inject mock implementations of Checker, Installer, and Reporter.
-func internalMain(stdout, stderr io.Writer) error {
-	ctx := context.Background()
-
-	// Load dependency configuration
-	cfg, err := cryptoutilAppsToolsDevSetupConfig.Load()
-	if err != nil {
-		return fmt.Errorf("failed to load configuration: %w", err)
+func internalMain(
+	loadConfig func() (*cryptoutilAppsToolsDevSetupConfig.Config, error),
+	findRoot func() (string, error),
+	setupFactory func(*cryptoutilAppsToolsDevSetupConfig.Config, string, io.Writer, io.Writer) *Setup,
+) func(io.Writer, io.Writer) error {
+	return func(stdout, stderr io.Writer) error {
+		return internalMainWithDependencies(stdout, stderr, loadConfig, findRoot, setupFactory)
 	}
+}
 
-	// Determine project root
-	projectRoot, err := getProjectRoot()
-	if err != nil {
-		return fmt.Errorf("failed to determine project root: %w", err)
-	}
-
-	// Initialize components with real implementations (seam pattern).
-	// Tests can call internalMainWithSetup() instead to inject mocks.
+func newSetup(
+	cfg *cryptoutilAppsToolsDevSetupConfig.Config,
+	projectRoot string,
+	stdout, stderr io.Writer,
+) *Setup {
 	exec := cryptoutilAppsToolsDevSetupInstaller.NewSystemExecutor()
 	chk := cryptoutilAppsToolsDevSetupChecker.NewDependencyChecker(exec)
 	inst := cryptoutilAppsToolsDevSetupInstaller.NewDependencyInstaller(exec, projectRoot)
 	rep := cryptoutilAppsToolsDevSetupReporter.NewConsoleReporter(stdout, stderr)
 
-	setup := &Setup{
-		Config:    cfg,
-		Checker:   chk,
-		Installer: inst,
-		Reporter:  rep,
+	return &Setup{Config: cfg, Checker: chk, Installer: inst, Reporter: rep}
+}
+
+func internalMainWithDependencies(
+	stdout, stderr io.Writer,
+	loadConfig func() (*cryptoutilAppsToolsDevSetupConfig.Config, error),
+	findRoot func() (string, error),
+	setupFactory func(*cryptoutilAppsToolsDevSetupConfig.Config, string, io.Writer, io.Writer) *Setup,
+) error {
+	// Load dependency configuration
+	cfg, err := loadConfig()
+	if err != nil {
+		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 
-	return internalMainWithSetup(ctx, setup)
+	// Determine project root
+	projectRoot, err := findRoot()
+	if err != nil {
+		return fmt.Errorf("failed to determine project root: %w", err)
+	}
+
+	setup := setupFactory(cfg, projectRoot, stdout, stderr)
+
+	return internalMainWithSetup(context.Background(), setup)
 }
 
 // internalMainWithSetup is the core logic that can accept injected dependencies.
 // This is used by internalMain() in production and by tests that need to inject mocks.
 func internalMainWithSetup(ctx context.Context, setup *Setup) error {
+	return internalMainWithSetupWithRunner(ctx, setup, runSetup)
+}
+
+func internalMainWithSetupWithRunner(
+	ctx context.Context,
+	setup *Setup,
+	setupRunner func(
+		context.Context,
+		*cryptoutilAppsToolsDevSetupConfig.Config,
+		cryptoutilAppsToolsDevSetupChecker.Checker,
+		cryptoutilAppsToolsDevSetupInstaller.Installer,
+		cryptoutilAppsToolsDevSetupReporter.Reporter,
+	) (*cryptoutilAppsToolsDevSetupReporter.Summary, error),
+) error {
 	if setup == nil {
 		return fmt.Errorf("setup is required")
 	}
 
 	// Run dependency verification and installation
-	summary, err := runSetup(ctx, setup.Config, setup.Checker, setup.Installer, setup.Reporter)
+	summary, err := setupRunner(ctx, setup.Config, setup.Checker, setup.Installer, setup.Reporter)
 	if err != nil {
 		return fmt.Errorf("setup failed: %w", err)
 	}
@@ -165,14 +201,18 @@ func runSetup(
 }
 
 func getProjectRoot() (string, error) {
-	cwd, err := os.Getwd()
+	return getProjectRootWith(os.Getwd, os.Stat)
+}
+
+func getProjectRootWith(getwd func() (string, error), stat func(string) (os.FileInfo, error)) (string, error) {
+	cwd, err := getwd()
 	if err != nil {
 		return "", fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
 	// Walk up until we find go.mod
 	for {
-		if _, err := os.Stat(filepath.Join(cwd, "go.mod")); err == nil {
+		if _, err := stat(filepath.Join(cwd, "go.mod")); err == nil {
 			return cwd, nil
 		}
 

@@ -157,7 +157,7 @@ func (g *Generator) writeKeystore(basePath, dirName string, subject *cryptoutilS
 		return fmt.Errorf("write .p12 %s: %w", dirName, err)
 	}
 
-	certPEM, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(chain)
+	certPEM, err := g.encodeCertChain(chain)
 	if err != nil {
 		return fmt.Errorf("pem encode cert %s: %w", dirName, err)
 	}
@@ -202,7 +202,7 @@ func (g *Generator) writeTruststore(basePath, dirName string, subject *cryptouti
 		return fmt.Errorf("write .p12 %s: %w", dirName, err)
 	}
 
-	certPEM, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(chain)
+	certPEM, err := g.encodeCertChain(chain)
 	if err != nil {
 		return fmt.Errorf("pem encode cert %s: %w", dirName, err)
 	}
@@ -250,7 +250,7 @@ func (g *Generator) writeAdminCABundle(targetDir string, adminCACerts [][]byte) 
 // File mode is PKIInitPrivateKeyFileMode (0o440) because the CA private key is
 // embedded — it must not be world-readable.
 func (g *Generator) writeTLSConfigYAML(targetDir string, issuingCA *cryptoutilSharedCryptoCertificate.Subject) error {
-	certPEM, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(issuingCA.KeyMaterial.CertificateChain)
+	certPEM, err := g.encodeCertChain(issuingCA.KeyMaterial.CertificateChain)
 	if err != nil {
 		return fmt.Errorf("pem encode issuing CA cert chain: %w", err)
 	}
@@ -274,4 +274,25 @@ func (g *Generator) writeTLSConfigYAML(targetDir string, issuingCA *cryptoutilSh
 	}
 
 	return nil
+}
+
+func (g *Generator) encodeCertChain(certs []*x509.Certificate) ([]byte, error) {
+	encodeFn := g.encodeCertChainFn
+	if encodeFn == nil {
+		encodeFn = cryptoutilSharedCryptoAsn1.PEMEncodeCertChain
+	}
+
+	return encodeCertChainWithFn(certs, encodeFn)
+}
+
+func encodeCertChainWithFn(
+	certs []*x509.Certificate,
+	encodeFn func([]*x509.Certificate) ([]byte, error),
+) ([]byte, error) {
+	encoded, err := encodeFn(certs)
+	if err != nil {
+		return nil, fmt.Errorf("PEM encode certificate chain: %w", err)
+	}
+
+	return encoded, nil
 }

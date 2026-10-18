@@ -27,6 +27,8 @@ const (
 // mockPasswordCredentialStore implements PasswordCredentialStore for testing.
 type mockPasswordCredentialStore struct {
 	credentials map[string][]byte
+	getErr      error
+	updateErr   error
 }
 
 func newMockPasswordCredentialStore() *mockPasswordCredentialStore {
@@ -42,6 +44,10 @@ func (m *mockPasswordCredentialStore) StoreCredential(_ context.Context, userID 
 }
 
 func (m *mockPasswordCredentialStore) GetCredential(_ context.Context, userID string) ([]byte, error) {
+	if m.getErr != nil {
+		return nil, m.getErr
+	}
+
 	hash, ok := m.credentials[userID]
 	if !ok {
 		return nil, fmt.Errorf("credential not found")
@@ -57,6 +63,10 @@ func (m *mockPasswordCredentialStore) DeleteCredential(_ context.Context, userID
 }
 
 func (m *mockPasswordCredentialStore) UpdateCredential(_ context.Context, userID string, newPasswordHash []byte) error {
+	if m.updateErr != nil {
+		return m.updateErr
+	}
+
 	if _, ok := m.credentials[userID]; !ok {
 		return fmt.Errorf("credential not found")
 	}
@@ -68,7 +78,8 @@ func (m *mockPasswordCredentialStore) UpdateCredential(_ context.Context, userID
 
 // mockUserStore implements UserStore for testing.
 type mockUserStore struct {
-	users map[string]*cryptoutilIdentityDomain.User
+	users  map[string]*cryptoutilIdentityDomain.User
+	getErr error
 }
 
 func newMockUserStore() *mockUserStore {
@@ -78,6 +89,10 @@ func newMockUserStore() *mockUserStore {
 }
 
 func (m *mockUserStore) GetByID(_ context.Context, userID string) (*cryptoutilIdentityDomain.User, error) {
+	if m.getErr != nil {
+		return nil, m.getErr
+	}
+
 	user, ok := m.users[userID]
 	if !ok {
 		return nil, fmt.Errorf("user not found")

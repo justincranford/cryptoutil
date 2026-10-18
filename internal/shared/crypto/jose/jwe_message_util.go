@@ -26,6 +26,23 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 
 // EncryptBytesWithContext encrypts bytes with additional authenticated data context.
 func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []byte) (*joseJwe.Message, []byte, error) {
+	return encryptBytesWithContext(jwks, clearBytes, context, setJWEHeader, joseJwe.Encrypt, joseJwe.Parse)
+}
+
+type jweHeaderSetter func(string, any) error
+
+func setJWEHeader(setter jweHeaderSetter, name string, value any) error {
+	return setter(name, value)
+}
+
+func encryptBytesWithContext(
+	jwks []joseJwk.Key,
+	clearBytes []byte,
+	context []byte,
+	setHeader func(jweHeaderSetter, string, any) error,
+	encrypt func([]byte, ...joseJwe.EncryptOption) ([]byte, error),
+	parse func([]byte, ...joseJwe.ParseOption) (*joseJwe.Message, error),
+) (*joseJwe.Message, []byte, error) {
 	if jwks == nil {
 		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
@@ -54,12 +71,14 @@ func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []by
 	}
 
 	jweProtectedHeaders := joseJwe.NewHeaders()
-	if err := jweProtectedHeaders.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()); err != nil {
+
+	protectedHeaderSetter := jweProtectedHeaders.Set
+	if err := setHeader(protectedHeaderSetter, cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()); err != nil {
 		return nil, nil, fmt.Errorf("failed to set iat header: %w", err)
 	}
 
 	if len(context) > 0 {
-		if err := jweProtectedHeaders.Set(joseJwe.AuthenticatedDataKey, context); err != nil {
+		if err := setHeader(protectedHeaderSetter, joseJwe.AuthenticatedDataKey, context); err != nil {
 			return nil, nil, fmt.Errorf("failed to set aad header: %w", err)
 		}
 	}
@@ -92,27 +111,29 @@ func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []by
 		}
 
 		jweProtectedHeaders := joseJwe.NewHeaders()
-		if err := jweProtectedHeaders.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
+
+		perRecipientHeaderSetter := jweProtectedHeaders.Set
+		if err := setHeader(perRecipientHeaderSetter, joseJwk.KeyIDKey, kid.String()); err != nil {
 			return nil, nil, fmt.Errorf("failed to set kid header: %w", err)
 		}
 
-		if err := jweProtectedHeaders.Set(`enc`, *enc); err != nil {
+		if err := setHeader(perRecipientHeaderSetter, `enc`, *enc); err != nil {
 			return nil, nil, fmt.Errorf("failed to set enc header: %w", err)
 		}
 
-		if err := jweProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg); err != nil {
+		if err := setHeader(perRecipientHeaderSetter, joseJwk.AlgorithmKey, *alg); err != nil {
 			return nil, nil, fmt.Errorf("failed to set alg header: %w", err)
 		}
 
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithKey(*alg, jwk, joseJwe.WithPerRecipientHeaders(jweProtectedHeaders)))
 	}
 
-	jweMessageBytes, err := joseJwe.Encrypt(clearBytes, jweEncryptOptions...)
+	jweMessageBytes, err := encrypt(clearBytes, jweEncryptOptions...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt clearBytes: %w", err)
 	}
 
-	jweMessage, err := joseJwe.Parse(jweMessageBytes)
+	jweMessage, err := parse(jweMessageBytes)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse JWE message bytes: %w", err)
 	}

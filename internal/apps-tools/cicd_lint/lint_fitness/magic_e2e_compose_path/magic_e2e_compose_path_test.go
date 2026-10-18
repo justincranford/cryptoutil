@@ -78,6 +78,21 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	root := findProjectRoot(t)
+
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+	defer func() {
+		require.NoError(t, os.Chdir(originalDir))
+	}()
+
+	require.NoError(t, lintFitnessMagicE2EComposePath.Check(newTestLogger()))
+}
+
 const (
 	testMagicIdentityFilename = "magic_identity.go"
 	testMagicJoseFilename     = "magic_jose.go"

@@ -252,7 +252,7 @@ func TestHandleOCSP_ValidRequest(t *testing.T) {
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
+	require.Equal(t, cryptoutilSharedMagic.PKIContentTypeOCSPResponse, resp.Header.Get("Content-Type"))
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
 }
@@ -336,6 +336,6 @@ func TestHandleOCSP_ValidRequest_CertNotInStorage(t *testing.T) {
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	// OCSP response in any form (not-found etc.)
-	require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
+	require.Equal(t, cryptoutilSharedMagic.PKIContentTypeOCSPResponse, resp.Header.Get("Content-Type"))
 	require.NoError(t, resp.Body.Close())
 }

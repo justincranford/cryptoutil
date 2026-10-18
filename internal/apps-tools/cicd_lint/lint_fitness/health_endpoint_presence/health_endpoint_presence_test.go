@@ -29,9 +29,9 @@ func mkServiceWithServer(t *testing.T, root, product, service string) {
 func TestCheckInDir_ServiceWithHealthEndpoints_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	mkServiceWithServer(t, tmp, "sm", "im")
+	mkServiceWithServer(t, tmp, cryptoutilSharedMagic.SMProductName, "im")
 	// Write a file containing both required health patterns.
-	serverFile := filepath.Join(tmp, "internal", "apps", "sm", "im", cryptoutilSharedMagic.CMD_SERVER, "server.go")
+	serverFile := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SMProductName, "im", cryptoutilSharedMagic.CMD_SERVER, "server.go")
 	require.NoError(t, os.WriteFile(serverFile, []byte(`package server
 // registers livez and readyz endpoints
 func (s *Server) Start() { }
@@ -44,9 +44,9 @@ func (s *Server) Start() { }
 func TestCheckInDir_ServiceMissingHealthEndpoints_Fails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	mkServiceWithServer(t, tmp, "sm", "im")
+	mkServiceWithServer(t, tmp, cryptoutilSharedMagic.SMProductName, "im")
 	// server.go has no health endpoint references.
-	serverFile := filepath.Join(tmp, "internal", "apps", "sm", "im", cryptoutilSharedMagic.CMD_SERVER, "server.go")
+	serverFile := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SMProductName, "im", cryptoutilSharedMagic.CMD_SERVER, "server.go")
 	require.NoError(t, os.WriteFile(serverFile, []byte(`package server
 func (s *Server) Start() { }
 `), cryptoutilSharedMagic.CacheFilePermissions))
@@ -82,7 +82,7 @@ func TestCheckInDir_SkipArchivedService_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	// Archived service has no healthcheck, but should be skipped.
-	archivedDir := filepath.Join(tmp, "internal", "apps", "sm", "_old", cryptoutilSharedMagic.CMD_SERVER)
+	archivedDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SMProductName, "_old", cryptoutilSharedMagic.CMD_SERVER)
 	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(archivedDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -98,18 +98,61 @@ func TestCheckInDir_NoServices_Passes(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheckInDir_AbsolutePathError(t *testing.T) {
+	t.Parallel()
+
+	err := checkInDirWithAbs(newTestLogger(), ".", func(string) (string, error) {
+		return "", fmt.Errorf("injected absolute path error")
+	}, os.ReadDir, os.ReadFile)
+	require.ErrorContains(t, err, "failed to resolve root dir")
+	require.ErrorContains(t, err, "injected absolute path error")
+}
+
+func TestCheckInDir_ProductDirectoryReadError(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	appsDir := filepath.Join(tmp, "internal", "apps")
+	productDir := filepath.Join(appsDir, "product")
+	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
+
+	products, err := os.ReadDir(appsDir)
+	require.NoError(t, err)
+
+	err = CheckInDir(newTestLogger(), tmp, func(path string) ([]os.DirEntry, error) {
+		if path == appsDir {
+			require.NoError(t, os.RemoveAll(productDir))
+
+			return products, nil
+		}
+
+		return os.ReadDir(path)
+	}, os.ReadFile)
+	require.ErrorContains(t, err, "failed to discover services")
+	require.ErrorContains(t, err, "read product dir product")
+}
+
 func TestCheckServiceHealth_PatternsFoundInSubdir(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	svcDir := filepath.Join(tmp, "internal", "apps", "sm", "im")
+	svcDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SMProductName, "im")
 	require.NoError(t, os.MkdirAll(svcDir, cryptoutilSharedMagic.DirPermissions))
 	// Pattern in a non-server.go file (still in service dir).
 	require.NoError(t, os.WriteFile(filepath.Join(svcDir, "routes.go"),
 		[]byte("package sm\n// sets up livez and readyz\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	svc := serviceID{product: "sm", service: "im"}
+	svc := serviceID{product: cryptoutilSharedMagic.SMProductName, service: "im"}
 	violations := checkServiceHealth(svc, filepath.Join(tmp, "internal", "apps"), os.ReadFile)
 	require.Empty(t, violations)
+}
+
+func TestCheckServiceHealth_MissingDirectory(t *testing.T) {
+	t.Parallel()
+
+	violations := checkServiceHealth(serviceID{product: cryptoutilSharedMagic.SMProductName, service: "missing"}, t.TempDir(), os.ReadFile)
+	require.Len(t, violations, 2)
+	require.Contains(t, violations[0], "missing health pattern")
+	require.Contains(t, violations[1], "missing health pattern")
 }
 
 func TestDiscoverServices_EmptyAppsDir(t *testing.T) {
@@ -136,7 +179,7 @@ func TestDiscoverServices_NonDirFileInProductDir_Skipped(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	appsDir := filepath.Join(tmp, "apps")
-	productDir := filepath.Join(appsDir, "sm")
+	productDir := filepath.Join(appsDir, cryptoutilSharedMagic.SMProductName)
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
 	// Create a FILE (not directory) in the product dir - triggers !s.IsDir() continue.
 	require.NoError(t, os.WriteFile(filepath.Join(productDir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
@@ -160,7 +203,7 @@ func TestCheckServiceHealth_ReadFileError(t *testing.T) {
 	t.Parallel()
 
 	tmp := t.TempDir()
-	mkServiceWithServer(t, tmp, "sm", "im")
+	mkServiceWithServer(t, tmp, cryptoutilSharedMagic.SMProductName, "im")
 
 	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, func(_ string) ([]byte, error) {
 		return nil, fmt.Errorf("injected read error")

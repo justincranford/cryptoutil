@@ -35,6 +35,14 @@ type SwaggerUIConfig struct {
 // - /ui/swagger/* - Swagger UI interface
 // - {BrowserAPIContextPath}/csrf-token - CSRF token endpoint for Swagger UI.
 func RegisterSwaggerUI(app *fiber.App, cfg *SwaggerUIConfig) error {
+	return registerSwaggerUIWithHandler(app, cfg, swagger.New)
+}
+
+func registerSwaggerUIWithHandler(
+	app *fiber.App,
+	cfg *SwaggerUIConfig,
+	newSwaggerHandler func(...swagger.Config) fiber.Handler,
+) error {
 	if cfg == nil {
 		return fmt.Errorf("swagger UI config is required")
 	}
@@ -54,7 +62,7 @@ func RegisterSwaggerUI(app *fiber.App, cfg *SwaggerUIConfig) error {
 
 	// Serve Swagger UI.
 	app.Get("/ui/swagger/*", authMiddleware, func(c *fiber.Ctx) error {
-		swaggerHandler := swagger.New(swagger.Config{
+		swaggerHandler := newSwaggerHandler(swagger.Config{
 			Title:                  "Cryptoutil API",
 			URL:                    "/ui/swagger/doc.json",
 			TryItOutEnabled:        true,

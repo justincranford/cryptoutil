@@ -3,7 +3,9 @@ package apis_test
 
 import (
 	"context"
+	json "encoding/json"
 	"fmt"
+	"io"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -16,6 +18,7 @@ import (
 
 	cryptoutilIdentityAuthzPkce "cryptoutil/internal/apps/identity-authz/pkce"
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz/server/apis"
+	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
@@ -31,9 +34,14 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name           string
-		setupFunc      func(*testing.T, *cryptoutilIdentityRepository.RepositoryFactory) (code, redirectURI, clientID, codeVerifier string)
-		expectedStatus int
+		name             string
+		setupFunc        func(*testing.T, *cryptoutilIdentityRepository.RepositoryFactory) (code, redirectURI, clientID, codeVerifier string)
+		tokenSvc         *authzCodeTokenServiceStub
+		expectedStatus   int
+		wantError        string
+		wantDescription  string
+		wantAccessCalls  int
+		wantRefreshCalls int
 	}{
 		{
 			name: "redirect_uri_mismatch",
@@ -42,8 +50,11 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 
 				// Create client.
 				clientRepo := repoFactory.ClientRepository()
+				clientUUID, err := googleUuid.NewV7()
+				require.NoError(t, err)
+
 				client := &cryptoutilIdentityDomain.Client{
-					ClientID:             "test-client-" + googleUuid.NewString(),
+					ClientID:             "test-client-" + clientUUID.String(),
 					Name:                 cryptoutilSharedMagic.TestClientName,
 					RedirectURIs:         []string{cryptoutilSharedMagic.TestRedirectURI},
 					AllowedScopes:        []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
@@ -56,17 +67,22 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
 				codeVerifier, err := cryptoutilIdentityAuthzPkce.GenerateCodeVerifier()
 				require.NoError(t, err)
+				codeID, err := googleUuid.NewV7()
+				require.NoError(t, err)
+				userID, err := googleUuid.NewV7()
+				require.NoError(t, err)
 
 				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilSharedMagic.PKCEMethodS256)
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            client.ClientID,
 					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
+					Code:                codeID.String(),
 					Scope:               testOpenidProfile,
 					State:               testTestState,
 					CodeChallenge:       codeChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
-					UserID:              cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.New(), Valid: true},
+					UserID:              cryptoutilIdentityDomain.NullableUUID{UUID: userID, Valid: true},
 				}
 				require.NoError(t, authzReqRepo.Create(ctx, authRequest))
 
@@ -84,63 +100,56 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
 				codeVerifier, err := cryptoutilIdentityAuthzPkce.GenerateCodeVerifier()
 				require.NoError(t, err)
+				codeID, err := googleUuid.NewV7()
+				require.NoError(t, err)
+				userID, err := googleUuid.NewV7()
+				require.NoError(t, err)
+				nonExistentClientUUID, err := googleUuid.NewV7()
+				require.NoError(t, err)
 
 				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilSharedMagic.PKCEMethodS256)
-				nonExistentClientID := "non-existent-client-" + googleUuid.NewString()
+				nonExistentClientID := "non-existent-client-" + nonExistentClientUUID.String()
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            nonExistentClientID,
 					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
+					Code:                codeID.String(),
 					Scope:               testOpenidProfile,
 					State:               testTestState,
 					CodeChallenge:       codeChallenge,
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
-					UserID:              cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.New(), Valid: true},
+					UserID:              cryptoutilIdentityDomain.NullableUUID{UUID: userID, Valid: true},
 				}
 				require.NoError(t, authzReqRepo.Create(ctx, authRequest))
 
 				// Client lookup will fail after authorization code validation.
 				return authRequest.Code, authRequest.RedirectURI, nonExistentClientID, codeVerifier
 			},
-			expectedStatus: fiber.StatusBadRequest, // PKCE validation fails BEFORE client lookup (invalid code verifier causes 400)
+			expectedStatus: fiber.StatusNotFound,
 		},
 		{
-			name: "access_token_issuance_failed",
-			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
-				t.Helper()
-
-				// NOTE: This error path (tokenSvc.IssueAccessToken failure) is DIFFICULT to test
-				// without mocking because:
-				// 1. Requires real tokenSvc to avoid nil panic
-				// 2. IssueAccessToken implementation doesn't have easily-trigger-able error paths
-				// 3. Would require corrupted key material or nil issuers (not realistic)
-				//
-				// DECISION: Skip this error path test for now. Coverage analysis shows
-				// handleAuthorizationCodeGrant at 68.3%. The remaining uncovered lines
-				// are likely:
-				// - Lines 195-201: tokenSvc.IssueAccessToken error handling
-				// - Lines 203-209: tokenSvc.IssueRefreshToken error handling
-				//
-				// These paths require mock tokenSvc or intentionally broken crypto setup.
-				// For production testing, rely on integration tests that exercise full stack.
-
-				// Return empty to trigger test skip in main test function.
-				return "", "", "", ""
+			name: testAccessTokenIssuanceFailed,
+			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
+				return createValidAuthorizationCodeGrant(t, repoFactory)
 			},
-			expectedStatus: 0, // Skip marker
+			tokenSvc:         &authzCodeTokenServiceStub{accessTokenErr: fmt.Errorf("injected access token error")},
+			expectedStatus:   fiber.StatusInternalServerError,
+			wantError:        cryptoutilSharedMagic.ErrorServerError,
+			wantDescription:  cryptoutilIdentityAppErr.ErrTokenIssuanceFailed.Message,
+			wantAccessCalls:  1,
+			wantRefreshCalls: 0,
 		},
 		{
 			name: "refresh_token_issuance_failed",
-			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
-				t.Helper()
-
-				// NOTE: Same reasoning as access_token_issuance_failed above.
-				// tokenSvc.IssueRefreshToken failure requires mock or corrupted setup.
-				// Skip this error path test for now.
-
-				return "", "", "", ""
+			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
+				return createValidAuthorizationCodeGrant(t, repoFactory)
 			},
-			expectedStatus: 0, // Skip marker
+			tokenSvc:         &authzCodeTokenServiceStub{refreshTokenErr: fmt.Errorf("injected refresh token error")},
+			expectedStatus:   fiber.StatusInternalServerError,
+			wantError:        cryptoutilSharedMagic.ErrorServerError,
+			wantDescription:  cryptoutilIdentityAppErr.ErrTokenIssuanceFailed.Message,
+			wantAccessCalls:  1,
+			wantRefreshCalls: 1,
 		},
 	}
 
@@ -152,18 +161,16 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 			// Setup test dependencies.
 			config, repoFactory, tokenSvc := createAuthzCodeAdditionalTestDependencies(t)
 
+			var serviceTokenSvc cryptoutilIdentityAuthz.TokenService = tokenSvc
+
 			// Setup test scenario.
 			code, redirectURI, clientID, codeVerifier := tc.setupFunc(t, repoFactory)
-
-			// Skip test if setupFunc returned empty (e.g., token issuance error tests).
-			if tc.expectedStatus == 0 {
-				t.Skip("Skipping test: Requires mock tokenSvc or complex setup")
-
-				return
+			if tc.tokenSvc != nil {
+				serviceTokenSvc = tc.tokenSvc
 			}
 
 			// Create service.
-			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, serviceTokenSvc)
 			require.NotNil(t, svc)
 
 			// Create Fiber app and mount routes.
@@ -173,7 +180,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 			// Make POST request to /oauth2/v1/token.
 			form := url.Values{}
 			form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
-			form.Set(cryptoutilSharedMagic.ResponseTypeCode, code)
+			form.Set(cryptoutilSharedMagic.ParamCode, code)
 			form.Set(cryptoutilSharedMagic.ParamRedirectURI, redirectURI)
 			form.Set(cryptoutilSharedMagic.ClaimClientID, clientID)
 			form.Set(cryptoutilSharedMagic.ParamCodeVerifier, codeVerifier)
@@ -184,24 +191,123 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
+			responseBody, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+
 			defer func() { //nolint:errcheck // Test cleanup - error intentionally ignored
 				_ = resp.Body.Close()
 			}()
 
-			require.Equal(t, tc.expectedStatus, resp.StatusCode, "Should return expected status code")
+			require.Equal(t, tc.expectedStatus, resp.StatusCode, "response body: %s", responseBody)
+
+			if tc.wantError != "" {
+				var errorResponse struct {
+					Error            string `json:"error"`
+					ErrorDescription string `json:"error_description"`
+				}
+				require.NoError(t, json.Unmarshal(responseBody, &errorResponse))
+				require.Equal(t, tc.wantError, errorResponse.Error)
+				require.Equal(t, tc.wantDescription, errorResponse.ErrorDescription)
+			}
+
+			if tc.tokenSvc != nil {
+				require.Equal(t, tc.wantAccessCalls, tc.tokenSvc.accessTokenCalls)
+				require.Equal(t, tc.wantRefreshCalls, tc.tokenSvc.refreshTokenCalls)
+			}
 		})
 	}
+}
+
+type authzCodeTokenServiceStub struct {
+	accessTokenErr    error
+	refreshTokenErr   error
+	accessTokenCalls  int
+	refreshTokenCalls int
+}
+
+func (s *authzCodeTokenServiceStub) IssueAccessToken(_ context.Context, _ map[string]any) (string, error) {
+	s.accessTokenCalls++
+
+	if s.accessTokenErr != nil {
+		return "", s.accessTokenErr
+	}
+
+	return testAccessToken, nil
+}
+
+func (s *authzCodeTokenServiceStub) IssueRefreshToken(_ context.Context) (string, error) {
+	s.refreshTokenCalls++
+
+	if s.refreshTokenErr != nil {
+		return "", s.refreshTokenErr
+	}
+
+	return testRefreshToken, nil
+}
+
+func (*authzCodeTokenServiceStub) ValidateAccessToken(_ context.Context, _ string) (map[string]any, error) {
+	return nil, nil
+}
+
+func (*authzCodeTokenServiceStub) GetPublicKeys() []map[string]any {
+	return nil
+}
+
+func createValidAuthorizationCodeGrant(
+	t *testing.T,
+	repoFactory *cryptoutilIdentityRepository.RepositoryFactory,
+) (code, redirectURI, clientID, codeVerifier string) {
+	t.Helper()
+
+	ctx := context.Background()
+	clientUUID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	clientID = "test-client-" + clientUUID.String()
+	client := &cryptoutilIdentityDomain.Client{
+		ClientID:             clientID,
+		Name:                 cryptoutilSharedMagic.TestClientName,
+		RedirectURIs:         []string{cryptoutilSharedMagic.TestRedirectURI},
+		AllowedScopes:        []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
+		AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+	}
+	require.NoError(t, repoFactory.ClientRepository().Create(ctx, client))
+
+	codeVerifier, err = cryptoutilIdentityAuthzPkce.GenerateCodeVerifier()
+	require.NoError(t, err)
+	codeID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
+		ClientID:            clientID,
+		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
+		Code:                codeID.String(),
+		Scope:               testOpenidProfile,
+		State:               testTestState,
+		CodeChallenge:       cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilSharedMagic.PKCEMethodS256),
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
+		UserID:              cryptoutilIdentityDomain.NullableUUID{UUID: userID, Valid: true},
+	}
+	require.NoError(t, repoFactory.AuthorizationRequestRepository().Create(ctx, authRequest))
+
+	return authRequest.Code, authRequest.RedirectURI, clientID, codeVerifier
 }
 
 func createAuthzCodeAdditionalTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config, *cryptoutilIdentityRepository.RepositoryFactory, *cryptoutilIdentityIssuer.TokenService) {
 	t.Helper()
 
 	ctx := context.Background()
+	databaseUUID, err := googleUuid.NewV7()
+	require.NoError(t, err)
 
 	// Create unique in-memory database.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
-		DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New()),
+		DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", databaseUUID.String()),
 		AutoMigrate: true,
 	}
 

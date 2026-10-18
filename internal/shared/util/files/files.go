@@ -47,7 +47,11 @@ func WriteFile(filePath string, bytesOrString any, permissions os.FileMode) erro
 // Paths are normalized to use forward slashes for cross-platform compatibility.
 // Excluded directories are skipped entirely.
 func ListAllFiles(startDirectory string) (map[string][]string, error) {
-	return ListAllFilesWithOptions(startDirectory, cryptoutilSharedMagic.TextFilenameExtensionInclusions, cryptoutilSharedMagic.DirectoryNameExclusions)
+	exclusions := make([]string, 0, len(cryptoutilSharedMagic.DirectoryNameExclusions)+1)
+	exclusions = append(exclusions, cryptoutilSharedMagic.DirectoryNameExclusions...)
+	exclusions = append(exclusions, cryptoutilSharedMagic.DirectoryNameExclusionTestLoadTarget)
+
+	return ListAllFilesWithOptions(startDirectory, cryptoutilSharedMagic.TextFilenameExtensionInclusions, exclusions)
 }
 
 // ListAllFilesWithOptions walks the directory tree starting from startDirectory and returns files grouped by extension.

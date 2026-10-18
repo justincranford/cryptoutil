@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testFailedToWalkAppsErrorMessage = "failed to walk internal/apps"
+
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -44,6 +46,14 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = CheckInDir(logger, root)
 	require.NoError(t, err)
+}
+
+func TestCheckInDir_ReturnsMissingAppsDirectory(t *testing.T) {
+	t.Parallel()
+
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger(t.Name()), t.TempDir())
+
+	require.ErrorContains(t, err, "internal/apps directory not found")
 }
 
 func TestCheckInDir_AllValid(t *testing.T) {
@@ -337,7 +347,21 @@ func TestCheckInDir_OperationPaths(t *testing.T) {
 					return fmt.Errorf("injected walk error")
 				}
 			},
-			wantErr: "failed to walk internal/apps",
+			wantErr: testFailedToWalkAppsErrorMessage,
+		},
+		{
+			name: "walk callback error is reported",
+			setup: func(_ *testing.T, operations *testPresenceOperations, _ string) {
+				operations.walkFn = func(root string, walkFn filepath.WalkFunc) error {
+					info, err := os.Stat(root)
+					if err != nil {
+						return err
+					}
+
+					return walkFn(root, info, fmt.Errorf("injected callback error"))
+				}
+			},
+			wantErr: testFailedToWalkAppsErrorMessage,
 		},
 		{
 			name: "read directory error is reported",

@@ -5,16 +5,38 @@ package builder
 
 import (
 	"encoding/base64"
+	"errors"
 	"io"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
+
+func TestRegisterSwaggerUI_HandlerError(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	cfg := &SwaggerUIConfig{OpenAPISpecJSON: []byte("{}")}
+	handlerErr := errors.New("injected swagger handler failure")
+	err := registerSwaggerUIWithHandler(app, cfg, func(...swagger.Config) fiber.Handler {
+		return func(*fiber.Ctx) error {
+			return handlerErr
+		}
+	})
+	require.NoError(t, err)
+
+	resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/ui/swagger/index.html", nil), -1)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
 
 func TestRegisterSwaggerUI_NilConfig(t *testing.T) {
 	t.Parallel()

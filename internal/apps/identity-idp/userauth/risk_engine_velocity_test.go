@@ -3,6 +3,7 @@ package userauth
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -143,10 +144,16 @@ behavior_risks: {}
 // Mock implementations for testing.
 
 type mockUserBehaviorStore struct {
-	baseline *UserBaseline
+	baseline      *UserBaseline
+	baselineError error
+	recordError   error
 }
 
 func (m *mockUserBehaviorStore) GetBaseline(_ context.Context, _ string) (*UserBaseline, error) {
+	if m.baselineError != nil {
+		return nil, m.baselineError
+	}
+
 	if m.baseline != nil {
 		return m.baseline, nil
 	}
@@ -159,7 +166,7 @@ func (m *mockUserBehaviorStore) UpdateBaseline(_ context.Context, _ string, _ *A
 }
 
 func (m *mockUserBehaviorStore) RecordAuthentication(_ context.Context, _ string, _ bool, _ *AuthContext) error {
-	return nil
+	return m.recordError
 }
 
 type mockGeoIPService struct{}
@@ -216,6 +223,80 @@ func TestBehavioralRiskEngine_assessBehaviorRisk(t *testing.T) {
 
 			score := engine.assessBehaviorRisk(tc.behavior, tc.baseline)
 			require.InDelta(t, tc.wantScore, score, 0.001)
+		})
+	}
+}
+
+func TestBehavioralRiskEngine_assessDeviceRisk(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		device       *DeviceFingerprint
+		knownDevices []string
+		wantScore    float64
+	}{
+		{
+			name:         "recognized device",
+			device:       &DeviceFingerprint{ID: testTestDevice},
+			knownDevices: []string{testTestDevice},
+			wantScore:    cryptoutilSharedMagic.RiskScoreLow,
+		},
+		{
+			name:      "unknown device",
+			device:    &DeviceFingerprint{ID: testTestDevice},
+			wantScore: cryptoutilSharedMagic.RiskScoreHigh,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			score := (&BehavioralRiskEngine{}).assessDeviceRisk(tc.device, &UserBaseline{KnownDevices: tc.knownDevices})
+			require.Equal(t, tc.wantScore, score)
+		})
+	}
+}
+
+func TestBehavioralRiskEngine_assessNetworkRisk(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		network       *NetworkInfo
+		knownNetworks []string
+		wantScore     float64
+	}{
+		{
+			name:          "known network remains low risk when proxy flags are set",
+			network:       &NetworkInfo{IPAddress: test19216811, IsVPN: true, IsProxy: true},
+			knownNetworks: []string{test19216811},
+			wantScore:     cryptoutilSharedMagic.RiskScoreLow,
+		},
+		{
+			name:      "vpn network",
+			network:   &NetworkInfo{IPAddress: test19216811, IsVPN: true},
+			wantScore: cryptoutilSharedMagic.VPNRiskScore,
+		},
+		{
+			name:      "proxy network",
+			network:   &NetworkInfo{IPAddress: test19216811, IsProxy: true},
+			wantScore: cryptoutilSharedMagic.ProxyRiskScore,
+		},
+		{
+			name:      "unknown network",
+			network:   &NetworkInfo{IPAddress: test19216811},
+			wantScore: cryptoutilSharedMagic.RiskScoreMedium,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			score := (&BehavioralRiskEngine{}).assessNetworkRisk(tc.network, &UserBaseline{KnownNetworks: tc.knownNetworks})
+			require.Equal(t, tc.wantScore, score)
 		})
 	}
 }
@@ -306,6 +387,76 @@ func TestRiskBasedAuthenticator_Authenticate(t *testing.T) {
 			require.Equal(t, tc.wantRequirements, decision.Requirements.MinFactors, "MinFactors should match")
 			require.NotNil(t, decision.RiskScore, "RiskScore should not be nil")
 			require.Equal(t, tc.riskLevel, decision.RiskScore.Level, "RiskLevel should match")
+		})
+	}
+}
+
+func TestRiskBasedAuthenticator_AuthenticateFailureModes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		contextAnalyzer  *mockContextAnalyzer
+		riskEngine       *mockRiskEngine
+		recordError      error
+		wantError        string
+		wantRequiresAuth bool
+		wantMinFactors   int
+	}{
+		{
+			name:            "context analysis failure",
+			contextAnalyzer: &mockContextAnalyzer{err: errors.New("context unavailable")},
+			riskEngine:      &mockRiskEngine{},
+			wantError:       "failed to analyze context",
+		},
+		{
+			name:            "risk assessment failure",
+			contextAnalyzer: &mockContextAnalyzer{authContext: &AuthContext{}},
+			riskEngine:      &mockRiskEngine{err: errors.New("risk engine unavailable")},
+			wantError:       "failed to assess risk",
+		},
+		{
+			name:            "nil risk score",
+			contextAnalyzer: &mockContextAnalyzer{authContext: &AuthContext{}},
+			riskEngine:      &mockRiskEngine{},
+			wantError:       "risk engine returned no score",
+		},
+		{
+			name:             "unsupported risk level uses medium requirements and fails closed",
+			contextAnalyzer:  &mockContextAnalyzer{authContext: &AuthContext{}},
+			riskEngine:       &mockRiskEngine{riskScore: &RiskScore{Level: RiskLevel("unsupported")}},
+			wantRequiresAuth: true,
+			wantMinFactors:   2,
+		},
+		{
+			name:             "recording failure does not block authentication",
+			contextAnalyzer:  &mockContextAnalyzer{authContext: &AuthContext{}},
+			riskEngine:       &mockRiskEngine{riskScore: &RiskScore{Level: RiskLevelLow}},
+			recordError:      errors.New("behavior store unavailable"),
+			wantRequiresAuth: false,
+			wantMinFactors:   1,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			userBehaviorStore := &mockUserBehaviorStore{recordError: tc.recordError}
+			auth := NewRiskBasedAuthenticator(tc.riskEngine, tc.contextAnalyzer, nil, nil, userBehaviorStore)
+			decision, err := auth.Authenticate(context.Background(), "test-user", &AuthRequest{})
+
+			if tc.wantError != "" {
+				require.ErrorContains(t, err, tc.wantError)
+				require.Nil(t, decision)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, decision)
+			require.Equal(t, tc.wantRequiresAuth, decision.RequiresAuth)
+			require.Equal(t, tc.wantMinFactors, decision.Requirements.MinFactors)
 		})
 	}
 }

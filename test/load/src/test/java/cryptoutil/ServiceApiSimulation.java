@@ -5,6 +5,7 @@ import static cryptoutil.CryptoutiApi.DATA_KEY_ALGORITHMS;
 import static cryptoutil.CryptoutiApi.DEFAULT_PROVIDER;
 import static cryptoutil.CryptoutiApi.ELASTIC_KEY_ENCRYPTION_ALGORITHMS;
 import static cryptoutil.CryptoutiApi.ELASTIC_KEY_SIGNATURE_ALGORITHMS;
+import static cryptoutil.CryptoutiApi.authenticateServiceClient;
 import static cryptoutil.CryptoutiApi.buildCompleteWorkflowScenario;
 import static cryptoutil.CryptoutiApi.buildEncryptDecryptScenario;
 import static cryptoutil.CryptoutiApi.buildSignVerifyScenario;
@@ -12,6 +13,7 @@ import static cryptoutil.CryptoutiApi.createElasticKey;
 import static cryptoutil.CryptoutiApi.decrypt;
 import static cryptoutil.CryptoutiApi.encrypt;
 import static cryptoutil.CryptoutiApi.generateMaterialKey;
+import static cryptoutil.CryptoutiApi.serviceClientBootstrapPopulation;
 import static cryptoutil.GatlingHttpUtil.createServiceApiProtocol;
 import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.rampUsers;
@@ -35,6 +37,9 @@ import java.util.stream.Stream;
  * <pre>
  * # Quick validation test (fastest, single algorithm)
  * .\mvnw.cmd gatling:test -Dprofile=quick -Dvirtualclients=1 -DdurationSeconds=30
+ *
+ * # Standard/stress complete workflow for one representative algorithm
+ * .\mvnw.cmd gatling:test -Dprofile=standard -Dvirtualclients=50 -DdurationSeconds=120
  *
  * # Test all cipher algorithms
  * .\mvnw.cmd gatling:test -Dprofile=cipher -Dvirtualclients=2 -DdurationSeconds=45
@@ -82,76 +87,81 @@ public class ServiceApiSimulation extends Simulation {
 
   // Injection profile and test setup
   {
-    PopulationBuilder[] scenarios;
+    PopulationBuilder[] scenarios =
+        switch (testProfile) {
+          case "standard", "stress" ->
+              new PopulationBuilder[] {
+                buildCompleteWorkflowScenario(
+                        ELASTIC_KEY_ENCRYPTION_ALGORITHMS[0], CLEARTEXT, DATA_KEY_ALGORITHMS)
+                    .injectOpen(rampUsers(virtualclients).during(durationSeconds))
+              };
+          case "cipher" -> {
+            PopulationBuilder[] profileScenarios =
+                new PopulationBuilder[ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length];
+            for (int i = 0; i < ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length; i++) {
+              profileScenarios[i] =
+                  buildEncryptDecryptScenario(ELASTIC_KEY_ENCRYPTION_ALGORITHMS[i], CLEARTEXT)
+                      .injectOpen(rampUsers(virtualclients).during(durationSeconds));
+            }
+            yield profileScenarios;
+          }
+          case "signature" -> {
+            PopulationBuilder[] profileScenarios =
+                new PopulationBuilder[ELASTIC_KEY_SIGNATURE_ALGORITHMS.length];
+            for (int i = 0; i < ELASTIC_KEY_SIGNATURE_ALGORITHMS.length; i++) {
+              profileScenarios[i] =
+                  buildSignVerifyScenario(ELASTIC_KEY_SIGNATURE_ALGORITHMS[i], CLEARTEXT)
+                      .injectOpen(rampUsers(virtualclients).during(durationSeconds));
+            }
+            yield profileScenarios;
+          }
+          case "complete" -> {
+            PopulationBuilder[] profileScenarios =
+                new PopulationBuilder[ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length];
+            for (int i = 0; i < ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length; i++) {
+              profileScenarios[i] =
+                  buildCompleteWorkflowScenario(
+                          ELASTIC_KEY_ENCRYPTION_ALGORITHMS[i], CLEARTEXT, DATA_KEY_ALGORITHMS)
+                      .injectOpen(rampUsers(virtualclients).during(durationSeconds));
+            }
+            yield profileScenarios;
+          }
+          case "quick" ->
+              new PopulationBuilder[] {
+                scenario("Quick Validation")
+                    .exec(authenticateServiceClient())
+                    .feed(uuidFeeder)
+                    .exec(
+                        createElasticKey(
+                            "QuickTest-#{uuid}",
+                            "Quick validation test",
+                            "A256GCM/A256KW",
+                            DEFAULT_PROVIDER,
+                            false,
+                            true,
+                            "elasticKeyId"))
+                    .pause(1)
+                    .exec(generateMaterialKey("elasticKeyId", "materialKeyId", null))
+                    .pause(1)
+                    .exec(encrypt("elasticKeyId", CLEARTEXT, null, "ciphertext"))
+                    .pause(1)
+                    .exec(decrypt("elasticKeyId", "ciphertext", "decrypted"))
+                    .exec(
+                        session -> {
+                          String decrypted = session.getString("decrypted");
+                          if (!CLEARTEXT.equals(decrypted)) {
+                            throw new IllegalStateException("Quick validation failed");
+                          }
+                          return session;
+                        })
+                    .injectOpen(rampUsers(virtualclients).during(durationSeconds))
+              };
+          default ->
+              throw new IllegalArgumentException(
+                  "unsupported ServiceApiSimulation profile: " + testProfile);
+        };
 
-    switch (testProfile) {
-      case "cipher":
-        // Test representative cipher algorithms
-        scenarios = new PopulationBuilder[ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length];
-        for (int i = 0; i < ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length; i++) {
-          scenarios[i] =
-              buildEncryptDecryptScenario(ELASTIC_KEY_ENCRYPTION_ALGORITHMS[i], CLEARTEXT)
-                  .injectOpen(rampUsers(virtualclients).during(durationSeconds));
-        }
-        break;
-
-      case "signature":
-        // Test all signature algorithms
-        scenarios = new PopulationBuilder[ELASTIC_KEY_SIGNATURE_ALGORITHMS.length];
-        for (int i = 0; i < ELASTIC_KEY_SIGNATURE_ALGORITHMS.length; i++) {
-          scenarios[i] =
-              buildSignVerifyScenario(ELASTIC_KEY_SIGNATURE_ALGORITHMS[i], CLEARTEXT)
-                  .injectOpen(rampUsers(virtualclients).during(durationSeconds));
-        }
-        break;
-
-      case "complete":
-        // Test complete workflow with data key generation (most comprehensive)
-        scenarios = new PopulationBuilder[ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length];
-        for (int i = 0; i < ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length; i++) {
-          scenarios[i] =
-              buildCompleteWorkflowScenario(
-                      ELASTIC_KEY_ENCRYPTION_ALGORITHMS[i], CLEARTEXT, DATA_KEY_ALGORITHMS)
-                  .injectOpen(rampUsers(virtualclients).during(durationSeconds));
-        }
-        break;
-
-      case "quick":
-      default:
-        // Quick validation with single algorithm
-        scenarios =
-            new PopulationBuilder[] {
-              scenario("Quick Validation")
-                  .feed(uuidFeeder)
-                  .exec(
-                      createElasticKey(
-                          "QuickTest-#{uuid}",
-                          "Quick validation test",
-                          "A256GCM/A256KW",
-                          DEFAULT_PROVIDER,
-                          false,
-                          true,
-                          "elasticKeyId"))
-                  .pause(1)
-                  .exec(generateMaterialKey("elasticKeyId", "materialKeyId", null))
-                  .pause(1)
-                  .exec(encrypt("elasticKeyId", CLEARTEXT, null, "ciphertext"))
-                  .pause(1)
-                  .exec(decrypt("elasticKeyId", "ciphertext", "decrypted"))
-                  .exec(
-                      session -> {
-                        String decrypted = session.getString("decrypted");
-                        if (!CLEARTEXT.equals(decrypted)) {
-                          throw new IllegalStateException("Quick validation failed");
-                        }
-                        return session;
-                      })
-                  .injectOpen(rampUsers(virtualclients).during(durationSeconds))
-            };
-        break;
-    }
-
-    setUp(scenarios)
+    setUp(serviceClientBootstrapPopulation().andThen(scenarios))
         .assertions(responseTimeAssertion, successRateAssertion)
         .protocols(createServiceApiProtocol(baseUrl));
   }

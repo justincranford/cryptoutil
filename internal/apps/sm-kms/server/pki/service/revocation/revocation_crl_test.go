@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"errors"
+	"io"
 	"math/big"
 	"testing"
 	"time"
@@ -150,6 +151,187 @@ func TestCRLService_ConsumesNumberWhenGenerationFails(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, big.NewInt(2), crl.Number)
 	require.Equal(t, int64(2), allocatedNumber)
+}
+
+func TestCRLService_GenerationValidationErrors(t *testing.T) {
+	t.Parallel()
+
+	caCert, caKey := createTestCA(t)
+
+	tests := []struct {
+		name      string
+		configure func(*CRLConfig)
+		generate  func(*CRLService) error
+		wantErr   string
+	}{
+		{
+			name: "nil context",
+			generate: func(service *CRLService) error {
+				_, err := service.GenerateCRLWithRevokedCertificatesContext(nilCRLTestContext(), nil)
+
+				return err
+			},
+			wantErr: testCRLContextIsRequired,
+		},
+		{
+			name: "durable numbering requires issuer key identifier",
+			configure: func(config *CRLConfig) {
+				issuer := *config.Issuer
+				issuer.SubjectKeyId = nil
+				config.Issuer = &issuer
+				config.AllocateCRLNumber = func(context.Context, string) (*big.Int, error) {
+					return big.NewInt(1), nil
+				}
+			},
+			generate: func(service *CRLService) error {
+				_, err := service.GenerateCRLContext(context.Background())
+
+				return err
+			},
+			wantErr: "issuer subject key identifier is required",
+		},
+		{
+			name: "nil durable number",
+			configure: func(config *CRLConfig) {
+				config.AllocateCRLNumber = func(context.Context, string) (*big.Int, error) {
+					return nil, nil
+				}
+			},
+			generate: func(service *CRLService) error {
+				_, err := service.GenerateCRLContext(context.Background())
+
+				return err
+			},
+			wantErr: testCRLInvalidSequenceNumber,
+		},
+		{
+			name: "nonpositive durable number",
+			configure: func(config *CRLConfig) {
+				config.AllocateCRLNumber = func(context.Context, string) (*big.Int, error) {
+					return big.NewInt(0), nil
+				}
+			},
+			generate: func(service *CRLService) error {
+				_, err := service.GenerateCRLContext(context.Background())
+
+				return err
+			},
+			wantErr: testCRLInvalidSequenceNumber,
+		},
+		{
+			name: "CRL signer failure",
+			configure: func(config *CRLConfig) {
+				config.PrivateKey = failingCRLSigner{publicKey: config.Issuer.PublicKey}
+			},
+			generate: func(service *CRLService) error {
+				_, err := service.GenerateCRLContext(context.Background())
+
+				return err
+			},
+			wantErr: "failed to create CRL",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			config := &CRLConfig{
+				Issuer:     caCert,
+				PrivateKey: caKey,
+				Provider:   cryptoutilCACrypto.NewSoftwareProvider(),
+				Validity:   time.Hour,
+			}
+			if tc.configure != nil {
+				tc.configure(config)
+			}
+
+			service, err := NewCRLService(config)
+			require.NoError(t, err)
+			require.ErrorContains(t, tc.generate(service), tc.wantErr)
+		})
+	}
+}
+
+func TestCRLService_PEMWrappersPropagateGenerationErrors(t *testing.T) {
+	t.Parallel()
+
+	caCert, caKey := createTestCA(t)
+	tests := []struct {
+		name    string
+		call    func(*CRLService) error
+		wantErr string
+	}{
+		{
+			name:    "basic PEM wrapper",
+			wantErr: testCRLFailedToGetSignature,
+			call: func(service *CRLService) error {
+				_, err := service.GenerateCRLPEM()
+
+				return err
+			},
+		},
+		{
+			name:    "context PEM wrapper",
+			wantErr: testCRLContextIsRequired,
+			call: func(service *CRLService) error {
+				_, err := service.GenerateCRLPEMContext(nilCRLTestContext())
+
+				return err
+			},
+		},
+		{
+			name:    "revoked certificate PEM wrapper",
+			wantErr: testCRLFailedToGetSignature,
+			call: func(service *CRLService) error {
+				_, err := service.GenerateCRLPEMWithRevokedCertificates(nil)
+
+				return err
+			},
+		},
+		{
+			name:    "context revoked certificate PEM wrapper",
+			wantErr: testCRLContextIsRequired,
+			call: func(service *CRLService) error {
+				_, err := service.GenerateCRLPEMWithRevokedCertificatesContext(nilCRLTestContext(), nil)
+
+				return err
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			service, err := NewCRLService(&CRLConfig{
+				Issuer:     caCert,
+				PrivateKey: caKey,
+				Provider:   &failFirstSignatureAlgorithmProvider{Provider: cryptoutilCACrypto.NewSoftwareProvider()},
+				Validity:   time.Hour,
+			})
+			require.NoError(t, err)
+
+			err = tc.call(service)
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
+}
+
+func nilCRLTestContext() context.Context {
+	return nil
+}
+
+type failingCRLSigner struct {
+	publicKey crypto.PublicKey
+}
+
+func (s failingCRLSigner) Public() crypto.PublicKey {
+	return s.publicKey
+}
+
+func (failingCRLSigner) Sign(io.Reader, []byte, crypto.SignerOpts) ([]byte, error) {
+	return nil, errors.New("injected CRL signing failure")
 }
 
 type failFirstSignatureAlgorithmProvider struct {

@@ -32,9 +32,19 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir verifies TLS minimum version under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error, openFn func(string) (*os.File, error)) error {
+	return checkInDirWithAbs(logger, rootDir, filepath.Abs, walkFn, openFn)
+}
+
+func checkInDirWithAbs(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	rootDir string,
+	absFn func(string) (string, error),
+	walkFn func(string, filepath.WalkFunc) error,
+	openFn func(string) (*os.File, error),
+) error {
 	logger.Log("Checking TLS minimum version requirements...")
 
-	projectRoot, err := filepath.Abs(rootDir)
+	projectRoot, err := absFn(rootDir)
 	if err != nil {
 		return fmt.Errorf("failed to resolve root dir: %w", err)
 	}

@@ -7,13 +7,17 @@ package apis
 
 import (
 	"bytes"
+	"context"
 	json "encoding/json"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 )
 
 // TestNewSessionHandler validates the constructor.
@@ -140,7 +144,7 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:        "invalid JSON",
+			name:        testInvalidJSONCaseName,
 			requestBody: "not-json",
 			setupApp: func() *fiber.App {
 				handler := NewSessionHandler(nil)
@@ -335,6 +339,213 @@ func TestValidateSession_TableDriven(t *testing.T) {
 	}
 }
 
-// TestIssueAndValidateSession_Integration tests the full flow with real dependencies.
-// This test is skipped because it requires full infrastructure setup.
-// The unit tests above provide coverage for the handler code paths.
+const (
+	testSessionIssuePath       = "/session/issue"
+	testSessionValidatePath    = "/session/validate"
+	testSessionServiceClientID = "test-service-session-client"
+)
+
+func TestIssueSession_ServiceSessionType(t *testing.T) {
+	t.Parallel()
+
+	tenantID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+	realmID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	var (
+		issuedClientID string
+		issuedTenantID googleUuid.UUID
+		issuedRealmID  googleUuid.UUID
+	)
+
+	sessionManager := newMockSessionManagerSuccess()
+	sessionManager.issueServiceFunc = func(
+		_ context.Context,
+		clientID string,
+		gotTenantID googleUuid.UUID,
+		gotRealmID googleUuid.UUID,
+	) (string, error) {
+		issuedClientID = clientID
+		issuedTenantID = gotTenantID
+		issuedRealmID = gotRealmID
+
+		return testServiceSessionToken, nil
+	}
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Post(testSessionIssuePath, NewSessionHandler(sessionManager).IssueSession)
+
+	request := newSessionJSONRequest(t, http.MethodPost, testSessionIssuePath, SessionIssueRequest{
+		UserID:      testSessionServiceClientID,
+		TenantID:    tenantID.String(),
+		RealmID:     realmID.String(),
+		SessionType: testSessionTypeService,
+	})
+	response, err := app.Test(request, -1)
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, response.Body.Close()) }()
+
+	require.Equal(t, fiber.StatusOK, response.StatusCode)
+
+	var actual SessionIssueResponse
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&actual))
+	require.Equal(t, testServiceSessionToken, actual.Token)
+	require.Equal(t, testSessionServiceClientID, issuedClientID)
+	require.Equal(t, tenantID, issuedTenantID)
+	require.Equal(t, realmID, issuedRealmID)
+}
+
+func TestValidateSession_ServiceSessionType(t *testing.T) {
+	t.Parallel()
+
+	tenantID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+	realmID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	var validatedToken string
+
+	sessionManager := newMockSessionManagerSuccess()
+	sessionManager.validateServiceFunc = func(
+		_ context.Context,
+		token string,
+	) (*cryptoutilAppsFrameworkServiceServerRepository.ServiceSession, error) {
+		validatedToken = token
+		clientID := testSessionServiceClientID
+
+		return &cryptoutilAppsFrameworkServiceServerRepository.ServiceSession{
+			ClientID: &clientID,
+			Session: cryptoutilAppsFrameworkServiceServerRepository.Session{
+				TenantID: tenantID,
+				RealmID:  realmID,
+			},
+		}, nil
+	}
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Post(testSessionValidatePath, NewSessionHandler(sessionManager).ValidateSession)
+
+	request := newSessionJSONRequest(t, http.MethodPost, testSessionValidatePath, SessionValidateRequest{
+		Token:       testServiceSessionToken,
+		SessionType: testSessionTypeService,
+	})
+	response, err := app.Test(request, -1)
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, response.Body.Close()) }()
+
+	require.Equal(t, fiber.StatusOK, response.StatusCode)
+
+	var actual SessionValidateResponse
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&actual))
+	require.True(t, actual.Valid)
+	require.Equal(t, testSessionServiceClientID, actual.UserID)
+	require.Equal(t, tenantID.String(), actual.TenantID)
+	require.Equal(t, realmID.String(), actual.RealmID)
+	require.Equal(t, testServiceSessionToken, validatedToken)
+}
+
+func TestIssueAndValidateSession_Integration(t *testing.T) {
+	t.Parallel()
+
+	tenantID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+	realmID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	var (
+		issuedClientID string
+		issuedTenantID googleUuid.UUID
+		issuedRealmID  googleUuid.UUID
+		validatedToken string
+	)
+
+	sessionManager := newMockSessionManagerSuccess()
+	sessionManager.issueServiceFunc = func(
+		_ context.Context,
+		clientID string,
+		gotTenantID googleUuid.UUID,
+		gotRealmID googleUuid.UUID,
+	) (string, error) {
+		issuedClientID = clientID
+		issuedTenantID = gotTenantID
+		issuedRealmID = gotRealmID
+
+		return testServiceSessionToken, nil
+	}
+	sessionManager.validateServiceFunc = func(
+		_ context.Context,
+		token string,
+	) (*cryptoutilAppsFrameworkServiceServerRepository.ServiceSession, error) {
+		validatedToken = token
+		clientID := issuedClientID
+
+		return &cryptoutilAppsFrameworkServiceServerRepository.ServiceSession{
+			ClientID: &clientID,
+			Session: cryptoutilAppsFrameworkServiceServerRepository.Session{
+				TenantID: issuedTenantID,
+				RealmID:  issuedRealmID,
+			},
+		}, nil
+	}
+
+	handler := NewSessionHandler(sessionManager)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Post(testSessionIssuePath, handler.IssueSession)
+	app.Post(testSessionValidatePath, handler.ValidateSession)
+
+	issueRequest := newSessionJSONRequest(t, http.MethodPost, testSessionIssuePath, SessionIssueRequest{
+		UserID:      testSessionServiceClientID,
+		TenantID:    tenantID.String(),
+		RealmID:     realmID.String(),
+		SessionType: testSessionTypeService,
+	})
+	issueResponse, err := app.Test(issueRequest, -1)
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, issueResponse.Body.Close()) }()
+
+	require.Equal(t, fiber.StatusOK, issueResponse.StatusCode)
+
+	var issued SessionIssueResponse
+	require.NoError(t, json.NewDecoder(issueResponse.Body).Decode(&issued))
+	require.Equal(t, testServiceSessionToken, issued.Token)
+
+	validateRequest := newSessionJSONRequest(t, http.MethodPost, testSessionValidatePath, SessionValidateRequest{
+		Token:       issued.Token,
+		SessionType: testSessionTypeService,
+	})
+	validateResponse, err := app.Test(validateRequest, -1)
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, validateResponse.Body.Close()) }()
+
+	require.Equal(t, fiber.StatusOK, validateResponse.StatusCode)
+
+	var validated SessionValidateResponse
+	require.NoError(t, json.NewDecoder(validateResponse.Body).Decode(&validated))
+	require.True(t, validated.Valid)
+	require.Equal(t, testSessionServiceClientID, validated.UserID)
+	require.Equal(t, tenantID.String(), validated.TenantID)
+	require.Equal(t, realmID.String(), validated.RealmID)
+	require.Equal(t, issued.Token, validatedToken)
+}
+
+func newSessionJSONRequest(t *testing.T, method, path string, body any) *http.Request {
+	t.Helper()
+
+	encodedBody, err := json.Marshal(body)
+	require.NoError(t, err)
+
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		method,
+		path,
+		bytes.NewReader(encodedBody),
+	)
+	request.Header.Set("Content-Type", "application/json")
+
+	return request
+}

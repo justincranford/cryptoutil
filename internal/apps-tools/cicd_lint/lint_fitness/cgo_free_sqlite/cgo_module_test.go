@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -376,11 +375,7 @@ func TestCheck(t *testing.T) {
 }
 
 // Sequential: uses os.Chdir (global process state, cannot run in parallel).
-func TestCheck_WalkError(t *testing.T) {
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
-	}
-
+func TestCheck_GoFileScanError(t *testing.T) {
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
 
@@ -393,11 +388,8 @@ func TestCheck_WalkError(t *testing.T) {
 	goModContent := testSQLiteGoModContent
 	require.NoError(t, os.WriteFile(testGoModFilename, []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
-	// Create chmod 0000 subdir to trigger walk error.
-	require.NoError(t, os.MkdirAll("locked", 0o700))
-	require.NoError(t, os.Chmod("locked", 0o000))
-
-	t.Cleanup(func() { _ = os.Chmod(filepath.Join(tmpDir, "locked"), 0o700) })
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	require.NoError(t, os.WriteFile(testMainFilename, []byte("package main\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = Check(logger)

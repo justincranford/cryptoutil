@@ -60,6 +60,32 @@ func TestCheckInDir_AllValid(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	root, err := os.Getwd()
+	require.NoError(t, err)
+
+	for {
+		if _, statErr := os.Stat(filepath.Join(root, "go.mod")); statErr == nil {
+			break
+		}
+
+		parent := filepath.Dir(root)
+		require.NotEqual(t, parent, root, "could not locate project root")
+		root = parent
+	}
+
+	original, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+	defer func() {
+		require.NoError(t, os.Chdir(original))
+	}()
+
+	require.NoError(t, Check(cryptoutilCmdCicdCommon.NewLogger("test-cicd-coverage-check")))
+}
+
 func TestCheckInDir_MissingPreCommitFile(t *testing.T) {
 	t.Parallel()
 

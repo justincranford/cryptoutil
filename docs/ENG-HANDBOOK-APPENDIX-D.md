@@ -2384,7 +2384,9 @@ applyTo: "**"
 - Healthcheck fields use underscores in Docker Compose YAML: `start_period` (NOT `start-period`); the Dockerfile `HEALTHCHECK` instruction uses `--start-period` (hyphen) — these are different syntaxes
 - **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
 - **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
-- **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
+- **Stack volume isolation**: Explicitly named volumes can be shared across Compose projects, so project names alone do not guarantee isolation.
+  Use distinct volume names for isolated stacks. Do not run `docker compose down -v` on shared or unknown deployments; use `docker compose down` to preserve data.
+  Remove volumes only after confirming they belong exclusively to a disposable stack and any required data is backed up.
 - **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
 <!-- @/from-eng-handbook -->
 
@@ -2435,8 +2437,13 @@ after placeholder substitution.
 ## PostgreSQL Container Topology
 
 **shared-postgres has exactly TWO containers**: ONE `postgres-leader` (OLTP) and ONE
-`postgres-follower` (OLAP). All databases (30 leader, 16 follower) are LOGICAL databases
-within their respective single PostgreSQL container — NOT separate containers per database.
+`postgres-follower` (OLAP). Both nodes contain the same 21 tier/PS-ID logical databases
+(7 PS-IDs × 3 deployment tiers) — NOT separate containers per database. The follower's
+init hook waits for the active PostgreSQL application instances to become healthy after
+migrations, copies each migrated schema into its matching subscriber database, then creates
+the logical subscription because PostgreSQL logical replication does not replicate DDL. On
+subsequent starts, it reconciles the `client_secret` to `client_secret_hash` rename on retained
+`clients` and `unverified_clients` tables before accepting an existing subscription.
 
 ## Docker Secrets - MANDATORY (ENG-HANDBOOK Section 13.3)
 

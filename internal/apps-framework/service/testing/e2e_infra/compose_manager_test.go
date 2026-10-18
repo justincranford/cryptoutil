@@ -74,7 +74,7 @@ func TestBuildDockerExecArgs(t *testing.T) {
 			profiles: []string{cryptoutilSharedMagic.DockerServicePostgres},
 			service:  cryptoutilSharedMagic.KMSE2ESQLiteContainer,
 			command:  []string{testBinSh},
-			want:     []string{valueCompose, valueF, testDeploymentsSmKMSComposeYml, "--profile", cryptoutilSharedMagic.DockerServicePostgres, valueExec, cryptoutilSharedMagic.KMSE2ESQLiteContainer, testBinSh},
+			want:     []string{valueCompose, valueF, testDeploymentsSmKMSComposeYml, testProfileFlag, cryptoutilSharedMagic.DockerServicePostgres, valueExec, cryptoutilSharedMagic.KMSE2ESQLiteContainer, testBinSh},
 		},
 	}
 

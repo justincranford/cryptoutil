@@ -6,7 +6,6 @@ package orm
 
 import (
 	"context"
-	"runtime"
 	"testing"
 	"time"
 
@@ -76,12 +75,13 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 	scope := scopeOpenIDProfile
 
 	tests := []struct {
-		name         string
-		setupConsent bool
-		revoked      bool
-		expired      bool
-		wantErr      bool
-		wantNotFound bool
+		name            string
+		setupConsent    bool
+		revoked         bool
+		expired         bool
+		activeDuplicate bool
+		wantErr         bool
+		wantNotFound    bool
 	}{
 		{
 			name:         "consent_found",
@@ -110,20 +110,19 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 			setupConsent: true,
 			revoked:      false,
 			expired:      true,
-			// Platform-specific behavior: Linux/GitHub Actions filters expired consents correctly
-			// Windows local testing does NOT filter (SQLite datetime comparison differences)
-			wantErr:      true, // Linux/production behavior (correct)
-			wantNotFound: true, // Should return ErrConsentNotFound
+			wantErr:      true,
+			wantNotFound: true,
+		},
+		{
+			name:            "active_consent_with_expired_duplicate",
+			setupConsent:    true,
+			expired:         true,
+			activeDuplicate: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Skip consent_expired on Windows - SQLite datetime comparison behaves differently
-			if tc.name == testConsentExpired && runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-				t.Skip("Skipping consent_expired test on Windows (SQLite datetime comparison issue)")
-			}
-
 			t.Parallel()
 
 			testDB := setupTestDB(t)
@@ -154,6 +153,18 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 
 				err := repo.Create(ctx, consent)
 				require.NoError(t, err, "Setup consent creation should succeed")
+
+				if tc.activeDuplicate {
+					activeConsent := &cryptoutilIdentityDomain.ConsentDecision{
+						ID:        googleUuid.Must(googleUuid.NewV7()),
+						UserID:    userID,
+						ClientID:  clientID,
+						Scope:     scope,
+						GrantedAt: time.Now().UTC(),
+						ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
+					}
+					require.NoError(t, repo.Create(ctx, activeConsent))
+				}
 			}
 
 			retrieved, err := repo.GetByUserClientScope(ctx, userID, clientID, scope)

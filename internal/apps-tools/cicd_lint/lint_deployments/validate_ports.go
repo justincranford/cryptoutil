@@ -118,6 +118,14 @@ func validateComposePortRanges(composePath, deploymentLevel string, result *Port
 // validateConfigPortRanges checks bind-public-port in config files against
 // expected deployment level ranges.
 func validateConfigPortRanges(configDir, deploymentName, deploymentLevel string, result *PortValidationResult) {
+	validateConfigPortRangesWithReadFile(configDir, deploymentName, deploymentLevel, result, os.ReadFile)
+}
+
+func validateConfigPortRangesWithReadFile(
+	configDir, deploymentName, deploymentLevel string,
+	result *PortValidationResult,
+	readFileFn func(string) ([]byte, error),
+) {
 	entries, err := os.ReadDir(configDir)
 	if err != nil {
 		return
@@ -130,7 +138,7 @@ func validateConfigPortRanges(configDir, deploymentName, deploymentLevel string,
 
 		configPath := filepath.Join(configDir, entry.Name())
 
-		data, err := os.ReadFile(configPath)
+		data, err := readFileFn(configPath)
 		if err != nil {
 			continue
 		}

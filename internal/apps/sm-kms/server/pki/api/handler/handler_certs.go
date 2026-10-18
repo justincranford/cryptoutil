@@ -184,21 +184,21 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 	}
 
 	// Determine output format (default to DER).
-	format := "der"
+	format := cryptoutilSharedMagic.PKICRLFormatDER
 	if params.Format != nil {
 		format = string(*params.Format)
 	}
 
 	// Generate the CRL based on format.
 	switch format {
-	case "pem":
+	case cryptoutilSharedMagic.PKICRLFormatPEM:
 		crlPEM, err := crlService.GenerateCRLPEMWithRevokedCertificatesContext(c.UserContext(), revokedCertificates)
 		if err != nil {
 			return h.errorResponse(c, fiber.StatusInternalServerError, "crl_error", err.Error())
 		}
 
-		c.Set("Content-Type", "application/x-pem-file")
-		c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.crl.pem\"", caID))
+		c.Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeCRLPEM)
+		c.Set(cryptoutilSharedMagic.PKIHeaderContentDisposition, fmt.Sprintf("attachment; filename=\"%s.crl.pem\"", caID))
 
 		if err := c.Send(crlPEM); err != nil {
 			return fmt.Errorf("failed to send CRL PEM: %w", err)
@@ -212,8 +212,8 @@ func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer
 			return h.errorResponse(c, fiber.StatusInternalServerError, "crl_error", err.Error())
 		}
 
-		c.Set("Content-Type", "application/pkix-crl")
-		c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.crl\"", caID))
+		c.Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeCRLDER)
+		c.Set(cryptoutilSharedMagic.PKIHeaderContentDisposition, fmt.Sprintf("attachment; filename=\"%s.crl\"", caID))
 
 		if err := c.Send(crlDER); err != nil {
 			return fmt.Errorf("failed to send CRL DER: %w", err)
@@ -322,8 +322,8 @@ func (h *Handler) ESTCACerts(c *fiber.Ctx) error {
 	// Per RFC 7030, the response should be Base64-encoded PKCS#7.
 	// Since we don't have a PKCS#7 library, return Base64-encoded PEM
 	// which many EST clients can handle.
-	c.Set("Content-Type", "application/pkcs7-mime; smime-type=certs-only")
-	c.Set("Content-Transfer-Encoding", "base64")
+	c.Set("Content-Type", cryptoutilSharedMagic.PKIContentTypePKCS7CertsOnly)
+	c.Set(cryptoutilSharedMagic.PKIHeaderContentTransferEncoding, cryptoutilSharedMagic.PKIContentTransferEncodingBase64)
 
 	// Return the PEM-encoded certificate.
 	if err := c.Send(certPEM); err != nil {
@@ -407,8 +407,8 @@ func (h *Handler) ESTSimpleEnroll(c *fiber.Ctx) error {
 	}
 
 	// Return the certificate in PEM format (wrapped as PKCS#7 would be in production).
-	c.Set("Content-Type", "application/pkcs7-mime; smime-type=certs-only")
-	c.Set("Content-Transfer-Encoding", "base64")
+	c.Set("Content-Type", cryptoutilSharedMagic.PKIContentTypePKCS7CertsOnly)
+	c.Set(cryptoutilSharedMagic.PKIHeaderContentTransferEncoding, cryptoutilSharedMagic.PKIContentTransferEncodingBase64)
 
 	if err := c.Send(issued.CertificatePEM); err != nil {
 		return fmt.Errorf("failed to send certificate: %w", err)

@@ -2,6 +2,8 @@
 package bind_address_safety
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -232,6 +234,18 @@ func TestCheckBindAddressSafety_ReadError(t *testing.T) {
 	issues := CheckBindAddressSafety("/nonexistent/path/to/test_file.go")
 	require.Len(t, issues, 1)
 	require.Contains(t, issues[0], "Error reading file")
+}
+
+func TestCheck_WalkError(t *testing.T) {
+	t.Parallel()
+
+	err := checkWithWalkDir(
+		cryptoutilCmdCicdCommon.NewLogger("test"),
+		func(_ string, _ fs.WalkDirFunc) error {
+			return errors.New("injected walk error")
+		},
+	)
+	require.ErrorContains(t, err, "walking test files")
 }
 
 func TestEnforceBindAddressSafety_FilteredFiles(t *testing.T) {

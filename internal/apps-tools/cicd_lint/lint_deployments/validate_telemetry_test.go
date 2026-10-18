@@ -3,7 +3,6 @@ package lint_deployments
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -332,17 +331,11 @@ func TestValidateTelemetry_AcceptedSchemes(t *testing.T) {
 func TestValidateTelemetry_UnreadableFile(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	dir := t.TempDir()
-	require.NoError(t, os.Symlink("/nonexistent/broken.yml",
-		filepath.Join(dir, "broken.yml")))
+	filePath := filepath.Join(dir, "broken.yml")
+	require.NoError(t, os.Mkdir(filePath, cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateTelemetry(dir)
-	require.NoError(t, err)
-	require.True(t, result.Valid)
+	require.Nil(t, parseOTLPConfig(filePath))
 }
 
 func TestValidateTelemetry_UnreadableDir(t *testing.T) {
@@ -438,18 +431,15 @@ func TestFormatTelemetryValidationResult(t *testing.T) {
 	}
 }
 
-func TestValidateTelemetry_RealSmIM(t *testing.T) {
+func TestValidateTelemetry_RealSmKMS(t *testing.T) {
 	t.Parallel()
 
-	configDir := filepath.Join("testdata", cryptoutilSharedMagic.CICDConfigsDir, valueSm, "im")
-	if _, err := os.Stat(configDir); err != nil {
-		configDir = filepath.Join("..", "..", "..", "..", cryptoutilSharedMagic.CICDConfigsDir, valueSm, "im")
-	}
+	deploymentPath := findRealDeploymentPath(cryptoutilSharedMagic.OTLPServiceSMKMS)
+	require.NotEmpty(t, deploymentPath, "cannot locate the real sm-kms deployment")
+	projectRoot := filepath.Dir(filepath.Dir(deploymentPath))
+	configDir := filepath.Join(projectRoot, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
-	if _, err := os.Stat(configDir); err != nil {
-		t.Skip("Real sm-kms configs not found")
-	}
-
+	require.DirExists(t, configDir)
 	result, err := ValidateTelemetry(configDir)
 	require.NoError(t, err)
 	require.NotNil(t, result)

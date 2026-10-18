@@ -4,6 +4,7 @@ package dockerfile_healthcheck
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
@@ -11,6 +12,11 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	testSmKMSExecutablePath = "/app/sm-kms"
+	testSmKMSLivezCommand   = `["` + testSmKMSExecutablePath + `", "livez"]`
 )
 
 func TestCheck_RealWorkspace(t *testing.T) {
@@ -37,7 +43,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			setupFiles: map[string]string{
 				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
-					`["/app/sm-kms", "livez"]`,
+					testSmKMSLivezCommand,
 				),
 			},
 		},
@@ -58,7 +64,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 			setupFiles: map[string]string{
 				testDeploymentsSmKMSDockerfile: dockerfileWithMultiLineHealthcheck(
 					entrypoint,
-					`["/app/sm-kms", "livez"]`,
+					testSmKMSLivezCommand,
 				),
 			},
 		},
@@ -136,7 +142,7 @@ func TestFindViolationsInDir_InvalidDockerfiles(t *testing.T) {
 			setupFiles: map[string]string{
 				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
-					"/app/sm-kms readyz || exit 1",
+					testSmKMSExecutablePath+" readyz || exit 1",
 				),
 			},
 			wantViolations: 1,
@@ -147,7 +153,7 @@ func TestFindViolationsInDir_InvalidDockerfiles(t *testing.T) {
 			setupFiles: map[string]string{
 				testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 					entrypoint,
-					"/app/sm-kms livez",
+					testSmKMSExecutablePath+" livez",
 				),
 			},
 			wantViolations: 1,
@@ -198,12 +204,91 @@ func TestFindViolationsInDir_MissingDeploymentsDir(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to read deployments/ directory")
 }
 
+func TestCheckInDir_MissingDeploymentsDir(t *testing.T) {
+	t.Parallel()
+
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), t.TempDir())
+
+	require.ErrorContains(t, err, "failed to check Dockerfile healthchecks")
+}
+
+func TestFindViolationsInDir_NonDirectoryEntryIsSkipped(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	deploymentsDir := filepath.Join(rootDir, "deployments")
+	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(deploymentsDir, "README.md"), nil, cryptoutilSharedMagic.CacheFilePermissions))
+
+	violations, err := FindViolationsInDir(rootDir)
+
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
 func TestExtractHealthcheckCMD_FileNotFound(t *testing.T) {
 	t.Parallel()
 
 	cmd, err := extractHealthcheckCMD("/nonexistent/Dockerfile")
 	require.Error(t, err)
 	require.Empty(t, cmd)
+}
+
+func TestValidateDockerfileHealthcheck_NoHealthcheck(t *testing.T) {
+	t.Parallel()
+
+	dockerfilePath := filepath.Join(t.TempDir(), "Dockerfile")
+	require.NoError(t, os.WriteFile(dockerfilePath, []byte("FROM scratch\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	require.Empty(t, validateDockerfileHealthcheck(
+		dockerfilePath,
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
+		map[string]string{cryptoutilSharedMagic.OTLPServiceSMKMS: testSmKMSExecutablePath},
+	))
+}
+
+func TestValidateDockerfileHealthcheck_ReadError(t *testing.T) {
+	t.Parallel()
+
+	violations := validateDockerfileHealthcheck(
+		filepath.Join(t.TempDir(), "missing-Dockerfile"),
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
+		map[string]string{cryptoutilSharedMagic.OTLPServiceSMKMS: testSmKMSExecutablePath},
+	)
+
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], "failed to read Dockerfile")
+}
+
+func TestExtractHealthcheckCMD_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	dockerfilePath := filepath.Join(t.TempDir(), "Dockerfile")
+	require.NoError(t, os.WriteFile(
+		dockerfilePath,
+		[]byte("HEALTHCHECK "+strings.Repeat("x", 70*1024)),
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+
+	_, err := extractHealthcheckCMD(dockerfilePath)
+
+	require.ErrorContains(t, err, "failed to scan Dockerfile")
+	require.ErrorContains(t, err, "token too long")
+}
+
+// Sequential: changes the process working directory.
+func TestCheck_FromWorkspaceRoot(t *testing.T) {
+	rootDir := filepath.Join("..", "..", "..", "..", "..")
+
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(rootDir))
+
+	defer func() {
+		require.NoError(t, os.Chdir(originalDir))
+	}()
+
+	require.NoError(t, Check(cryptoutilCmdCicdCommon.NewLogger("test")))
 }
 
 func TestContainsTool_Boundary(t *testing.T) {
@@ -217,6 +302,8 @@ func TestContainsTool_Boundary(t *testing.T) {
 	}{
 		{name: "wget standalone", cmd: "wget --spider url", tool: valueWget, want: true},
 		{name: "wget as substring", cmd: "powget data", tool: valueWget, want: false},
+		{name: "wget with alphanumeric left boundary", cmd: "xwget data", tool: valueWget, want: false},
+		{name: "wget with alphanumeric right boundary", cmd: "wgetx data", tool: valueWget, want: false},
 		{name: "curl standalone", cmd: "curl -sf url", tool: valueCurl, want: true},
 		{name: "curl as substring", cmd: "securly data", tool: valueCurl, want: false},
 		{name: "tool at end", cmd: "something wget", tool: valueWget, want: true},
@@ -252,9 +339,9 @@ func TestJoinHealthcheckLines(t *testing.T) {
 			name: "multi-line with continuations",
 			lines: []string{
 				"HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \\",
-				`CMD ["/app/sm-kms", "livez"]`,
+				"CMD " + testSmKMSLivezCommand,
 			},
-			want: `HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 CMD ["/app/sm-kms", "livez"]`,
+			want: "HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 CMD " + testSmKMSLivezCommand,
 		},
 		{
 			name:  "empty input",
@@ -282,7 +369,7 @@ func TestCheckInDir_NoViolations(t *testing.T) {
 	rootDir := setupTempDir(t, map[string]string{
 		testDeploymentsSmKMSDockerfile: dockerfileWithHealthcheck(
 			entrypoint,
-			`["/app/sm-kms", "livez"]`,
+			testSmKMSLivezCommand,
 		),
 	})
 

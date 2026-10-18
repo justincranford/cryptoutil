@@ -4,6 +4,7 @@ package if_else_chain_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
@@ -11,6 +12,14 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	testConditionPairErrorNil     = "err != nil#err != nil"
+	testConditionPairSignCompare  = "x > 0#x < 0"
+	testCaseExpressionInit        = "expression statement in init"
+	testCaseTrackedInitAssignment = "init assignment to tracked identifier"
+	testCaseOtherInitAssignment   = "init assignment to unrelated identifier"
 )
 
 // srcConsecutiveIfXIntNoExit is reused by multiple tests that need a simple consecutive-if violation.
@@ -417,4 +426,196 @@ func f(x int) error {
 	violations, err := lintFitnessIfElseChain.CheckFile(writeGoFile(t, src))
 	require.NoError(t, err)
 	require.Empty(t, violations, "if/else that always exits should not trigger violation on next if")
+}
+
+func TestCheckFile_ASTExpressionVariants(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		conditionPair string
+		body          string
+		wantViolation bool
+	}{
+		{
+			name:          "logical and is ambiguous",
+			conditionPair: "x > 0 && y > 0#x < 0 && y < 0",
+		},
+		{
+			name:          "logical or is ambiguous",
+			conditionPair: "x > 0 || y > 0#x < 0 || y < 0",
+		},
+		{
+			name:          "unary expression",
+			conditionPair: "!x#!x",
+			wantViolation: true,
+		},
+		{
+			name:          "parenthesized expression",
+			conditionPair: "(x > 0)#(x < 0)",
+			wantViolation: true,
+		},
+		{
+			name:          "same selector call and argument",
+			conditionPair: "errors.Is(err, first)#errors.Is(err, second)",
+			wantViolation: true,
+		},
+		{
+			name:          "different selector calls",
+			conditionPair: "first.Is(err)#second.Is(err)",
+		},
+		{
+			name:          "same identifier call",
+			conditionPair: "check(err)#check(err)",
+			wantViolation: true,
+		},
+		{
+			name:          "same string index",
+			conditionPair: `settings["up"] != nil#settings["up"] == nil`,
+			wantViolation: true,
+		},
+		{
+			name:          "different string indexes",
+			conditionPair: `settings["up"] != nil#settings["down"] != nil`,
+		},
+		{
+			name:          "same numeric index",
+			conditionPair: "values[index] > 0#values[index] < 0",
+			wantViolation: true,
+		},
+		{
+			name:          "call with no arguments",
+			conditionPair: "ready()#ready()",
+			wantViolation: true,
+		},
+		{
+			name:          "call with non-identifier argument",
+			conditionPair: "check(1)#check(2)",
+			wantViolation: true,
+		},
+		{
+			name:          "function literal call",
+			conditionPair: "(func(int) {})(x)#(func(int) {})(x)",
+			wantViolation: true,
+		},
+		{
+			name:          "basic literal left operand",
+			conditionPair: "1 < x#1 > x",
+		},
+		{
+			name:          testCaseExpressionInit,
+			conditionPair: testConditionPairErrorNil,
+			body:          "err != nil",
+			wantViolation: true,
+		},
+		{
+			name:          "selector body assignment",
+			conditionPair: "filters.Name != nil#filters.Name == nil",
+			body:          "filters = nextFilters",
+		},
+		{
+			name:          testCaseTrackedInitAssignment,
+			conditionPair: testConditionPairErrorNil,
+			body:          "",
+		},
+		{
+			name:          testCaseOtherInitAssignment,
+			conditionPair: testConditionPairErrorNil,
+			body:          "",
+			wantViolation: true,
+		},
+		{
+			name:          "nested if without else does not exit",
+			conditionPair: testConditionPairSignCompare,
+			body:          "if y > 0 { return }",
+			wantViolation: true,
+		},
+		{
+			name:          "nested if else-if always exits",
+			conditionPair: testConditionPairSignCompare,
+			body:          "if y > 0 { return } else if y < 0 { return } else { return }",
+		},
+		{
+			name:          "non-call expression is not an exit",
+			conditionPair: testConditionPairSignCompare,
+			body:          "x + 1",
+			wantViolation: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			conditions := strings.Split(tt.conditionPair, "#")
+			require.Len(t, conditions, 2)
+
+			firstCondition := conditions[0]
+			secondCondition := conditions[1]
+			secondInit := ""
+
+			switch tt.name {
+			case testCaseTrackedInitAssignment:
+				secondInit = "err := makeErr(); "
+			case testCaseOtherInitAssignment:
+				secondInit = "other := makeErr(); "
+			case testCaseExpressionInit:
+				secondInit = "check(err); "
+			}
+
+			src := "package p\nfunc f(x, y, err, index int, settings map[string]any, values []int, filters *Filters) {\n" +
+				"if " + firstCondition + " { " + tt.body + " }\n" +
+				"if " + secondInit + secondCondition + " { doB() }\n}\n"
+
+			violations, err := lintFitnessIfElseChain.CheckFile(writeGoFile(t, src))
+			require.NoError(t, err)
+
+			if tt.wantViolation {
+				require.NotEmpty(t, violations)
+			} else {
+				require.Empty(t, violations)
+			}
+		})
+	}
+}
+
+func TestCheckFile_ParseFailureAndGeneratedMarkerLimit(t *testing.T) {
+	t.Parallel()
+
+	invalid := writeGoFile(t, "package p\nfunc {")
+	violations, err := lintFitnessIfElseChain.CheckFile(invalid)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+
+	generatedAfterLimit := "package p\n" + strings.Repeat("// padding\n", 60) +
+		"// Code generated after the inspection window.\nfunc f(x int) {\n" +
+		"if x > 0 { doA() }\nif x < 0 { doB() }\n}\n"
+	violations, err = lintFitnessIfElseChain.CheckFile(writeGoFile(t, generatedAfterLimit))
+	require.NoError(t, err)
+	require.NotEmpty(t, violations)
+}
+
+func TestFindViolationsInDir_SkipsExcludedDirectoriesAndNonGoFiles(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	for _, excludedDir := range []string{cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CICDExcludeDirVendor} {
+		path := filepath.Join(root, excludedDir, "sample.go")
+		require.NoError(t, os.MkdirAll(filepath.Dir(path), cryptoutilSharedMagic.CICDTempDirPermissions))
+		require.NoError(t, os.WriteFile(path, []byte(srcConsecutiveIfXIntNoExit), cryptoutilSharedMagic.KeyFilePermissions))
+	}
+
+	require.NoError(t, os.WriteFile(filepath.Join(root, "notes.txt"), []byte(srcConsecutiveIfXIntNoExit), cryptoutilSharedMagic.KeyFilePermissions))
+
+	violations, err := lintFitnessIfElseChain.FindViolationsInDir(root)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
+func TestFindViolationsInDir_MissingRoot(t *testing.T) {
+	t.Parallel()
+
+	violations, err := lintFitnessIfElseChain.FindViolationsInDir(filepath.Join(t.TempDir(), "missing"))
+	require.Error(t, err)
+	require.Empty(t, violations)
 }

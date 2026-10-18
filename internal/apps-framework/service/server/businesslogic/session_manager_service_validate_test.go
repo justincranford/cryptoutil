@@ -6,6 +6,7 @@ package businesslogic
 import (
 	"context"
 	"testing"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -179,11 +180,14 @@ func TestNewSessionManagerService_HappyPath(t *testing.T) {
 
 	// Create config with valid session settings.
 	config := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	configuredServiceSessionExpiration := 15 * time.Minute
+	config.ServiceSessionExpiration = configuredServiceSessionExpiration
 
 	svc, err := NewSessionManagerService(ctx, db, telemetrySvc, jwkGenSvc, barrierSvc, config)
 
 	require.NoError(t, err)
 	require.NotNil(t, svc)
+	require.Equal(t, configuredServiceSessionExpiration, svc.ServiceSessionExpiration())
 
 	// Verify the service is functional by calling a simple method.
 	// Use IssueBrowserSessionWithTenant which validates the session manager is initialized.

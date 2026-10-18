@@ -200,6 +200,39 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 	require.Contains(t, errorDescription, cryptoutilSharedMagic.ParamCodeChallengeMethod, "Error description should mention code_challenge_method")
 }
 
+func TestHandlePAR_MissingCodeChallengeMethod(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory := createPARTestDependencies(t)
+	testClient := createTestClientForPAR(context.Background(), t, repoFactory)
+
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	service.RegisterRoutes(app)
+
+	formData := url.Values{
+		cryptoutilSharedMagic.ParamClientID:      []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:  []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:   []string{cryptoutilSharedMagic.TestRedirectURI},
+		cryptoutilSharedMagic.ParamCodeChallenge: []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
+	}
+	request := httptest.NewRequest(testPost, "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err := app.Test(request, -1)
+
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, response.Body.Close())
+	}()
+
+	var result map[string]string
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&result))
+	require.Equal(t, fiber.StatusBadRequest, response.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, result[cryptoutilSharedMagic.StringError])
+	require.Contains(t, result["error_description"], cryptoutilSharedMagic.ParamCodeChallengeMethod)
+}
+
 // createPARTestDependencies creates test dependencies for PAR tests.
 func createPARTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config, *cryptoutilIdentityRepository.RepositoryFactory) {
 	t.Helper()

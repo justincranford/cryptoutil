@@ -290,6 +290,27 @@ func TestListAllFiles_ExcludesVenv(t *testing.T) {
 	require.Contains(t, filesByExtension[testGo][0], "included.go")
 }
 
+func TestListAllFiles_ExcludesGatlingOutputOnly(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	gatlingOutput := filepath.Join(root, "test", cryptoutilSharedMagic.WorkflowNameLoad, "target", "gatling", "simulation.log")
+	otherTargetOutput := filepath.Join(root, "other", "target", "keep.log")
+	otherLoadOutput := filepath.Join(root, "test", cryptoutilSharedMagic.WorkflowNameLoad, "reports", "keep.log")
+
+	for _, path := range []string{gatlingOutput, otherTargetOutput, otherLoadOutput} {
+		require.NoError(t, os.MkdirAll(filepath.Dir(path), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.WriteFile(path, []byte{0, 1}, cryptoutilSharedMagic.CacheFilePermissions))
+	}
+
+	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(root)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []string{
+		filepath.ToSlash(otherTargetOutput),
+		filepath.ToSlash(otherLoadOutput),
+	}, filesByExtension[testLog])
+}
+
 func TestListAllFiles_NonExistentDirectory(t *testing.T) {
 	t.Parallel()
 

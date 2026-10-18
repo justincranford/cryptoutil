@@ -68,9 +68,9 @@ func TestIDPServer_PublicHealth(t *testing.T) {
 		path     string
 		wantCode int
 	}{
-		{"health", "/health", http.StatusOK},
-		{"livez", cryptoutilSharedMagic.PrivateAdminLivezRequestPath, http.StatusOK},
-		{"readyz", cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, http.StatusOK},
+		{idpTestHealthRouteName, idpTestHealthRoutePath, http.StatusOK},
+		{idpTestLivezRouteName, cryptoutilSharedMagic.PrivateAdminLivezRequestPath, http.StatusOK},
+		{idpTestReadyzRouteName, cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, http.StatusOK},
 	}
 
 	for _, tt := range tests {

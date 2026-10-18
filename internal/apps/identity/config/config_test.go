@@ -95,6 +95,50 @@ func TestSaveToFile(t *testing.T) {
 	require.NotNil(t, loaded)
 }
 
+func TestLoadFromFile_InvalidContent(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		content string
+		wantErr string
+	}{
+		{name: "invalid YAML", content: "authz: [", wantErr: "failed to parse config file"},
+		{name: "invalid configuration", content: "database:\n  type: \"\"\n  dsn: \"\"\n", wantErr: "config validation failed"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			path := filepath.Join(t.TempDir(), "invalid.yml")
+			require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.FilePermOwnerReadWriteOnly))
+
+			cfg, err := LoadFromFile(path)
+			require.ErrorContains(t, err, tc.wantErr)
+			require.Nil(t, cfg)
+		})
+	}
+}
+
+func TestSaveToFile_WriteFailure(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "missing", "config.yml")
+	require.ErrorContains(t, SaveToFile(DefaultConfig(), path), "failed to write config file")
+}
+
+func TestRequireNewForTest(t *testing.T) {
+	t.Parallel()
+
+	cfg := RequireNewForTest("ignored")
+	require.NotNil(t, cfg)
+	require.NotNil(t, cfg.AuthZ)
+	require.NotNil(t, cfg.IDP)
+	require.NotNil(t, cfg.RS)
+	require.Equal(t, valueSqlite, cfg.Database.Type)
+}
+
 func TestServerConfigValidation(t *testing.T) {
 	t.Parallel()
 

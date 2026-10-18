@@ -92,7 +92,7 @@ func TestParseArgs(t *testing.T) {
 			args:        []string{valueConfirm, "--max-age-days=14", "--keep-min-runs=3", "--repo=test/repo"},
 			wantConfirm: true,
 			wantMaxAge:  14,
-			wantKeepMin: 3,
+			wantKeepMin: defaultKeepMinRuns,
 			wantRepo:    "test/repo",
 			wantErr:     false,
 		},
@@ -117,8 +117,8 @@ func TestParseArgs(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "unknown flag",
-			args:    []string{"--unknown"},
+			name:    unknownFlagPrefix,
+			args:    []string{coverageInvalidArgument},
 			wantErr: true,
 		},
 	}

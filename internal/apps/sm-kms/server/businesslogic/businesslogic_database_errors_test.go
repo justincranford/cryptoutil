@@ -7,6 +7,8 @@ import (
 	"context"
 	"testing"
 
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
 	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
@@ -42,6 +44,19 @@ func TestListBusinessLogic_DatabaseErrors(t *testing.T) {
 			name: "material keys for elastic key query",
 			invoke: func(service *BusinessLogicService, ctx context.Context, elasticKeyID *googleUuid.UUID) error {
 				_, err := service.GetMaterialKeysForElasticKey(ctx, elasticKeyID, nil)
+
+				return err
+			},
+		},
+		{
+			name: "add elastic key database write",
+			invoke: func(service *BusinessLogicService, ctx context.Context, _ *googleUuid.UUID) error {
+				description := "database error test"
+				_, err := service.AddElasticKey(ctx, &cryptoutilKmsServer.ElasticKeyCreate{
+					Algorithm:   string(cryptoutilOpenapiModel.A256GCMDir),
+					Description: &description,
+					Name:        "database-error",
+				})
 
 				return err
 			},

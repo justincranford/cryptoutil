@@ -3,7 +3,6 @@ package lint_deployments
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -211,45 +210,25 @@ func TestValidateKebabCase_InvalidYAML(t *testing.T) {
 func TestValidateKebabCase_UnreadableFile(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	dir := t.TempDir()
 	filePath := filepath.Join(dir, testConfigYml)
-	require.NoError(t, os.WriteFile(filePath, []byte("service:\n  name: ok\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.Chmod(filePath, 0o000))
+	require.NoError(t, os.Mkdir(filePath, cryptoutilSharedMagic.CacheFilePermissions))
 
-	t.Cleanup(func() {
-		_ = os.Chmod(filePath, cryptoutilSharedMagic.CacheFilePermissions)
-	})
-
-	result, err := ValidateKebabCase(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, len(result.Warnings) > 0)
+	result := &KebabCaseValidationResult{}
+	validateConfigFieldKebabCase(filePath, testConfigYml, result)
+	require.Len(t, result.Warnings, 1)
 	require.Contains(t, result.Warnings[0], "Failed to read")
 }
 
 func TestValidateKebabCase_WalkError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	dir := t.TempDir()
-	subDir := filepath.Join(dir, "locked")
-	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, testConfigYml), []byte("key: val"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.Chmod(subDir, 0o000))
-
-	t.Cleanup(func() {
-		_ = os.Chmod(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	result := &KebabCaseValidationResult{Path: dir, Valid: true}
+	validateKebabCaseWithWalk(dir, result, func(root string, walkFn filepath.WalkFunc) error {
+		return walkFn(filepath.Join(root, "locked"), nil, os.ErrPermission)
 	})
 
-	result, err := ValidateKebabCase(dir)
-	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.True(t, len(result.Warnings) > 0)
 	require.Contains(t, result.Warnings[0], "error accessing")

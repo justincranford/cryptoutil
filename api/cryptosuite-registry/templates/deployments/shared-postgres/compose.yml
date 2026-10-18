@@ -5,7 +5,7 @@
 #
 # Architecture:
 #   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 21 logical databases, 7 PS-IDs x 3 deployment types)
-#   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, logical databases with schemas grouped by domain)
+#   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, 21 matching logical databases)
 #
 # Logical Database Architecture (Leader - OLTP):
 #   Suite-level (7 databases):
@@ -36,21 +36,9 @@
 #     - servicedeployment-skeleton-template
 #
 # Logical Database Architecture (Follower - OLAP):
-#   Suite-level (1 database with 8 schemas):
-#
-#   Product-level (3 product databases with schemas):
-#     - sm (schemas: kms)
-#     - identity (schemas: authz, idp, rs, rp, spa)
-#     - skeleton (schemas: template)
-#
-#   Service-level (7 databases with 1 schema each):
-#     - sm-kms (schema: kms)
-#     - identity-authz (schema: authz)
-#     - identity-idp (schema: idp)
-#     - identity-rs (schema: rs)
-#     - identity-rp (schema: rp)
-#     - identity-spa (schema: spa)
-#     - skeleton-template (schema: template)
+#   One matching subscriber database for each of the leader's 21 tier/PS-ID databases.
+#   Setup waits for the active apps' domain migrations, copies matching schemas, then
+#   creates subscriptions. PostgreSQL logical replication does not replicate DDL.
 #
 # Usage: Include this in your product compose.yml:
 #   include:
@@ -96,7 +84,7 @@ services:
           cpus: '1.0'
 
   # PostgreSQL Follower (OLAP - Read-Only Analytics)
-  # Logical replication from leader with grouped schemas for analytics
+  # Logical replication from leader after active application migrations complete.
 
   postgres-follower:
     image: postgres:18
@@ -108,14 +96,43 @@ services:
       PGUSER_FILE: /run/secrets/postgres-username.secret
       PGPASSWORD_FILE: /run/secrets/postgres-password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
-    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    user: postgres
+    # Replication certificate files are owned by GID 65532 with mode 0440.
+    group_add:
+      - "65532"
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - |
+        set -euo pipefail
+        rm -f "$${PGDATA}/replication-setup-complete"
+        /usr/local/bin/docker-entrypoint.sh postgres -c config_file=/etc/postgresql/postgresql.conf &
+        postgres_pid=$$!
+        stop_postgres() {
+          kill -TERM "$$postgres_pid" 2>/dev/null || true
+          wait "$$postgres_pid" 2>/dev/null || true
+        }
+        trap stop_postgres EXIT
+        trap 'exit 143' TERM
+        trap 'exit 130' INT
+        # pg_isready can also accept the temporary server used by initdb hooks.
+        until [ "$$(ps -p "$$postgres_pid" -o comm= 2>/dev/null | tr -d '[:space:]')" = "postgres" ] \
+          && pg_isready -U "$$(cat /run/secrets/postgres-username.secret)" -d postgres; do
+          if ! kill -0 "$$postgres_pid" 2>/dev/null; then
+            wait "$$postgres_pid"
+            exit 1
+          fi
+          sleep 1
+        done
+        bash /usr/local/bin/setup-logical-replication.sh
+        touch "$${PGDATA}/replication-setup-complete"
+        wait "$$postgres_pid"
     shm_size: 1gb
     volumes:
       - postgres_follower_data:/var/lib/postgresql
       - ${POSTGRES_CONF_DIR:-../shared-postgres}/postgresql-follower.conf:/etc/postgresql/postgresql.conf:ro
       - ../shared-postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
       - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
-      - ../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
+      - ../shared-postgres/setup-logical-replication.sh:/usr/local/bin/setup-logical-replication.sh:ro
     secrets:
       - postgres-username.secret
       - postgres-password.secret
@@ -124,7 +141,7 @@ services:
         condition: service_healthy
         restart: true
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
+      test: ["CMD-SHELL", "test -f \"$$PGDATA/replication-setup-complete\" && pg_isready -U \"$(cat /run/secrets/postgres-username.secret)\" -d postgres"]
       start_period: 60s
       interval: 10s
       timeout: 5s

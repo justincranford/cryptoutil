@@ -9,6 +9,7 @@ import (
 	"context"
 	x509 "crypto/x509"
 	json "encoding/json"
+	"errors"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,6 +22,7 @@ import (
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps-framework/service/server/middleware"
 	cryptoutilAppsFrameworkServiceTestHelpTls "cryptoutil/internal/apps-framework/service/test_help_tls"
 )
 
@@ -134,6 +136,58 @@ func TestPublicServerBase_HandleServiceHealth_Healthy(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, result[cryptoutilSharedMagic.StringStatus])
+}
+
+func TestPublicServerBase_SessionAuthErrorUsesHTTPStatus(t *testing.T) {
+	t.Parallel()
+
+	cfg := &PublicServerConfig{
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+		Port:        0,
+		TLSMaterial: createTestTLSMaterial(t),
+	}
+	server, err := NewPublicServerBase(cfg)
+	require.NoError(t, err)
+
+	server.App().Get(
+		"/test/auth-required",
+		cryptoutilAppsFrameworkServiceServerMiddleware.SessionMiddleware(nil, true),
+	)
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test/auth-required", nil)
+	resp, err := server.App().Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+
+	var body map[string]string
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "Missing Authorization header", body[cryptoutilSharedMagic.StringError])
+}
+
+func TestPublicServerBase_HandleError_DefaultErrorHandler(t *testing.T) {
+	t.Parallel()
+
+	server, err := NewPublicServerBase(&PublicServerConfig{
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+		Port:        0,
+		TLSMaterial: createTestTLSMaterial(t),
+	})
+	require.NoError(t, err)
+
+	server.App().Get("/test/untyped-error", func(*fiber.Ctx) error {
+		return errors.New("injected error")
+	})
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test/untyped-error", nil)
+	resp, err := server.App().Test(req, -1)
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 }
 
 // TestPublicServerBase_HandleServiceHealth_ShuttingDown tests shutting down status.
@@ -348,10 +402,11 @@ func TestPublicServerBase_Start_NilContext(t *testing.T) {
 func TestPublicServerBase_StartAndShutdown(t *testing.T) {
 	t.Parallel()
 
+	tlsMaterial := createTestTLSMaterial(t)
 	cfg := &PublicServerConfig{
 		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
-		TLSMaterial: createTestTLSMaterial(t),
+		TLSMaterial: tlsMaterial,
 	}
 
 	server, err := NewPublicServerBase(cfg)
@@ -370,6 +425,20 @@ func TestPublicServerBase_StartAndShutdown(t *testing.T) {
 	require.Eventually(t, func() bool {
 		return server.ActualPort() > 0
 	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, "server should allocate port")
+
+	waitCtx, waitCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
+	defer waitCancel()
+
+	endpointFn := func() (string, *x509.CertPool) {
+		if server.ActualPort() <= 0 {
+			return "", nil
+		}
+
+		return server.PublicBaseURL() + cryptoutilSharedMagic.IdentityE2EHealthEndpoint, tlsMaterial.RootCAPool
+	}
+
+	err = cryptoutilAppsFrameworkServiceTestHelpTls.WaitForHTTPSHealthEndpoint(waitCtx, endpointFn, cryptoutilSharedMagic.TestDefaultServerShutdownTimeout)
+	require.NoError(t, err)
 
 	// Verify actual port is assigned.
 	actualPort := server.ActualPort()

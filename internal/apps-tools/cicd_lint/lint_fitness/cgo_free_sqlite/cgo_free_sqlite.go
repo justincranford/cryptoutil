@@ -112,7 +112,11 @@ func CheckRequiredCGOModule(path string) (bool, error) {
 }
 
 func CheckGoFilesForCGO() ([]string, error) {
-	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(".")
+	return checkGoFilesForCGO(cryptoutilSharedUtilFiles.ListAllFiles)
+}
+
+func checkGoFilesForCGO(listAllFilesFn func(string) (map[string][]string, error)) ([]string, error) {
+	filesByExtension, err := listAllFilesFn(".")
 	if err != nil {
 		return nil, fmt.Errorf("error listing project files: %w", err)
 	}

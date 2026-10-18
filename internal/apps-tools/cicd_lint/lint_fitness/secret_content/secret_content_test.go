@@ -307,6 +307,26 @@ func TestFindViolationsInDir_MissingDeploymentsDir(t *testing.T) {
 	}
 }
 
+func TestFindViolationsInDir_NonDirectoryEntryAndUnknownDeploymentSkipped(t *testing.T) {
+	t.Parallel()
+
+	rootDir := setupTempDir(t, map[string]string{
+		"deployments/README.md":                           "deployment notes",
+		"deployments/unregistered/secrets/example.secret": "ignored",
+	})
+
+	violations, err := FindViolationsInDir(rootDir)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
+func TestCheckInDir_MissingDeploymentsDirectory(t *testing.T) {
+	t.Parallel()
+
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), t.TempDir())
+	require.ErrorContains(t, err, "failed to check secret content")
+}
+
 func TestCheckInDir_WithViolation(t *testing.T) {
 	t.Parallel()
 

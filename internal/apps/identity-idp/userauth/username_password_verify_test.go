@@ -6,7 +6,9 @@ package userauth_test
 
 import (
 	"context"
+	"errors"
 	"testing"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -134,6 +136,84 @@ func TestUsernamePasswordAuthenticator_VerifyAuthEmptyPassword(t *testing.T) {
 	require.Contains(t, err.Error(), "password is required", "Error should indicate password required")
 }
 
+func TestUsernamePasswordAuthenticator_VerifyAuthErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	validHash, err := cryptoutilSharedCryptoPassword.HashPassword(testOldPassword)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name               string
+		expiration         time.Time
+		retrieveErr        error
+		userErr            error
+		userEnabled        bool
+		userLocked         bool
+		credentialHash     []byte
+		credentialErr      error
+		challengeDeleteErr error
+	}{
+		{name: "challenge retrieval fails", retrieveErr: errors.New("injected challenge retrieval failure")},
+		{name: "challenge is expired", expiration: time.Now().UTC().Add(-time.Hour)},
+		{name: "user retrieval fails", userErr: errors.New("injected user retrieval failure")},
+		{name: "user is disabled"},
+		{name: "user is locked", userEnabled: true, userLocked: true},
+		{name: "credential retrieval fails", userEnabled: true, credentialErr: errors.New("injected credential retrieval failure")},
+		{name: "VerifyAuth credential hash is malformed", userEnabled: true, credentialHash: []byte(testOldPassword)},
+		{name: "challenge deletion fails", userEnabled: true, challengeDeleteErr: errors.New("injected challenge deletion failure")},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			userID := googleUuid.Must(googleUuid.NewV7())
+			challengeID := googleUuid.Must(googleUuid.NewV7())
+
+			expiresAt := tc.expiration
+			if expiresAt.IsZero() {
+				expiresAt = time.Now().UTC().Add(time.Hour)
+			}
+
+			challengeStore := &userauthTestChallengeStoreStub{
+				challenge: &cryptoutilIdentityIdpUserauth.AuthChallenge{
+					ID:        challengeID,
+					UserID:    userID.String(),
+					ExpiresAt: expiresAt,
+				},
+				retrieveErr: tc.retrieveErr,
+				deleteErr:   tc.challengeDeleteErr,
+			}
+			userStore := newMockUserStore()
+
+			userStore.getErr = tc.userErr
+			if tc.userErr == nil {
+				userStore.AddUser(&cryptoutilIdentityDomain.User{
+					ID:      userID,
+					Enabled: tc.userEnabled,
+					Locked:  tc.userLocked,
+				})
+			}
+
+			credentialStore := newMockPasswordCredentialStore()
+			credentialStore.getErr = tc.credentialErr
+
+			credentialHash := tc.credentialHash
+			if credentialHash == nil {
+				credentialHash = []byte(validHash)
+			}
+
+			require.NoError(t, credentialStore.StoreCredential(ctx, userID.String(), credentialHash))
+
+			authenticator := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credentialStore, challengeStore, userStore, nil, false)
+			user, err := authenticator.VerifyAuth(ctx, challengeID, testOldPassword)
+			require.Error(t, err)
+			require.Nil(t, user)
+		})
+	}
+}
+
 // TestUsernamePasswordAuthenticator_UpdatePassword tests UpdatePassword.
 func TestUsernamePasswordAuthenticator_UpdatePassword(t *testing.T) {
 	t.Parallel()
@@ -160,6 +240,26 @@ func TestUsernamePasswordAuthenticator_UpdatePassword(t *testing.T) {
 	newPassword := testNewPassword
 	err = auth.UpdatePassword(ctx, userID.String(), oldPassword, newPassword)
 	require.NoError(t, err, "UpdatePassword should succeed")
+}
+
+func TestUsernamePasswordAuthenticator_UpdatePasswordSamePassword(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	credStore := newMockPasswordCredentialStore()
+	userID := googleUuid.Must(googleUuid.NewV7())
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, nil, nil, nil, false)
+
+	hash, err := cryptoutilSharedCryptoPassword.HashPassword(testOldPassword)
+	require.NoError(t, err)
+	require.NoError(t, credStore.StoreCredential(ctx, userID.String(), []byte(hash)))
+
+	err = auth.UpdatePassword(ctx, userID.String(), testOldPassword, testOldPassword)
+	require.ErrorContains(t, err, "new password must be different from current password")
+
+	storedHash, err := credStore.GetCredential(ctx, userID.String())
+	require.NoError(t, err)
+	require.Equal(t, []byte(hash), storedHash)
 }
 
 // TestUsernamePasswordAuthenticator_UpdatePasswordWrongOld tests UpdatePassword with wrong old password.
@@ -215,4 +315,50 @@ func TestUsernamePasswordAuthenticator_UpdatePasswordInvalidNew(t *testing.T) {
 	err = auth.UpdatePassword(ctx, userID.String(), oldPassword, testShort)
 	require.Error(t, err, "UpdatePassword should fail with too short new password")
 	require.Contains(t, err.Error(), testPasswordTooShort, "Error should indicate password too short")
+}
+
+func TestUsernamePasswordAuthenticator_UpdatePasswordErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		credentialGet error
+		credential    []byte
+		credentialPut error
+	}{
+		{name: "credential lookup fails", credentialGet: errors.New("injected credential lookup failure")},
+		{name: "UpdatePassword credential hash is malformed", credential: []byte(testOldPassword)},
+		{name: "credential update fails", credentialPut: errors.New("injected credential update failure")},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			credentialStore := newMockPasswordCredentialStore()
+			challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+			userStore := newMockUserStore()
+			userID := googleUuid.Must(googleUuid.NewV7())
+
+			storedHash := tc.credential
+			if storedHash == nil {
+				hash, err := cryptoutilSharedCryptoPassword.HashPassword(testOldPassword)
+				require.NoError(t, err)
+
+				storedHash = []byte(hash)
+				err = credentialStore.StoreCredential(ctx, userID.String(), storedHash)
+				require.NoError(t, err)
+			} else {
+				require.NoError(t, credentialStore.StoreCredential(ctx, userID.String(), storedHash))
+			}
+
+			credentialStore.getErr = tc.credentialGet
+			credentialStore.updateErr = tc.credentialPut
+
+			authenticator := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credentialStore, challengeStore, userStore, nil, false)
+			err := authenticator.UpdatePassword(ctx, userID.String(), testOldPassword, testNewPassword)
+			require.Error(t, err)
+		})
+	}
 }

@@ -93,7 +93,7 @@ func listCaches(cfg *CleanupConfig) ([]cache, int64, error) {
 			fmt.Sprintf("/repos/{owner}/{repo}/actions/cache/usage?per_page=%d&page=%d", maxPerPage, page),
 		)
 
-		output, err := ghExec(args...)
+		output, err := cfg.executeGH(args...)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to fetch caches page %d: %w", page, err)
 		}
@@ -125,7 +125,7 @@ func deleteCache(cfg *CleanupConfig, cacheID int64) error {
 		"/repos/{owner}/{repo}/actions/caches/"+strconv.FormatInt(cacheID, cryptoutilSharedMagic.DecimalRadix),
 	)
 
-	if _, err := ghExec(args...); err != nil {
+	if _, err := cfg.executeGH(args...); err != nil {
 		return fmt.Errorf("failed to delete cache %d: %w", cacheID, err)
 	}
 

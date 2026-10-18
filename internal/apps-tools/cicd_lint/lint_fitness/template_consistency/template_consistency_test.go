@@ -2,6 +2,7 @@
 package template_consistency_test
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,6 +13,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	testBrowserPasswordSecret  = "browser_password.secret"
+	testPostgresDatabaseSecret = "postgres_database.secret"
 )
 
 func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
@@ -92,7 +98,7 @@ func TestFindViolationsInDir_UnderscoreInSecretName_Violation(t *testing.T) {
 	secretsDir := makeSecretsDir(t, tmpDir)
 
 	require.NoError(t, os.WriteFile(
-		filepath.Join(secretsDir, "browser_password.secret"),
+		filepath.Join(secretsDir, testBrowserPasswordSecret),
 		[]byte("value"),
 		cryptoutilSharedMagic.FilePermissions,
 	))
@@ -101,7 +107,7 @@ func TestFindViolationsInDir_UnderscoreInSecretName_Violation(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, violations, 1)
-	assert.Equal(t, "browser_password.secret", violations[0])
+	assert.Equal(t, testBrowserPasswordSecret, violations[0])
 }
 
 func TestFindViolationsInDir_UnderscoreInNeverName_Violation(t *testing.T) {
@@ -130,8 +136,8 @@ func TestFindViolationsInDir_MultipleViolations_AllReported(t *testing.T) {
 	secretsDir := makeSecretsDir(t, tmpDir)
 
 	violating := []string{
-		"browser_password.secret",
-		"postgres_database.secret",
+		testBrowserPasswordSecret,
+		testPostgresDatabaseSecret,
 	}
 	valid := []string{
 		testHashPepperV3Secret,
@@ -198,6 +204,21 @@ func TestFindViolationsInDir_MissingSecretsDir_ReturnsError(t *testing.T) {
 	assert.Nil(t, violations)
 }
 
+func TestFindViolationsInDir_ReadError_ReturnsWrappedError(t *testing.T) {
+	t.Parallel()
+
+	violations, err := lintFitnessTemplateConsistency.ExportedFindViolationsInDirWithReadDir(
+		t.TempDir(),
+		func(_ string) ([]os.DirEntry, error) {
+			return nil, errors.New("injected read error")
+		},
+	)
+
+	require.ErrorContains(t, err, "failed to read skeleton-template secrets directory")
+	require.ErrorContains(t, err, "injected read error")
+	require.Nil(t, violations)
+}
+
 func TestCheckInDir_ValidNames(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +252,25 @@ func TestCheckInDir_InvalidName_ReturnsError(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "template-consistency: found 1 secret file")
+}
+
+func TestCheckInDir_MultipleInvalidNames_ReturnsPluralError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	secretsDir := makeSecretsDir(t, tmpDir)
+
+	for _, name := range []string{testBrowserPasswordSecret, testPostgresDatabaseSecret} {
+		require.NoError(t, os.WriteFile(
+			filepath.Join(secretsDir, name),
+			[]byte("value"),
+			cryptoutilSharedMagic.FilePermissions,
+		))
+	}
+
+	err := lintFitnessTemplateConsistency.CheckInDir(newTestLogger(), tmpDir)
+
+	require.ErrorContains(t, err, "template-consistency: found 2 secret files")
 }
 
 func TestCheckInDir_MissingSecretsDir_ReturnsError(t *testing.T) {

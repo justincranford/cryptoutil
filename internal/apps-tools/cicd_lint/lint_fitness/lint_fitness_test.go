@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testAlwaysOKLinterName = "always-ok"
+
 func TestRegisteredLintersNotEmpty(t *testing.T) {
 	t.Parallel()
 
@@ -51,7 +53,7 @@ func TestLint_ErrorPropagation(t *testing.T) {
 		name   string
 		linter LinterFunc
 	}{
-		{"always-ok", func(_ *cryptoutilCmdCicdCommon.Logger) error { return nil }},
+		{testAlwaysOKLinterName, func(_ *cryptoutilCmdCicdCommon.Logger) error { return nil }},
 		{"always-fail", func(_ *cryptoutilCmdCicdCommon.Logger) error { return fmt.Errorf("mock linter failure") }},
 	}
 
@@ -60,6 +62,23 @@ func TestLint_ErrorPropagation(t *testing.T) {
 	err := Lint(logger)
 	require.Error(t, err, "Lint should return error when a linter fails")
 	require.Contains(t, err.Error(), "lint-fitness failed with 1 errors")
+}
+
+// Sequential: mutates registeredLinters package-level state.
+func TestLint_Success(t *testing.T) {
+	origLinters := registeredLinters
+
+	defer func() { registeredLinters = origLinters }()
+
+	registeredLinters = []struct {
+		name   string
+		linter LinterFunc
+	}{
+		{testAlwaysOKLinterName, func(_ *cryptoutilCmdCicdCommon.Logger) error { return nil }},
+	}
+
+	err := Lint(cryptoutilCmdCicdCommon.NewLogger("test-lint-fitness-success"))
+	require.NoError(t, err)
 }
 
 // Sequential: uses os.Chdir (global process state).

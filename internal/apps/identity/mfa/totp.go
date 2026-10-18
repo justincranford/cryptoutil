@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 	"hash"
+	"io"
 	"math"
 	"strings"
 	"time"
@@ -55,7 +56,7 @@ func NewTOTPService(db *gorm.DB) *TOTPService {
 func (s *TOTPService) EnrollTOTP(ctx context.Context, userID googleUuid.UUID, issuer, accountName string) (*TOTPSecret, string, []string, error) {
 	// Generate cryptographically secure random secret.
 	secretBytes := make([]byte, cryptoutilSharedMagic.TOTPSecretLength)
-	if _, err := crand.Read(secretBytes); err != nil {
+	if _, err := io.ReadFull(crand.Reader, secretBytes); err != nil {
 		return nil, "", nil, fmt.Errorf("failed to generate TOTP secret: %w", err)
 	}
 
@@ -173,7 +174,7 @@ func (s *TOTPService) GenerateBackupCodes(ctx context.Context, userID googleUuid
 	for i := 0; i < BackupCodeCount; i++ {
 		// Generate random backup code.
 		codeBytes := make([]byte, BackupCodeLength)
-		if _, err := crand.Read(codeBytes); err != nil {
+		if _, err := io.ReadFull(crand.Reader, codeBytes); err != nil {
 			return nil, fmt.Errorf("failed to generate backup code: %w", err)
 		}
 

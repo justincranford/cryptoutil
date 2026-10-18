@@ -283,7 +283,7 @@ jobs:
         LOAD_DURATION: ${{ steps.load-params.outputs.duration }}
       run: |
         echo "🚀 Running Gatling load tests..."
-        echo "⚠️ Note: Gatling simulations may need updating to match current KMS API (registration required, field changes)"
+        echo "ℹ️ Crypto scenarios register and authenticate a unique service user before API requests."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Set environment variable to help with debugging
@@ -296,7 +296,7 @@ jobs:
         if ./mvnw gatling:test \
           -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
           "-Dprofile=$LOAD_PROFILE" \
-          -Dport=8001 \
+          -Dport=8002 \
           "-Dvirtualclients=$LOAD_VIRTUAL_CLIENTS" \
           "-DdurationSeconds=$LOAD_DURATION" \
           "-Dgatling.runDescription=CI Load Test - Profile: $LOAD_PROFILE"; then
@@ -395,6 +395,8 @@ jobs:
     - name: Stop services
       if: always()
       uses: ./.github/actions/docker-compose-down
+      with:
+        compose-file: './deployments/sm-kms/compose.yml'
 
     - name: Upload infrastructure metrics
       if: always()

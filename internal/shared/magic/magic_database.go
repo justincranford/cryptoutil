@@ -48,6 +48,8 @@ const (
 
 	// DBPostgresContainerStartupTimeout - PostgreSQL container startup timeout.
 	DBPostgresContainerStartupTimeout = 30 * time.Second
+	// DBTestContainerCleanupTimeout - Maximum time allowed to terminate a test container.
+	DBTestContainerCleanupTimeout = 30 * time.Second
 	// DefaultDatabaseInitTotalTimeout - Total timeout for database initialization (5 minutes).
 	DefaultDatabaseInitTotalTimeout = 5 * time.Minute
 	// DefaultDataInitRetryWait - Retry wait time for database initialization (1 second).

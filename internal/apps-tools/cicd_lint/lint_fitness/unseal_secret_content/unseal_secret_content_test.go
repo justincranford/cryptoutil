@@ -221,6 +221,23 @@ func TestFindViolationsInDir_MissingDeploymentsDir(t *testing.T) {
 	}
 }
 
+func TestFindViolationsInDir_NonDirectoryEntryIsSkipped(t *testing.T) {
+	t.Parallel()
+
+	deploymentsDir := filepath.Join(t.TempDir(), "deployments")
+	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(deploymentsDir, "README.md"),
+		[]byte("not a deployment directory"),
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+
+	violations, err := FindViolationsInDir(filepath.Dir(deploymentsDir))
+
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
 func TestCheckInDir_WithViolation(t *testing.T) {
 	t.Parallel()
 
@@ -251,6 +268,47 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 	if err != nil {
 		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected error: %v", err)
 	}
+}
+
+func TestCheckInDir_MissingDeploymentsDir(t *testing.T) {
+	t.Parallel()
+
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), t.TempDir())
+
+	require.ErrorContains(t, err, "failed to check unseal secret content")
+}
+
+func TestFindViolationsInDir_UnsealSecretReadError(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	secretDir := filepath.Join(rootDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "secrets")
+	require.NoError(t, os.MkdirAll(
+		filepath.Join(secretDir, "unseal-1of5.secret"),
+		cryptoutilSharedMagic.DirPermissions,
+	))
+
+	violations, err := FindViolationsInDir(rootDir)
+
+	require.NoError(t, err)
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], "failed to read unseal-1of5.secret")
+}
+
+// Sequential: changes the process working directory.
+func TestCheck_FromCleanRoot(t *testing.T) {
+	rootDir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(rootDir, "deployments"), cryptoutilSharedMagic.DirPermissions))
+
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(rootDir))
+
+	defer func() {
+		require.NoError(t, os.Chdir(originalDir))
+	}()
+
+	require.NoError(t, Check(cryptoutilCmdCicdCommon.NewLogger("test")))
 }
 
 // setupTempDir creates a temporary directory with the given file structure.

@@ -1,8 +1,8 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Complete for the original consolidation scope; October 2026 review follow-up is tracked in `tasks.md`.
+**Status**: Implementation phases 1–4 are complete; Phase 5 quality-gate acceptance remains in progress. Phase 6 knowledge propagation is complete, and its final commit/push is in progress under the user's local-code milestone directive. Review follow-up is tracked in `tasks.md`.
 **Created**: 2026-05-25
-**Last Updated**: 2026-10-14
+**Last Updated**: 2026-10-18
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
 pki-ca APIs into sm-kms under a `/pki/` path prefix, then deleting pki-ca, the pki product,
 and all associated deployment artifacts.
@@ -376,7 +376,7 @@ lint_fitness entity registry and lint_ports to remove pki-ca references.
 what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix
 tasks immediately.
 
-### Phase 5: Quality Gates (0.5d) [Status: COMPLETE]
+### Phase 5: Quality Gates (0.5d) [Status: IN PROGRESS]
 
 **Objective**: Verify all quality gates pass end-to-end. Full build (with and without E2E tags),
 golangci-lint, unit/integration tests, coverage, cicd-lint suite.
@@ -395,7 +395,7 @@ golangci-lint, unit/integration tests, coverage, cicd-lint suite.
 what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix
 tasks immediately.
 
-### Phase 6: Knowledge Propagation (0.5d) [Status: COMPLETE]
+### Phase 6: Knowledge Propagation (0.5d) [Status: IN PROGRESS — final commit/push pending]
 
 **Objective**: Apply lessons learned across all permanent artifacts. Review lessons.md from all
 prior phases. Update ENG-HANDBOOK.md, agents, skills, instructions, code, tests, workflows,
@@ -406,7 +406,7 @@ and docs where warranted.
 - Update agents and skills where pki-ca references remain
 - Update docs/ENG-HANDBOOK.md service catalog (remove pki-ca, update sm-kms API list)
 - Verify propagation: `go run ./cmd/cicd-lint lint-docs`
-- Commit all artifact updates with separate semantic commits per artifact type
+- Commit all artifact updates with separate semantic commits per artifact type; not executed under the inherited instruction prohibiting staging, committing, and pushing
 
 **Success**: `go run ./cmd/cicd-lint lint-docs` passes; all handbook references to pki-ca removed.
 **Post-Mortem**: Final lessons captured in lessons.md Executive Summary and Actions sections.
@@ -440,8 +440,9 @@ easily discoverable in documentation.
 only for isolated tests.
 **Rationale**: PKI endpoints are part of the single sm-kms service and must use its shared
 SQLite/PostgreSQL persistence. Certificate and authority schemas are owned by sm-kms migrations
-2010 and 2011. The CA private key is protected with the existing barrier service, and revocation
-responses read tenant-scoped persisted records.
+2010 and 2011. The CA private key is protected with the existing barrier service. Certificate
+records remain tenant-scoped; CRL and OCSP publication and lookup are issuer-wide for the
+configured authority and use persisted revocation status.
 
 ### Decision 3: Package Organization in sm-kms
 
@@ -497,32 +498,33 @@ sm-kms already has its own pki-init via `sm init pki-init`. No new routing is ne
 
 ## Quality Gates - MANDATORY
 
-**Per-Action Quality Gates**:
-- âœ… All tests pass (`go test ./...`) â€” 100% passing, zero skips
-- âœ… Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`) â€” zero errors
-- âœ… Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`) â€” zero warnings
-- âœ… No new TODOs without tracking in tasks.md
+**Per-Action Quality Gates (required; completion is tracked in `tasks.md`)**:
+- `go test ./...` passes with zero skips.
+- `go build ./...` and `go build -tags e2e,integration ./...` complete without errors.
+- Normal and `e2e,integration` golangci-lint runs complete without warnings.
+- New TODOs are tracked in `tasks.md`.
 
-**Coverage Targets (from copilot instructions)**:
-- âœ… Production code: â‰¥95% line coverage
-- âœ… Infrastructure/utility code: â‰¥98% line coverage
-- âœ… `internal/shared/magic/` excluded from coverage (constants only)
-- âœ… Generated code excluded (`api/sm-kms/{server,model,client}/*.gen.go`)
+**Coverage Targets (from Copilot instructions; current results are tracked in `tasks.md`)**:
+- Production code: >=95% line coverage.
+- Infrastructure/utility code: >=98% line coverage.
+- `internal/shared/magic/` is excluded from coverage (constants only).
+- Generated code is excluded (`api/sm-kms/{server,model,client}/*.gen.go`).
 
-**Per-Phase Quality Gates**:
-- âœ… Unit + integration tests complete before moving to next phase
-- âœ… Deployment validators pass (`go run ./cmd/cicd-lint lint-deployments`) after Phase 3+4
-- âœ… Race detector clean (`go test -race -count=2 ./...`)
+**Per-Phase Quality Gates (required)**:
+- Unit and integration tests pass before a phase is accepted.
+- Deployment validators pass (`go run ./cmd/cicd-lint lint-deployments`) after Phases 3 and 4.
+- Race detection passes (`go test -race -count=2 ./...`).
 
 ---
 
 ## Success Criteria
 
-- [x] All phases complete with evidence
+- [x] Implementation Phases 1-4 and 6 have recorded implementation evidence
+- [ ] Phase 5 quality-gate acceptance has fresh passing evidence
 - [x] sm-kms registers all 18 PKI endpoints under `/service/api/v1/pki/` and `/browser/api/v1/pki/`
 - [x] Standalone pki-ca and pki product artifacts are absent
 - [x] Registry reflects 3 products / 7 PS-IDs
-- [x] All recorded quality gates pass
+- [ ] All required quality gates pass with current evidence
 - [x] `go run ./cmd/cicd-lint lint-fitness` passes for the 3-product / 7-PS-ID registry
 - [x] No live pki-ca product/service imports or registrations remain; retired-ID constants and their regression tests are intentionally retained
 - [x] Documentation updated and propagation validation passes

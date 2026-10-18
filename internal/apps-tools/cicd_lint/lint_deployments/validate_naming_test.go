@@ -3,7 +3,6 @@ package lint_deployments
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -397,25 +396,12 @@ func TestFormatNamingValidationResult(t *testing.T) {
 func TestValidateNaming_WalkErrorPermission(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	dir := t.TempDir()
-	subDir := filepath.Join(dir, "sub-dir")
-	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, testTestYml), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	// Remove read permission from subdirectory to trigger walk error.
-	require.NoError(t, os.Chmod(subDir, 0o000))
-
-	t.Cleanup(func() {
-		// Restore permissions for cleanup.
-		_ = os.Chmod(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	result := &NamingValidationResult{Path: dir, Valid: true}
+	validateNamingWithWalk(dir, result, func(root string, walkFn filepath.WalkFunc) error {
+		return walkFn(filepath.Join(root, "sub-dir"), nil, os.ErrPermission)
 	})
 
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
 	require.True(t, len(result.Errors) > 0)
@@ -440,22 +426,12 @@ func TestValidateNaming_ComposeInvalidYAML(t *testing.T) {
 func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	dir := t.TempDir()
 	composePath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
-	require.NoError(t, os.WriteFile(composePath, []byte("services:\n  web: {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.Mkdir(composePath, cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.NoError(t, os.Chmod(composePath, 0o000))
-
-	t.Cleanup(func() {
-		_ = os.Chmod(composePath, cryptoutilSharedMagic.CacheFilePermissions)
-	})
-
-	result, err := ValidateNaming(dir)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, len(result.Warnings) > 0 || len(result.Errors) > 0)
+	result := &NamingValidationResult{}
+	validateComposeServiceNames(composePath, cryptoutilSharedMagic.COMPOSE_YML, result)
+	require.Len(t, result.Warnings, 1)
+	require.Contains(t, result.Warnings[0], "Failed to read compose file")
 }

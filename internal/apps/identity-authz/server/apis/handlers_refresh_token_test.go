@@ -52,7 +52,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				t.Helper()
 
 				// Token but no client ID.
-				return "test-refresh-token", "", cryptoutilSharedMagic.ScopeRead
+				return testRefreshToken, "", cryptoutilSharedMagic.ScopeRead
 			},
 			expectedStatus: fiber.StatusBadRequest,
 		},
@@ -236,6 +236,59 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 			require.Equal(t, tc.expectedStatus, resp.StatusCode, "Expected specific HTTP status for error path")
 		})
 	}
+}
+
+func TestHandleRefreshTokenGrant_TokenServiceNotConfigured(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory, _ := createRefreshTokenTestDependencies(t)
+	defer func() {
+		require.NoError(t, repoFactory.Close())
+	}()
+
+	clientID := "refresh-token-service-missing-" + googleUuid.Must(googleUuid.NewV7()).String()
+	client := &cryptoutilIdentityDomain.Client{
+		ID:                      googleUuid.Must(googleUuid.NewV7()),
+		ClientID:                clientID,
+		Name:                    cryptoutilSharedMagic.TestClientName,
+		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+	}
+	require.NoError(t, repoFactory.ClientRepository().Create(context.Background(), client))
+
+	now := time.Now().UTC()
+	refreshToken := &cryptoutilIdentityDomain.Token{
+		ID:          googleUuid.Must(googleUuid.NewV7()),
+		ClientID:    client.ID,
+		TokenType:   cryptoutilIdentityDomain.TokenTypeRefresh,
+		TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
+		TokenValue:  "refresh-token-service-missing",
+		ExpiresAt:   now.Add(time.Hour),
+		IssuedAt:    now,
+		NotBefore:   now,
+	}
+	require.NoError(t, repoFactory.TokenRepository().Create(context.Background(), refreshToken))
+
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	service.RegisterRoutes(app)
+
+	form := url.Values{
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
+		cryptoutilSharedMagic.ParamRefreshToken: []string{refreshToken.TokenValue},
+		cryptoutilSharedMagic.ParamClientID:     []string{clientID},
+	}
+	request := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(form.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err := app.Test(request, -1)
+
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, response.Body.Close())
+	}()
+
+	require.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
 }
 
 // Helper functions.

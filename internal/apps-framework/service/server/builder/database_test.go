@@ -5,6 +5,7 @@ package builder
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -153,4 +154,24 @@ func TestDatabaseConnection_Close_DBError(t *testing.T) {
 	conn := &DatabaseConnection{gormDB: fakeDB}
 	err := conn.Close()
 	require.Error(t, err)
+}
+
+func TestDatabaseConnection_Close_SQLDBError(t *testing.T) {
+	t.Parallel()
+
+	db := &gorm.DB{
+		Config: &gorm.Config{
+			ConnPool: &sql.DB{},
+		},
+	}
+
+	conn, err := NewDatabaseConnection(db)
+	require.NoError(t, err)
+
+	conn.closeSQLDBFn = func(*sql.DB) error {
+		return errors.New("injected close failure")
+	}
+
+	err = conn.Close()
+	require.ErrorContains(t, err, "injected close failure")
 }

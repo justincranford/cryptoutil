@@ -126,6 +126,22 @@ func TestCheckFiles_WithViolation(t *testing.T) {
 	require.Contains(t, err.Error(), "violation")
 }
 
+func TestCheckInDir_WalkError(t *testing.T) {
+	t.Parallel()
+
+	root := filepath.Join(t.TempDir(), "missing")
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), root)
+	require.ErrorContains(t, err, "walking test files")
+}
+
+func TestCheckFile_ReadError(t *testing.T) {
+	t.Parallel()
+
+	issues := CheckFile(filepath.Join(t.TempDir(), "missing_test.go"))
+	require.Len(t, issues, 1)
+	require.Contains(t, issues[0], "error reading file")
+}
+
 func TestCheckInDir_SkipsIntegrationAndE2E(t *testing.T) {
 	t.Parallel()
 

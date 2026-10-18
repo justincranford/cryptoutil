@@ -150,9 +150,13 @@ func CheckBindAddressSafety(filePath string) []string {
 // Check runs the linter by discovering all _test.go files in the repository.
 // Returns an error if any violations are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return checkWithWalkDir(logger, filepath.WalkDir)
+}
+
+func checkWithWalkDir(logger *cryptoutilCmdCicdCommon.Logger, walkDir func(string, fs.WalkDirFunc) error) error {
 	var testFiles []string
 
-	err := filepath.WalkDir(".", func(path string, d fs.DirEntry, walkErr error) error {
+	err := walkDir(".", func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}

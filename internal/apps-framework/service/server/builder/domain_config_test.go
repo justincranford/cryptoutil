@@ -3,6 +3,7 @@ package builder
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -98,4 +99,24 @@ func TestDomainConfig_Build_WithRouteRegistration(t *testing.T) {
 	require.True(t, routeRegistered)
 
 	resources.ShutdownCore()
+}
+
+func TestDomainConfig_Build_Error(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
+	defer cancel()
+
+	settings := getMinimalSettings()
+	settings.TLSPrivateProvisionMode = "invalid-mode"
+
+	resources, err := Build(ctx, settings, &DomainConfig{
+		RouteRegistration: func(*cryptoutilAppsFrameworkServiceServer.PublicServerBase, *ServiceResources) error {
+			return errors.New("route registration must not run")
+		},
+	})
+
+	require.Nil(t, resources)
+	require.ErrorContains(t, err, "failed to build service")
+	require.ErrorContains(t, err, "unsupported TLS admin mode")
 }

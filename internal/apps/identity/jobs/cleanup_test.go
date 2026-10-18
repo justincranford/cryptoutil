@@ -53,7 +53,8 @@ func TestNewCleanupJob(t *testing.T) {
 
 			testify.NotNil(t, job)
 			testify.Equal(t, tt.expectedInterval, job.interval)
-			testify.NotNil(t, job.stopChan)
+			testify.NotNil(t, job.stopCtx)
+			testify.NotNil(t, job.stopCancel)
 		})
 	}
 }

@@ -4,6 +4,7 @@ package banned_product_names
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
@@ -188,6 +189,21 @@ func TestFindViolationsInFile_NonExistentFile(t *testing.T) {
 	violations, err := FindViolationsInFile("/nonexistent/path/missing.go")
 	require.Error(t, err)
 	require.Nil(t, violations)
+}
+
+func TestCheckInDir_WalkError(t *testing.T) {
+	t.Parallel()
+
+	err := CheckInDir(newTestLogger(), filepath.Join(t.TempDir(), "missing"))
+	require.ErrorContains(t, err, "failed to scan for banned phrases")
+}
+
+func TestFindViolationsInFile_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	path := writeFile(t, t.TempDir(), "long.go", strings.Repeat("x", 70000)+"\n")
+	_, err := FindViolationsInFile(path)
+	require.ErrorContains(t, err, "error reading file")
 }
 
 func TestFindViolationsInDir_NonExistentRoot(t *testing.T) {

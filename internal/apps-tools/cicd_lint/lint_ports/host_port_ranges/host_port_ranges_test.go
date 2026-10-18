@@ -146,8 +146,10 @@ func TestIsPortInValidRange(t *testing.T) {
 		{name: "public port cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort", port: cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort, cfg: smIMConfig, want: true},
 		{name: "public port cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort", port: cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort, cfg: smIMConfig, want: true},
 		{name: "admin port cryptoutilSharedMagic.TestAdminPort", port: cryptoutilSharedMagic.IdentityDefaultAuthZAdminPort, cfg: smIMConfig, want: true},
-		{name: "range port 8050", port: 8050, cfg: smIMConfig, want: true},                                                                                                       // In range 8000-8099
-		{name: "range port 8099", port: 8099, cfg: smIMConfig, want: true},                                                                                                       // Last in range
+		{name: "range port 8050", port: 8050, cfg: smIMConfig, want: true}, // In range 8000-8099
+		{name: "range port 8099", port: 8099, cfg: smIMConfig, want: true}, // Last in range
+		{name: "product range", port: 18050, cfg: smIMConfig, want: true},
+		{name: "suite range", port: 28099, cfg: smIMConfig, want: true},
 		{name: "out of range cryptoutilSharedMagic.RetiredPKICAServicePort", port: cryptoutilSharedMagic.RetiredPKICAServicePort, cfg: smIMConfig, want: false},                  // Out of range (pki-ca territory)
 		{name: "range port 8060", port: 8060, cfg: smIMConfig, want: true},                                                                                                       // In range 8000-8099
 		{name: "legacy port cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, cfg: smIMConfig, want: false}, // Legacy
@@ -161,6 +163,26 @@ func TestIsPortInValidRange(t *testing.T) {
 			require.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestCheckHostPortRanges_EmptyFiles(t *testing.T) {
+	t.Parallel()
+
+	require.NoError(t, Check(cryptoutilCmdCicdCommon.NewLogger(t.Name()), map[string][]string{}))
+}
+
+func TestCheckHostPortRangesInFile_SkipsDatabasePorts(t *testing.T) {
+	t.Parallel()
+
+	composeFile := filepath.Join(t.TempDir(), cryptoutilSharedMagic.COMPOSE_YML)
+	content := `services:
+  sm-kms-db-primary:
+    ports:
+      - "65432:5432"
+`
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+	require.Empty(t, CheckHostPortRangesInFile(composeFile))
 }
 
 func TestLintHostPortRanges_NoViolations(t *testing.T) {

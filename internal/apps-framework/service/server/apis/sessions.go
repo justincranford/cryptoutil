@@ -6,6 +6,7 @@ package apis
 import (
 	"context"
 	"fmt"
+	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -28,6 +29,7 @@ type SessionManager interface {
 	IssueServiceSessionWithTenant(ctx context.Context, clientID string, tenantID, realmID googleUuid.UUID) (string, error)
 	ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilAppsFrameworkServiceServerRepository.BrowserSession, error)
 	ValidateServiceSession(ctx context.Context, token string) (*cryptoutilAppsFrameworkServiceServerRepository.ServiceSession, error)
+	ServiceSessionExpiration() time.Duration
 }
 
 // SessionHandler handles session management endpoints.

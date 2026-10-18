@@ -167,6 +167,27 @@ func TestCheckInDir_ViolationServiceTierWrongPort(t *testing.T) {
 	require.Contains(t, err.Error(), "line 4", "violation must report correct 1-based line number")
 }
 
+func TestCheckTierPorts_NonNumericHostPort(t *testing.T) {
+	t.Parallel()
+
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
+	serviceName := lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantSQLite1)
+	content := []byte("services:\n  " + serviceName + ":\n    ports:\n      - 999999999999999999999:8080\n")
+	readFileFn := func(string) ([]byte, error) {
+		return content, nil
+	}
+
+	violations := checkTierPorts(
+		t.TempDir(),
+		psID,
+		filepath.Join("deployments", psID, cryptoutilSharedMagic.COMPOSE_YML),
+		lintFitnessRegistry.PublicPort(psID),
+		lintFitnessRegistry.PortTierOffsetService,
+		readFileFn,
+	)
+	require.Empty(t, violations, "an out-of-range host port should be ignored when integer parsing fails")
+}
+
 func TestCheckInDir_ViolationProductTierWrongPort(t *testing.T) {
 	t.Parallel()
 

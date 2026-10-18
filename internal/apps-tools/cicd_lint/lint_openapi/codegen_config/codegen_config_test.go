@@ -2,8 +2,10 @@
 package codegen_config
 
 import (
+	"bufio"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -170,4 +172,25 @@ func TestFindMissingInitialisms_NonexistentFile(t *testing.T) {
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to open file")
+}
+
+func TestCheck_MissingConfigFile(t *testing.T) {
+	t.Parallel()
+
+	missingConfig := filepath.Join(t.TempDir(), "api", "service", "openapi-gen_config_server.yaml")
+	err := Check(cryptoutilCmdCicdCommon.NewLogger(t.Name()), map[string][]string{valueYAML: {missingConfig}})
+
+	require.ErrorContains(t, err, "codegen-config")
+}
+
+func TestFindMissingInitialisms_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	configFile := filepath.Join(t.TempDir(), "openapi-gen_config_server.yaml")
+	content := strings.Repeat("x", bufio.MaxScanTokenSize+1)
+	require.NoError(t, os.WriteFile(configFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+	_, err := findMissingInitialisms(configFile)
+
+	require.ErrorContains(t, err, "scanner error")
 }

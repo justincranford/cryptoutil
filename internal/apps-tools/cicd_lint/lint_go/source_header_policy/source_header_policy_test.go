@@ -47,7 +47,7 @@ func TestCheckInDirWithYear_DetectsSPDXMismatch(t *testing.T) {
 	badFile := filepath.Join(tmpDir, "bad_spdx.go")
 	content := strings.Join([]string{
 		"// Copyright (c) 2025-" + intToString(currentYear) + " Justin Cranford.",
-		"// SPDX-License-Identifier: MIT",
+		testMITLicenseHeader,
 		"",
 		testPackageExample,
 		"",

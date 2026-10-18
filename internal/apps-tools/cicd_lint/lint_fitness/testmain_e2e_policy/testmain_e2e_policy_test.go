@@ -169,6 +169,19 @@ func TestFindViolations_IgnoresNonTargetFiles(t *testing.T) {
 	require.Empty(t, violations)
 }
 
+func TestFindViolations_IgnoresNestedE2ETestMain(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	nestedE2EDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.CMD_SERVER, "e2e")
+	require.NoError(t, os.MkdirAll(nestedE2EDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(nestedE2EDir, "testmain_e2e_test.go"), []byte(legacyE2ETestMain), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	violations, err := lintFitnessTestmainE2EPolicy.FindViolations(dir)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
 func TestCheckInDir_WithViolation_ReturnsError(t *testing.T) {
 	t.Parallel()
 
@@ -187,9 +200,8 @@ func TestCheck_CalledFromTestWorkdir(t *testing.T) {
 	_ = lintFitnessTestmainE2EPolicy.Check(logger)
 }
 
+// Sequential: changes the process working directory with os.Chdir.
 func TestLintAndCheck_FromTemporaryWorkdir(t *testing.T) {
-	t.Parallel()
-
 	dir := t.TempDir()
 	writeE2ETestMain(t, dir, cryptoutilSharedMagic.OTLPServiceSMKMS, compliantE2ETestMain)
 

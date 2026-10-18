@@ -6,8 +6,10 @@ package server
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net/url"
 	"path"
 	"strings"
@@ -942,6 +944,1272 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Post(options.BaseURL+"/tsa/timestamp", wrapper.TsaTimestamp)
 
+}
+
+type ListCAsRequestObject struct {
+}
+
+type ListCAsResponseObject interface {
+	VisitListCAsResponse(ctx *fiber.Ctx) error
+}
+
+type ListCAs200JSONResponse CAListResponse
+
+func (response ListCAs200JSONResponse) VisitListCAsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetCARequestObject struct {
+	CAID string `json:"caID"`
+}
+
+type GetCAResponseObject interface {
+	VisitGetCAResponse(ctx *fiber.Ctx) error
+}
+
+type GetCA200JSONResponse CAResponse
+
+func (response GetCA200JSONResponse) VisitGetCAResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetCA404JSONResponse ErrorResponse
+
+func (response GetCA404JSONResponse) VisitGetCAResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type GetCRLRequestObject struct {
+	CAID   string `json:"caID"`
+	Params GetCRLParams
+}
+
+type GetCRLResponseObject interface {
+	VisitGetCRLResponse(ctx *fiber.Ctx) error
+}
+
+type GetCRL200ApplicationPkixCRLResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetCRL200ApplicationPkixCRLResponse) VisitGetCRLResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/pkix-crl")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type GetCRL200ApplicationXPemFileResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetCRL200ApplicationXPemFileResponse) VisitGetCRLResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/x-pem-file")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type GetCRL404JSONResponse ErrorResponse
+
+func (response GetCRL404JSONResponse) VisitGetCRLResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type ListCertificatesRequestObject struct {
+	Params ListCertificatesParams
+}
+
+type ListCertificatesResponseObject interface {
+	VisitListCertificatesResponse(ctx *fiber.Ctx) error
+}
+
+type ListCertificates200JSONResponse CertificateListResponse
+
+func (response ListCertificates200JSONResponse) VisitListCertificatesResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetCertificateRequestObject struct {
+	SerialNumber string `json:"serialNumber"`
+}
+
+type GetCertificateResponseObject interface {
+	VisitGetCertificateResponse(ctx *fiber.Ctx) error
+}
+
+type GetCertificate200JSONResponse CertificateResponse
+
+func (response GetCertificate200JSONResponse) VisitGetCertificateResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetCertificate200ApplicationXPemFileResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetCertificate200ApplicationXPemFileResponse) VisitGetCertificateResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/x-pem-file")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type GetCertificate404JSONResponse ErrorResponse
+
+func (response GetCertificate404JSONResponse) VisitGetCertificateResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type GetCertificateChainRequestObject struct {
+	SerialNumber string `json:"serialNumber"`
+}
+
+type GetCertificateChainResponseObject interface {
+	VisitGetCertificateChainResponse(ctx *fiber.Ctx) error
+}
+
+type GetCertificateChain200JSONResponse CertificateChainResponse
+
+func (response GetCertificateChain200JSONResponse) VisitGetCertificateChainResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetCertificateChain200ApplicationXPemFileResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetCertificateChain200ApplicationXPemFileResponse) VisitGetCertificateChainResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/x-pem-file")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type GetCertificateChain404JSONResponse ErrorResponse
+
+func (response GetCertificateChain404JSONResponse) VisitGetCertificateChainResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type RevokeCertificateRequestObject struct {
+	SerialNumber string `json:"serialNumber"`
+	Body         *RevokeCertificateJSONRequestBody
+}
+
+type RevokeCertificateResponseObject interface {
+	VisitRevokeCertificateResponse(ctx *fiber.Ctx) error
+}
+
+type RevokeCertificate200JSONResponse RevocationResponse
+
+func (response RevokeCertificate200JSONResponse) VisitRevokeCertificateResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type RevokeCertificate400JSONResponse ErrorResponse
+
+func (response RevokeCertificate400JSONResponse) VisitRevokeCertificateResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type RevokeCertificate404JSONResponse ErrorResponse
+
+func (response RevokeCertificate404JSONResponse) VisitRevokeCertificateResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type RevokeCertificate409JSONResponse ErrorResponse
+
+func (response RevokeCertificate409JSONResponse) VisitRevokeCertificateResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(409)
+
+	return ctx.JSON(&response)
+}
+
+type SubmitEnrollmentRequestObject struct {
+	Body *SubmitEnrollmentJSONRequestBody
+}
+
+type SubmitEnrollmentResponseObject interface {
+	VisitSubmitEnrollmentResponse(ctx *fiber.Ctx) error
+}
+
+type SubmitEnrollment201JSONResponse EnrollmentResponse
+
+func (response SubmitEnrollment201JSONResponse) VisitSubmitEnrollmentResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(201)
+
+	return ctx.JSON(&response)
+}
+
+type SubmitEnrollment202JSONResponse EnrollmentPendingResponse
+
+func (response SubmitEnrollment202JSONResponse) VisitSubmitEnrollmentResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(202)
+
+	return ctx.JSON(&response)
+}
+
+type SubmitEnrollment400JSONResponse ErrorResponse
+
+func (response SubmitEnrollment400JSONResponse) VisitSubmitEnrollmentResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type SubmitEnrollment422JSONResponse ErrorResponse
+
+func (response SubmitEnrollment422JSONResponse) VisitSubmitEnrollmentResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(422)
+
+	return ctx.JSON(&response)
+}
+
+type GetEnrollmentStatusRequestObject struct {
+	RequestID openapi_types.UUID `json:"requestID"`
+}
+
+type GetEnrollmentStatusResponseObject interface {
+	VisitGetEnrollmentStatusResponse(ctx *fiber.Ctx) error
+}
+
+type GetEnrollmentStatus200JSONResponse EnrollmentStatusResponse
+
+func (response GetEnrollmentStatus200JSONResponse) VisitGetEnrollmentStatusResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetEnrollmentStatus404JSONResponse ErrorResponse
+
+func (response GetEnrollmentStatus404JSONResponse) VisitGetEnrollmentStatusResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type ESTCACertsRequestObject struct {
+}
+
+type ESTCACertsResponseObject interface {
+	VisitESTCACertsResponse(ctx *fiber.Ctx) error
+}
+
+type ESTCACerts200ApplicationPkcs7MimeResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response ESTCACerts200ApplicationPkcs7MimeResponse) VisitESTCACertsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/pkcs7-mime")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type ESTCACerts500JSONResponse ErrorResponse
+
+func (response ESTCACerts500JSONResponse) VisitESTCACertsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type ESTCSRAttrsRequestObject struct {
+}
+
+type ESTCSRAttrsResponseObject interface {
+	VisitESTCSRAttrsResponse(ctx *fiber.Ctx) error
+}
+
+type ESTCSRAttrs200ApplicationCsrattrsResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response ESTCSRAttrs200ApplicationCsrattrsResponse) VisitESTCSRAttrsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/csrattrs")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type ESTCSRAttrs204Response struct {
+}
+
+func (response ESTCSRAttrs204Response) VisitESTCSRAttrsResponse(ctx *fiber.Ctx) error {
+	ctx.Status(204)
+	return nil
+}
+
+type ESTCSRAttrs500JSONResponse ErrorResponse
+
+func (response ESTCSRAttrs500JSONResponse) VisitESTCSRAttrsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type ESTServerKeyGenRequestObject struct {
+}
+
+type ESTServerKeyGenResponseObject interface {
+	VisitESTServerKeyGenResponse(ctx *fiber.Ctx) error
+}
+
+type ESTServerKeyGen503JSONResponse ErrorResponse
+
+func (response ESTServerKeyGen503JSONResponse) VisitESTServerKeyGenResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(503)
+
+	return ctx.JSON(&response)
+}
+
+type ESTSimpleEnrollRequestObject struct {
+	Body io.Reader
+}
+
+type ESTSimpleEnrollResponseObject interface {
+	VisitESTSimpleEnrollResponse(ctx *fiber.Ctx) error
+}
+
+type ESTSimpleEnroll200ApplicationPkcs7MimeResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response ESTSimpleEnroll200ApplicationPkcs7MimeResponse) VisitESTSimpleEnrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/pkcs7-mime")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type ESTSimpleEnroll202ResponseHeaders struct {
+	RetryAfter int
+}
+
+type ESTSimpleEnroll202JSONResponse struct {
+	Body    EnrollmentPendingResponse
+	Headers ESTSimpleEnroll202ResponseHeaders
+}
+
+func (response ESTSimpleEnroll202JSONResponse) VisitESTSimpleEnrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Retry-After", fmt.Sprint(response.Headers.RetryAfter))
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(202)
+
+	return ctx.JSON(&response.Body)
+}
+
+type ESTSimpleEnroll400JSONResponse ErrorResponse
+
+func (response ESTSimpleEnroll400JSONResponse) VisitESTSimpleEnrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type ESTSimpleEnroll401JSONResponse ErrorResponse
+
+func (response ESTSimpleEnroll401JSONResponse) VisitESTSimpleEnrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(401)
+
+	return ctx.JSON(&response)
+}
+
+type ESTSimpleEnroll403JSONResponse ErrorResponse
+
+func (response ESTSimpleEnroll403JSONResponse) VisitESTSimpleEnrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(403)
+
+	return ctx.JSON(&response)
+}
+
+type ESTSimpleReenrollRequestObject struct {
+	Body io.Reader
+}
+
+type ESTSimpleReenrollResponseObject interface {
+	VisitESTSimpleReenrollResponse(ctx *fiber.Ctx) error
+}
+
+type ESTSimpleReenroll200ApplicationPkcs7MimeResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response ESTSimpleReenroll200ApplicationPkcs7MimeResponse) VisitESTSimpleReenrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/pkcs7-mime")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type ESTSimpleReenroll202ResponseHeaders struct {
+	RetryAfter int
+}
+
+type ESTSimpleReenroll202JSONResponse struct {
+	Body    EnrollmentPendingResponse
+	Headers ESTSimpleReenroll202ResponseHeaders
+}
+
+func (response ESTSimpleReenroll202JSONResponse) VisitESTSimpleReenrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Retry-After", fmt.Sprint(response.Headers.RetryAfter))
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(202)
+
+	return ctx.JSON(&response.Body)
+}
+
+type ESTSimpleReenroll400JSONResponse ErrorResponse
+
+func (response ESTSimpleReenroll400JSONResponse) VisitESTSimpleReenrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type ESTSimpleReenroll401JSONResponse ErrorResponse
+
+func (response ESTSimpleReenroll401JSONResponse) VisitESTSimpleReenrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(401)
+
+	return ctx.JSON(&response)
+}
+
+type ESTSimpleReenroll403JSONResponse ErrorResponse
+
+func (response ESTSimpleReenroll403JSONResponse) VisitESTSimpleReenrollResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(403)
+
+	return ctx.JSON(&response)
+}
+
+type HandleOCSPRequestObject struct {
+	Body io.Reader
+}
+
+type HandleOCSPResponseObject interface {
+	VisitHandleOCSPResponse(ctx *fiber.Ctx) error
+}
+
+type HandleOCSP200ApplicationOCSPResponseResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response HandleOCSP200ApplicationOCSPResponseResponse) VisitHandleOCSPResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/ocsp-response")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type HandleOCSP400ApplicationOCSPResponseResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response HandleOCSP400ApplicationOCSPResponseResponse) VisitHandleOCSPResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/ocsp-response")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(400)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type HandleOCSP500ApplicationOCSPResponseResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response HandleOCSP500ApplicationOCSPResponseResponse) VisitHandleOCSPResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/ocsp-response")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(500)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type ListProfilesRequestObject struct {
+}
+
+type ListProfilesResponseObject interface {
+	VisitListProfilesResponse(ctx *fiber.Ctx) error
+}
+
+type ListProfiles200JSONResponse ProfileListResponse
+
+func (response ListProfiles200JSONResponse) VisitListProfilesResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetProfileRequestObject struct {
+	ProfileID string `json:"profileID"`
+}
+
+type GetProfileResponseObject interface {
+	VisitGetProfileResponse(ctx *fiber.Ctx) error
+}
+
+type GetProfile200JSONResponse ProfileResponse
+
+func (response GetProfile200JSONResponse) VisitGetProfileResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetProfile404JSONResponse ErrorResponse
+
+func (response GetProfile404JSONResponse) VisitGetProfileResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type TsaTimestampRequestObject struct {
+	Body io.Reader
+}
+
+type TsaTimestampResponseObject interface {
+	VisitTsaTimestampResponse(ctx *fiber.Ctx) error
+}
+
+type TsaTimestamp200ApplicationTimestampReplyResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response TsaTimestamp200ApplicationTimestampReplyResponse) VisitTsaTimestampResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/timestamp-reply")
+	if response.ContentLength != 0 {
+		ctx.Response().Header.Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	ctx.Status(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(ctx.Response().BodyWriter(), response.Body)
+	return err
+}
+
+type TsaTimestamp400JSONResponse ErrorResponse
+
+func (response TsaTimestamp400JSONResponse) VisitTsaTimestampResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type TsaTimestamp500JSONResponse ErrorResponse
+
+func (response TsaTimestamp500JSONResponse) VisitTsaTimestampResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+	// List available Certificate Authorities
+	// (GET /cas)
+	ListCAs(ctx context.Context, request ListCAsRequestObject) (ListCAsResponseObject, error)
+	// Get Certificate Authority details
+	// (GET /cas/{caID})
+	GetCA(ctx context.Context, request GetCARequestObject) (GetCAResponseObject, error)
+	// Download Certificate Revocation List
+	// (GET /cas/{caID}/crl)
+	GetCRL(ctx context.Context, request GetCRLRequestObject) (GetCRLResponseObject, error)
+	// List certificates
+	// (GET /certificates)
+	ListCertificates(ctx context.Context, request ListCertificatesRequestObject) (ListCertificatesResponseObject, error)
+	// Get certificate by serial number
+	// (GET /certificates/{serialNumber})
+	GetCertificate(ctx context.Context, request GetCertificateRequestObject) (GetCertificateResponseObject, error)
+	// Get certificate chain
+	// (GET /certificates/{serialNumber}/chain)
+	GetCertificateChain(ctx context.Context, request GetCertificateChainRequestObject) (GetCertificateChainResponseObject, error)
+	// Revoke a certificate
+	// (POST /certificates/{serialNumber}/revoke)
+	RevokeCertificate(ctx context.Context, request RevokeCertificateRequestObject) (RevokeCertificateResponseObject, error)
+	// Submit certificate enrollment request
+	// (POST /enrollments)
+	SubmitEnrollment(ctx context.Context, request SubmitEnrollmentRequestObject) (SubmitEnrollmentResponseObject, error)
+	// Get enrollment request status
+	// (GET /enrollments/{requestID})
+	GetEnrollmentStatus(ctx context.Context, request GetEnrollmentStatusRequestObject) (GetEnrollmentStatusResponseObject, error)
+	// Get CA certificates
+	// (GET /est/cacerts)
+	ESTCACerts(ctx context.Context, request ESTCACertsRequestObject) (ESTCACertsResponseObject, error)
+	// Get CSR attributes
+	// (GET /est/csrattrs)
+	ESTCSRAttrs(ctx context.Context, request ESTCSRAttrsRequestObject) (ESTCSRAttrsResponseObject, error)
+	// Server-side key generation (temporarily unavailable)
+	// (POST /est/serverkeygen)
+	ESTServerKeyGen(ctx context.Context, request ESTServerKeyGenRequestObject) (ESTServerKeyGenResponseObject, error)
+	// Simple enrollment
+	// (POST /est/simpleenroll)
+	ESTSimpleEnroll(ctx context.Context, request ESTSimpleEnrollRequestObject) (ESTSimpleEnrollResponseObject, error)
+	// Simple re-enrollment
+	// (POST /est/simplereenroll)
+	ESTSimpleReenroll(ctx context.Context, request ESTSimpleReenrollRequestObject) (ESTSimpleReenrollResponseObject, error)
+	// OCSP responder endpoint
+	// (POST /ocsp)
+	HandleOCSP(ctx context.Context, request HandleOCSPRequestObject) (HandleOCSPResponseObject, error)
+	// List available certificate profiles
+	// (GET /profiles)
+	ListProfiles(ctx context.Context, request ListProfilesRequestObject) (ListProfilesResponseObject, error)
+	// Get certificate profile details
+	// (GET /profiles/{profileID})
+	GetProfile(ctx context.Context, request GetProfileRequestObject) (GetProfileResponseObject, error)
+	// Request timestamp
+	// (POST /tsa/timestamp)
+	TsaTimestamp(ctx context.Context, request TsaTimestampRequestObject) (TsaTimestampResponseObject, error)
+}
+
+type StrictHandlerFunc func(ctx *fiber.Ctx, args any) (any, error)
+
+type StrictMiddlewareFunc func(f StrictHandlerFunc, operationID string) StrictHandlerFunc
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+}
+
+// ListCAs operation middleware
+func (sh *strictHandler) ListCAs(ctx *fiber.Ctx) error {
+	var request ListCAsRequestObject
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.ListCAs(ctx.UserContext(), request.(ListCAsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCAs")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(ListCAsResponseObject); ok {
+		if err := validResponse.VisitListCAsResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetCA operation middleware
+func (sh *strictHandler) GetCA(ctx *fiber.Ctx, caid string) error {
+	var request GetCARequestObject
+
+	request.CAID = caid
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.GetCA(ctx.UserContext(), request.(GetCARequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCA")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetCAResponseObject); ok {
+		if err := validResponse.VisitGetCAResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetCRL operation middleware
+func (sh *strictHandler) GetCRL(ctx *fiber.Ctx, caid string, params GetCRLParams) error {
+	var request GetCRLRequestObject
+
+	request.CAID = caid
+	request.Params = params
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.GetCRL(ctx.UserContext(), request.(GetCRLRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCRL")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetCRLResponseObject); ok {
+		if err := validResponse.VisitGetCRLResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ListCertificates operation middleware
+func (sh *strictHandler) ListCertificates(ctx *fiber.Ctx, params ListCertificatesParams) error {
+	var request ListCertificatesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.ListCertificates(ctx.UserContext(), request.(ListCertificatesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCertificates")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(ListCertificatesResponseObject); ok {
+		if err := validResponse.VisitListCertificatesResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetCertificate operation middleware
+func (sh *strictHandler) GetCertificate(ctx *fiber.Ctx, serialNumber string) error {
+	var request GetCertificateRequestObject
+
+	request.SerialNumber = serialNumber
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.GetCertificate(ctx.UserContext(), request.(GetCertificateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCertificate")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetCertificateResponseObject); ok {
+		if err := validResponse.VisitGetCertificateResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetCertificateChain operation middleware
+func (sh *strictHandler) GetCertificateChain(ctx *fiber.Ctx, serialNumber string) error {
+	var request GetCertificateChainRequestObject
+
+	request.SerialNumber = serialNumber
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.GetCertificateChain(ctx.UserContext(), request.(GetCertificateChainRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCertificateChain")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetCertificateChainResponseObject); ok {
+		if err := validResponse.VisitGetCertificateChainResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// RevokeCertificate operation middleware
+func (sh *strictHandler) RevokeCertificate(ctx *fiber.Ctx, serialNumber string) error {
+	var request RevokeCertificateRequestObject
+
+	request.SerialNumber = serialNumber
+
+	var body RevokeCertificateJSONRequestBody
+	if err := ctx.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	request.Body = &body
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.RevokeCertificate(ctx.UserContext(), request.(RevokeCertificateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeCertificate")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(RevokeCertificateResponseObject); ok {
+		if err := validResponse.VisitRevokeCertificateResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// SubmitEnrollment operation middleware
+func (sh *strictHandler) SubmitEnrollment(ctx *fiber.Ctx) error {
+	var request SubmitEnrollmentRequestObject
+
+	var body SubmitEnrollmentJSONRequestBody
+	if err := ctx.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	request.Body = &body
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.SubmitEnrollment(ctx.UserContext(), request.(SubmitEnrollmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SubmitEnrollment")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(SubmitEnrollmentResponseObject); ok {
+		if err := validResponse.VisitSubmitEnrollmentResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetEnrollmentStatus operation middleware
+func (sh *strictHandler) GetEnrollmentStatus(ctx *fiber.Ctx, requestID openapi_types.UUID) error {
+	var request GetEnrollmentStatusRequestObject
+
+	request.RequestID = requestID
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.GetEnrollmentStatus(ctx.UserContext(), request.(GetEnrollmentStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEnrollmentStatus")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetEnrollmentStatusResponseObject); ok {
+		if err := validResponse.VisitGetEnrollmentStatusResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ESTCACerts operation middleware
+func (sh *strictHandler) ESTCACerts(ctx *fiber.Ctx) error {
+	var request ESTCACertsRequestObject
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.ESTCACerts(ctx.UserContext(), request.(ESTCACertsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ESTCACerts")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(ESTCACertsResponseObject); ok {
+		if err := validResponse.VisitESTCACertsResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ESTCSRAttrs operation middleware
+func (sh *strictHandler) ESTCSRAttrs(ctx *fiber.Ctx) error {
+	var request ESTCSRAttrsRequestObject
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.ESTCSRAttrs(ctx.UserContext(), request.(ESTCSRAttrsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ESTCSRAttrs")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(ESTCSRAttrsResponseObject); ok {
+		if err := validResponse.VisitESTCSRAttrsResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ESTServerKeyGen operation middleware
+func (sh *strictHandler) ESTServerKeyGen(ctx *fiber.Ctx) error {
+	var request ESTServerKeyGenRequestObject
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.ESTServerKeyGen(ctx.UserContext(), request.(ESTServerKeyGenRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ESTServerKeyGen")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(ESTServerKeyGenResponseObject); ok {
+		if err := validResponse.VisitESTServerKeyGenResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ESTSimpleEnroll operation middleware
+func (sh *strictHandler) ESTSimpleEnroll(ctx *fiber.Ctx) error {
+	var request ESTSimpleEnrollRequestObject
+
+	request.Body = bytes.NewReader(ctx.Request().Body())
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.ESTSimpleEnroll(ctx.UserContext(), request.(ESTSimpleEnrollRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ESTSimpleEnroll")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(ESTSimpleEnrollResponseObject); ok {
+		if err := validResponse.VisitESTSimpleEnrollResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ESTSimpleReenroll operation middleware
+func (sh *strictHandler) ESTSimpleReenroll(ctx *fiber.Ctx) error {
+	var request ESTSimpleReenrollRequestObject
+
+	request.Body = bytes.NewReader(ctx.Request().Body())
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.ESTSimpleReenroll(ctx.UserContext(), request.(ESTSimpleReenrollRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ESTSimpleReenroll")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(ESTSimpleReenrollResponseObject); ok {
+		if err := validResponse.VisitESTSimpleReenrollResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// HandleOCSP operation middleware
+func (sh *strictHandler) HandleOCSP(ctx *fiber.Ctx) error {
+	var request HandleOCSPRequestObject
+
+	request.Body = bytes.NewReader(ctx.Request().Body())
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.HandleOCSP(ctx.UserContext(), request.(HandleOCSPRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "HandleOCSP")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(HandleOCSPResponseObject); ok {
+		if err := validResponse.VisitHandleOCSPResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// ListProfiles operation middleware
+func (sh *strictHandler) ListProfiles(ctx *fiber.Ctx) error {
+	var request ListProfilesRequestObject
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.ListProfiles(ctx.UserContext(), request.(ListProfilesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListProfiles")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(ListProfilesResponseObject); ok {
+		if err := validResponse.VisitListProfilesResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetProfile operation middleware
+func (sh *strictHandler) GetProfile(ctx *fiber.Ctx, profileID string) error {
+	var request GetProfileRequestObject
+
+	request.ProfileID = profileID
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.GetProfile(ctx.UserContext(), request.(GetProfileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetProfile")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetProfileResponseObject); ok {
+		if err := validResponse.VisitGetProfileResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// TsaTimestamp operation middleware
+func (sh *strictHandler) TsaTimestamp(ctx *fiber.Ctx) error {
+	var request TsaTimestampRequestObject
+
+	request.Body = bytes.NewReader(ctx.Request().Body())
+
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
+		return sh.ssi.TsaTimestamp(ctx.UserContext(), request.(TsaTimestampRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TsaTimestamp")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(TsaTimestampResponseObject); ok {
+		if err := validResponse.VisitTsaTimestampResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object

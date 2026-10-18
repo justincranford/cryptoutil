@@ -4,6 +4,7 @@ package migration_comment_headers_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -79,6 +80,20 @@ func TestCheck_RealWorkspace(t *testing.T) {
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), root)
 	require.NoError(t, err)
+}
+
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	root := findProjectRoot(t)
+	original, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+	defer func() {
+		require.NoError(t, os.Chdir(original))
+	}()
+
+	require.NoError(t, lintFitnessMigrationCommentHeaders.Check(newTestLogger()))
 }
 
 func TestCheckInDir_CorrectHeaders(t *testing.T) {
@@ -187,6 +202,118 @@ func TestCheckInDir_NoMigrationsDir_NoError(t *testing.T) {
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)
+}
+
+func TestCheckInDir_ArchivedMigrationDirSkipped(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	createAllPSDirStubs(t, tmpDir)
+	writeMigrationFile(t, tmpDir, "sm-kms/_archive", "2001_invalid.up.sql", "not a canonical header\n")
+
+	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
+	require.NoError(t, err)
+}
+
+func TestCheckMigrationDir_IgnoresDirectoriesAndInvalidNames(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	createAllPSDirStubs(t, tmpDir)
+
+	const internalAppsDir = "sm-kms/"
+
+	migrationsDir := filepath.Join(tmpDir, "internal", "apps", filepath.FromSlash(internalAppsDir), "repository", "migrations")
+	require.NoError(t, os.MkdirAll(filepath.Join(migrationsDir, "nested"), cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "README.sql"), []byte("not a migration"), cryptoutilSharedMagic.CICDOutputFilePermissions))
+	writeMigrationFile(t, tmpDir, internalAppsDir, "2001_init.up.sql", upHeader(smKMSMigrationDisplayName))
+
+	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
+	require.NoError(t, err)
+}
+
+func TestCheckPS_WalkErrors(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	createAllPSDirStubs(t, rootDir)
+
+	ps := lintFitnessRegistry.AllProductServices()[0]
+
+	tests := []struct {
+		name   string
+		walkFn func(string, filepath.WalkFunc) error
+	}{
+		{
+			name: "walk function error",
+			walkFn: func(string, filepath.WalkFunc) error {
+				return os.ErrPermission
+			},
+		},
+		{
+			name: "callback error",
+			walkFn: func(path string, callback filepath.WalkFunc) error {
+				return callback(path, nil, os.ErrPermission)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			violations := lintFitnessMigrationCommentHeaders.ExportedCheckPSWithWalk(rootDir, ps, tc.walkFn)
+			require.Len(t, violations, 1)
+			require.Contains(t, violations[0], "error walking directory")
+		})
+	}
+}
+
+func TestCheckMigrationDir_ReadError(t *testing.T) {
+	t.Parallel()
+
+	ps := lintFitnessRegistry.AllProductServices()[0]
+	violations := lintFitnessMigrationCommentHeaders.ExportedCheckMigrationDirWithReadDir(
+		t.TempDir(),
+		ps,
+		"migrations",
+		func(string) ([]os.DirEntry, error) {
+			return nil, os.ErrPermission
+		},
+	)
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], "cannot read migrations dir")
+}
+
+func TestCheckMigrationFile_OpenAndScannerErrors(t *testing.T) {
+	t.Parallel()
+
+	ps := lintFitnessRegistry.AllProductServices()[0]
+	rootDir := t.TempDir()
+	missingPath := filepath.Join(rootDir, "missing.up.sql")
+	openError := lintFitnessMigrationCommentHeaders.ExportedCheckMigrationFileWithOpen(
+		rootDir,
+		ps,
+		missingPath,
+		"up",
+		func(string) (*os.File, error) {
+			return nil, os.ErrPermission
+		},
+	)
+	require.Len(t, openError, 1)
+	require.Contains(t, openError[0], "cannot open")
+
+	oversizedPath := filepath.Join(rootDir, "oversized.up.sql")
+	require.NoError(t, os.WriteFile(oversizedPath, []byte(strings.Repeat("x", 100_000)), cryptoutilSharedMagic.CICDOutputFilePermissions))
+	scannerError := lintFitnessMigrationCommentHeaders.ExportedCheckMigrationFileWithOpen(
+		rootDir,
+		ps,
+		oversizedPath,
+		"up",
+		os.Open,
+	)
+	require.Len(t, scannerError, 1)
+	require.Contains(t, scannerError[0], "read error")
 }
 
 func TestCheckPS_AbsentPSDir(t *testing.T) {

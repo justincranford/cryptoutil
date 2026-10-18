@@ -15,6 +15,13 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+const (
+	testServerAPIsDirectoryName                = "apis"
+	testServerConfigGoFilename                 = "config.go"
+	testRequiredServiceE2ETestFilenameTemplate = "__SERVICE___e2e_test.go"
+	testMismatchExtraLine                      = "extra"
+)
+
 func TestCanonicalTemplateFilesUseActualCanonicalPaths(t *testing.T) {
 	t.Parallel()
 
@@ -155,7 +162,7 @@ func createFullPSIDRoot(t *testing.T, realRoot, tmpDir string) {
 			}
 
 			// Required server subdirs: apis, model, repository (respecting production exclusions).
-			for _, dir := range []string{"apis", "model", "repository"} {
+			for _, dir := range []string{testServerAPIsDirectoryName, "model", "repository"} {
 				if !knownServerDirExclusions[dir][ps.PSID] {
 					require.NoError(t, os.MkdirAll(filepath.Join(serverDir, dir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				}
@@ -426,7 +433,7 @@ func TestCheckInDir_NoExclusions_AllValid(t *testing.T) {
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
-		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, testServerAPIsDirectoryName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(psDir, "client"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(psDir, "e2e"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -523,7 +530,7 @@ func TestCheckInDir_NoExclusions_MissingServerConfigFile(t *testing.T) {
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
-		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, testServerAPIsDirectoryName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -563,7 +570,7 @@ func TestCheckInDir_NoExclusions_MissingServerRepositoryFile(t *testing.T) {
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
-		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, testServerAPIsDirectoryName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -603,7 +610,7 @@ func TestCheckInDir_NoExclusions_MissingServerRepositoryDir(t *testing.T) {
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
-		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, testServerAPIsDirectoryName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(repoDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -645,7 +652,7 @@ func TestCheckInDir_NoExclusions_MissingE2EFile(t *testing.T) {
 		configDir := filepath.Join(serverDir, "config")
 		repoDir := filepath.Join(serverDir, "repository")
 
-		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "apis"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, testServerAPIsDirectoryName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(serverDir, "model"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(repoDir, "migrations"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))

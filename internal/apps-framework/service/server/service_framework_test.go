@@ -192,11 +192,12 @@ func TestServiceFramework_Shutdown_NilComponents(t *testing.T) {
 func TestServiceFramework_SQLDB_Error(t *testing.T) {
 	t.Parallel()
 
-	// Create ServiceFramework with mock GORM DB that will fail.
-	// This is hard to test without mocking since GORM.DB() rarely fails in practice.
-	// For now, we test the happy path (covered in TestNewServiceFramework_HappyPath).
-	// If we need error coverage, we'd need to use a mock framework.
-	t.Skip("SQLDB error path requires mocking framework - happy path covered in HappyPath test")
+	st := &ServiceFramework{db: &gorm.DB{Config: &gorm.Config{}}}
+
+	sqlDB, err := st.SQLDB()
+
+	require.ErrorIs(t, err, gorm.ErrInvalidDB)
+	require.Nil(t, sqlDB)
 }
 
 // TestStartApplicationCore_PassThrough tests the wrapper function.

@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -31,7 +32,15 @@ type publishPath struct {
 // In particular, symlinks are rejected so a generated output can never replace a target
 // outside the configured output directory.
 func validatePublishDestination(path string, directory bool) error {
-	info, err := os.Lstat(path)
+	return validatePublishDestinationWithLstat(path, directory, os.Lstat)
+}
+
+func validatePublishDestinationWithLstat(
+	path string,
+	directory bool,
+	lstatFn func(string) (os.FileInfo, error),
+) error {
+	info, err := lstatFn(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil
@@ -81,6 +90,22 @@ func ensureUninitializedOutputs(outputs []publishPath) error {
 // path is changed. It validates the PEM chains, private-key/certificate pairs, CA bundle,
 // and the CA material embedded in tls-config.yml.
 func validateGeneratedMaterial(stagingRoot, tierID string) error {
+	return validateGeneratedMaterialWithOps(stagingRoot, tierID, generatedMaterialValidationOps{
+		walkDirFn:              filepath.WalkDir,
+		relativePathFn:         filepath.Rel,
+		readStagedFileFn:       readStagedFile,
+		validateStagedFileMode: validateStagedFileMode,
+	})
+}
+
+type generatedMaterialValidationOps struct {
+	walkDirFn              func(string, fs.WalkDirFunc) error
+	relativePathFn         func(string, string) (string, error)
+	readStagedFileFn       func(string, string) ([]byte, error)
+	validateStagedFileMode func(string, os.FileMode) error
+}
+
+func validateGeneratedMaterialWithOps(stagingRoot, tierID string, ops generatedMaterialValidationOps) error {
 	basePath := filepath.Join(stagingRoot, tierID)
 
 	if err := validatePublishDestination(basePath, true); err != nil {
@@ -89,7 +114,7 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 
 	var certCount, keyCount, pkcs12Count int
 
-	err := filepath.WalkDir(basePath, func(path string, entry os.DirEntry, walkErr error) error {
+	err := ops.walkDirFn(basePath, func(path string, entry os.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return fmt.Errorf("walk staged path %q: %w", path, walkErr)
 		}
@@ -111,16 +136,16 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 			return fmt.Errorf("staged path %q is not a regular file", path)
 		}
 
-		if err := validateStagedFileMode(path, info.Mode()); err != nil {
+		if err := ops.validateStagedFileMode(path, info.Mode()); err != nil {
 			return err
 		}
 
-		relativePath, err := filepath.Rel(basePath, path)
+		relativePath, err := ops.relativePathFn(basePath, path)
 		if err != nil {
 			return fmt.Errorf("resolve staged file %q: %w", path, err)
 		}
 
-		data, err := readStagedFile(basePath, relativePath)
+		data, err := ops.readStagedFileFn(basePath, relativePath)
 		if err != nil {
 			return fmt.Errorf("read staged file %q: %w", path, err)
 		}
@@ -145,7 +170,7 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 			certificateRelativePath := strings.TrimSuffix(relativePath, filepath.Ext(relativePath)) +
 				cryptoutilSharedMagic.PKIInitPublicCertFileExtension
 
-			certificatePEM, err := readStagedFile(basePath, certificateRelativePath)
+			certificatePEM, err := ops.readStagedFileFn(basePath, certificateRelativePath)
 			if err != nil {
 				return fmt.Errorf("read certificate paired with staged key %q: %w", relativePath, err)
 			}
@@ -198,6 +223,14 @@ func validateGeneratedMaterial(stagingRoot, tierID string) error {
 }
 
 func readStagedFile(rootPath, relativePath string) ([]byte, error) {
+	return readStagedFileWithReadAll(rootPath, relativePath, io.ReadAll)
+}
+
+func readStagedFileWithReadAll(
+	rootPath string,
+	relativePath string,
+	readAllFn func(io.Reader) ([]byte, error),
+) ([]byte, error) {
 	root, err := os.OpenRoot(rootPath)
 	if err != nil {
 		return nil, fmt.Errorf("open staged root %q: %w", rootPath, err)
@@ -211,7 +244,7 @@ func readStagedFile(rootPath, relativePath string) ([]byte, error) {
 		)
 	}
 
-	data, readErr := io.ReadAll(file)
+	data, readErr := readAllFn(file)
 	fileCloseErr := file.Close()
 
 	rootCloseErr := root.Close()
@@ -443,12 +476,16 @@ func publishGeneratedMaterial(renameFn func(string, string) error, outputs []pub
 }
 
 func rollbackPublishedMaterial(outputs []publishPath) error {
+	return rollbackPublishedMaterialWithRemove(os.RemoveAll, outputs)
+}
+
+func rollbackPublishedMaterialWithRemove(removeFn func(string) error, outputs []publishPath) error {
 	var rollbackErrors []error
 
 	for i := len(outputs) - 1; i >= 0; i-- {
 		output := outputs[i]
 		if output.published {
-			if err := os.RemoveAll(output.destination); err != nil {
+			if err := removeFn(output.destination); err != nil {
 				rollbackErrors = append(rollbackErrors, fmt.Errorf("remove partially published output %q: %w", output.destination, err))
 			}
 		}

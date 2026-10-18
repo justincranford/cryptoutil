@@ -145,6 +145,17 @@ func TestCheckWithFS_GetwdError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to get working directory")
 }
 
+func TestFindProjectRoot_NoGoMod(t *testing.T) {
+	t.Parallel()
+
+	root, err := findProjectRoot(func() (string, error) {
+		return t.TempDir(), nil
+	})
+
+	require.Empty(t, root)
+	require.ErrorContains(t, err, "go.mod not found in any parent directory")
+}
+
 func TestCheckWithFS_WalkError(t *testing.T) {
 	t.Parallel()
 

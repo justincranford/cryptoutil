@@ -22,7 +22,11 @@ func (sb *SafeBuffer) Write(p []byte) (n int, err error) {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
 
-	n, err = sb.buf.Write(p)
+	return safeBufferWrite(p, sb.buf.Write)
+}
+
+func safeBufferWrite(p []byte, writeFn func([]byte) (int, error)) (n int, err error) {
+	n, err = writeFn(p)
 	if err != nil {
 		return n, fmt.Errorf("safe buffer write failed: %w", err)
 	}

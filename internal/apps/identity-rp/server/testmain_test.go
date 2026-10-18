@@ -7,7 +7,6 @@ import (
 	http "net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -62,7 +61,7 @@ func TestMain(m *testing.M) {
 
 	// Create HTTP clients with TLS config.
 	testPublicHTTPClient = &http.Client{
-		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
+		Timeout: cryptoutilSharedMagic.TestTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,
@@ -72,7 +71,7 @@ func TestMain(m *testing.M) {
 		},
 	}
 	testAdminHTTPClient = &http.Client{
-		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
+		Timeout: cryptoutilSharedMagic.TestTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,

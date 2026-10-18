@@ -136,6 +136,21 @@ func TestCheckInDirWithReader_Compliant_NoError(t *testing.T) {
 	}
 }
 
+func TestCheckInDirWithReader_ReadError_ReturnsWrappedError(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	writePolicyFile(t, tempDir, compliantTestMain)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("testmain-e2e-policy-internal")
+	err := checkInDirWithReader(logger, tempDir, func(string) ([]byte, error) {
+		return nil, errors.New("injected checker read failure")
+	})
+
+	require.ErrorContains(t, err, "directory walk failed")
+	require.ErrorContains(t, err, "injected checker read failure")
+}
+
 func TestCheckInDirWithReader_Violations_ReturnError(t *testing.T) {
 	t.Parallel()
 

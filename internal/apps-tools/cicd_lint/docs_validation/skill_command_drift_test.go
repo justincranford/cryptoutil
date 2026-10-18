@@ -367,7 +367,7 @@ func TestSkillCommandDriftCommand(t *testing.T) {
 				require.NoError(t, os.MkdirAll(filepath.Join(root, ".claude", "skills"), 0o700))
 			},
 			wantExitCode: 1,
-			wantStdout:   []string{"violation(s) found"},
+			wantStdout:   []string{testViolationSummary},
 		},
 	}
 	for _, tc := range tests {

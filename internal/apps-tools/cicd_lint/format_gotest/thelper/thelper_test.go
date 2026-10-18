@@ -7,7 +7,6 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -112,18 +111,10 @@ func TestFix_AlreadyHasTHelper(t *testing.T) {
 func TestFix_WalkError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	tmpDir := t.TempDir()
+	rootDir := filepath.Join(t.TempDir(), "missing-root")
 
-	badDir := filepath.Join(tmpDir, "baddir")
-	require.NoError(t, os.MkdirAll(badDir, 0o000))
-	t.Cleanup(func() { _ = os.Chmod(badDir, 0o700) })
-
-	_, _, _, err := Fix(logger, tmpDir)
+	_, _, _, err := Fix(logger, rootDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to walk directory")
 }

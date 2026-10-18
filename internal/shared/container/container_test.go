@@ -23,6 +23,7 @@ type mockContainer struct {
 	testcontainers.Container
 	hostFn       func(ctx context.Context) (string, error)
 	mappedPortFn func(ctx context.Context, port string) (mobynetwork.Port, error)
+	terminateFn  func(ctx context.Context, opts ...testcontainers.TerminateOption) error
 }
 
 func (m *mockContainer) Host(ctx context.Context) (string, error) {
@@ -31,6 +32,10 @@ func (m *mockContainer) Host(ctx context.Context) (string, error) {
 
 func (m *mockContainer) MappedPort(ctx context.Context, port string) (mobynetwork.Port, error) {
 	return m.mappedPortFn(ctx, port)
+}
+
+func (m *mockContainer) Terminate(ctx context.Context, opts ...testcontainers.TerminateOption) error {
+	return m.terminateFn(ctx, opts...)
 }
 
 func setupTestTelemetry(t *testing.T) *cryptoutilSharedTelemetry.TelemetryService {
@@ -62,7 +67,7 @@ func TestGetContainerHostAndMappedPort(t *testing.T) {
 		wantErrMsg string
 	}{
 		{
-			name: "success",
+			name: containerTestSuccess,
 			hostFn: func(_ context.Context) (string, error) {
 				return cryptoutilSharedMagic.IPv4Loopback, nil
 			},

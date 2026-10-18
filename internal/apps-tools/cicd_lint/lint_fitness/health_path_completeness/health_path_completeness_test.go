@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -18,6 +19,96 @@ import (
 // testLogger returns a no-op logger for testing.
 func testLogger() *cryptoutilCmdCicdCommon.Logger {
 	return cryptoutilCmdCicdCommon.NewLogger("test")
+}
+
+func findWorkspaceRoot(t *testing.T) string {
+	t.Helper()
+
+	workingDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	if root := findWorkspaceRootFromDir(t, workingDir); root != "" {
+		return root
+	}
+
+	_, sourceFile, _, ok := runtime.Caller(0)
+	require.True(t, ok, "failed to find test source file")
+
+	dir := filepath.Dir(sourceFile)
+	if !filepath.IsAbs(dir) {
+		dir = filepath.Join(workingDir, dir)
+	}
+
+	if root := findWorkspaceRootFromDir(t, dir); root != "" {
+		return root
+	}
+
+	t.Fatal("failed to find project root containing go.mod and internal/apps")
+
+	return ""
+}
+
+func findWorkspaceRootFromDir(t *testing.T, dir string) string {
+	t.Helper()
+
+	for {
+		if _, statErr := os.Stat(filepath.Join(dir, "go.mod")); statErr == nil {
+			if _, serviceErr := os.Stat(filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.KMSServiceID)); serviceErr == nil {
+				return dir
+			} else if !os.IsNotExist(serviceErr) {
+				require.NoError(t, serviceErr)
+			}
+		} else if !os.IsNotExist(statErr) {
+			require.NoError(t, statErr)
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+
+		dir = parent
+	}
+}
+
+func TestFindWorkspaceRootFromDir(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		withKMSService bool
+		wantWorkspace  bool
+	}{
+		{name: "nested directory finds workspace root", withKMSService: true, wantWorkspace: true},
+		{name: "module with apps but no KMS service is not workspace root"},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			tempDir := t.TempDir()
+			require.NoError(t, os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte("module test\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+
+			startDir := filepath.Join(tempDir, "nested", "package")
+			require.NoError(t, os.MkdirAll(startDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+			appsDir := filepath.Join(tempDir, "internal", "apps")
+			require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+			if testCase.withKMSService {
+				require.NoError(t, os.MkdirAll(filepath.Join(appsDir, cryptoutilSharedMagic.KMSServiceID), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			}
+
+			root := findWorkspaceRootFromDir(t, startDir)
+
+			if testCase.wantWorkspace {
+				require.Equal(t, filepath.Clean(tempDir), root)
+			} else {
+				require.Empty(t, root)
+			}
+		})
+	}
 }
 
 // allHealthPaths returns a copy of the required health paths for test use.
@@ -88,7 +179,7 @@ func TestCheck_DelegatesToCheckInDir(t *testing.T) {
 func TestCheckInDir_RealWorkspace(t *testing.T) {
 	t.Parallel()
 
-	workspaceRoot := filepath.Join("..", "..", "..", "..", "..")
+	workspaceRoot := findWorkspaceRoot(t)
 
 	err := CheckInDir(testLogger(), workspaceRoot, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
@@ -330,4 +421,21 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "injected ReadFile error")
+}
+
+func TestCheckInDir_AbsolutePathError(t *testing.T) {
+	t.Parallel()
+
+	err := checkInDirWithAbs(
+		testLogger(),
+		".",
+		func(string) (string, error) {
+			return "", fmt.Errorf("injected absolute path error")
+		},
+		os.ReadDir,
+		os.ReadFile,
+	)
+
+	require.ErrorContains(t, err, "failed to resolve root dir")
+	require.ErrorContains(t, err, "injected absolute path error")
 }

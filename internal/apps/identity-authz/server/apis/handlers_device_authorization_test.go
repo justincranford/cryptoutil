@@ -279,3 +279,65 @@ func createTestClientForDevice(ctx context.Context, t *testing.T, repoFactory *c
 
 	return client
 }
+
+func TestHandleDeviceAuthorization_DatabaseStoreFailure(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory := createDeviceAuthTestDependencies(t)
+	testClient := createTestClientForDevice(context.Background(), t, repoFactory)
+	require.NoError(t, repoFactory.DB().Migrator().DropTable(&cryptoutilIdentityDomain.DeviceAuthorization{}))
+
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	service.RegisterRoutes(app)
+
+	formData := url.Values{
+		cryptoutilSharedMagic.ParamClientID: []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamScope:    []string{cryptoutilSharedMagic.ScopeOpenID},
+	}
+	request := httptest.NewRequest(testPost, "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err := app.Test(request, -1)
+
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, response.Body.Close())
+	}()
+
+	var result map[string]string
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&result))
+	require.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.ErrorServerError, result[cryptoutilSharedMagic.StringError])
+}
+
+func TestHandleDeviceAuthorization_IssuerHostnameFallback(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory := createDeviceAuthTestDependencies(t)
+	config.Tokens.Issuer = ""
+	testClient := createTestClientForDevice(context.Background(), t, repoFactory)
+
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	service.RegisterRoutes(app)
+
+	formData := url.Values{
+		cryptoutilSharedMagic.ParamClientID: []string{testClient.ClientID},
+	}
+	request := httptest.NewRequest(testPost, "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
+	request.Host = "authz.example.test"
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err := app.Test(request, -1)
+
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, response.Body.Close())
+	}()
+
+	var result map[string]any
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&result))
+	require.Equal(t, fiber.StatusOK, response.StatusCode)
+	require.Equal(t, "https://authz.example.test/device", result["verification_uri"])
+}

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	cryptoutilTestingStubs "cryptoutil/internal/apps-framework/service/testing/stubs"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -28,6 +29,37 @@ func TestStubPublicServer_StartErr(t *testing.T) {
 	s := &cryptoutilTestingStubs.StubPublicServer{StartErr: expected}
 
 	require.ErrorIs(t, s.Start(context.Background()), expected)
+}
+
+func TestStubServers_ShutdownErrors(t *testing.T) {
+	t.Parallel()
+
+	expected := context.DeadlineExceeded
+	tests := []struct {
+		name     string
+		shutdown func() error
+	}{
+		{
+			name: cryptoutilSharedMagic.PublicLabel,
+			shutdown: func() error {
+				return (&cryptoutilTestingStubs.StubPublicServer{ShutdownErr: expected}).Shutdown(context.Background())
+			},
+		},
+		{
+			name: "admin",
+			shutdown: func() error {
+				return (&cryptoutilTestingStubs.StubAdminServer{ShutdownErr: expected}).Shutdown(context.Background())
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.ErrorIs(t, tc.shutdown(), expected)
+		})
+	}
 }
 
 func TestStubAdminServer_DefaultBehavior(t *testing.T) {

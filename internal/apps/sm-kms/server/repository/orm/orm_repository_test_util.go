@@ -33,9 +33,9 @@ var KMSCleanupTables = []string{
 	"barrier_root_keys",
 }
 
-// CleanupDatabase removes all data from the specified tables to ensure test isolation.
+// CleanupDatabase clears the specified tables before a sequential test starts.
 // Tables are deleted in the order provided (caller must provide reverse FK order).
-// Should be called at the start of each test that modifies database state.
+// It must only be called by a non-parallel test because the tables are package-shared.
 func CleanupDatabase(t *testing.T, repo *OrmRepository, tables []string) {
 	t.Helper()
 
@@ -56,9 +56,6 @@ func CleanupDatabase(t *testing.T, repo *OrmRepository, tables []string) {
 		cryptoutilSharedApperr.RequireNoError(err, "failed to cleanup database tables")
 	}
 
-	// Clean before test logic to avoid cross-test contamination from prior parallel tests.
+	// Clean before test logic; never register shared-table cleanup with t.Cleanup.
 	cleanupFn()
-
-	// Clean after test logic to keep shared fixture state pristine.
-	t.Cleanup(cleanupFn)
 }

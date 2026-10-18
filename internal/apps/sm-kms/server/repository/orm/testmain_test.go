@@ -1,8 +1,7 @@
 // Copyright (c) 2025-2026 Justin Cranford.
 //
-// Unified TestMain for orm package integration tests.
-// No //go:build directive: TestMain must compile in all build modes so go test can
-// discover it alongside the integration-tagged test functions.
+// Unified TestMain for orm package tests.
+// No //go:build directive: TestMain must compile in all build modes.
 
 package orm
 

@@ -63,6 +63,7 @@ func setupAllCorrectOTLPConfigs(t *testing.T, tmpDir string) {
 		suffix   string
 	}{
 		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-sqlite-1.yml", "-sqlite-1"},
+		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-sqlite-2.yml", "-sqlite-2"},
 		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-1.yml", "-postgresql-1"},
 		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-2.yml", "-postgresql-2"},
 	}
@@ -79,6 +80,20 @@ func TestCheck_RealWorkspace(t *testing.T) {
 
 	err := lintFitnessStandaloneConfigOTLPNames.CheckInDir(newTestLogger(), root)
 	require.NoError(t, err)
+}
+
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	root := findProjectRoot(t)
+	original, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+	defer func() {
+		require.NoError(t, os.Chdir(original))
+	}()
+
+	require.NoError(t, lintFitnessStandaloneConfigOTLPNames.Check(newTestLogger()))
 }
 
 func TestCheckInDir_AllCorrect(t *testing.T) {
@@ -137,4 +152,39 @@ func TestCheckInDir_MissingConfigFile_Skipped(t *testing.T) {
 
 	err := lintFitnessStandaloneConfigOTLPNames.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)
+}
+
+func TestCheckInDir_InvalidConfigValues(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		content string
+		wantErr string
+		makeDir bool
+	}{
+		{name: "invalid yaml", content: "otlp-service: [unterminated\n", wantErr: "YAML parse error"},
+		{name: "non-string value", content: "otlp-service: 42\n", wantErr: "otlp-service value is not a string"},
+		{name: "unreadable path", makeDir: true, wantErr: "cannot read config file"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tmpDir := t.TempDir()
+			setupAllCorrectOTLPConfigs(t, tmpDir)
+			configPath := filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "config", "sm-kms-app-sqlite-1.yml")
+			require.NoError(t, os.Remove(configPath))
+
+			if tc.makeDir {
+				require.NoError(t, os.Mkdir(configPath, cryptoutilSharedMagic.CICDTempDirPermissions))
+			} else {
+				require.NoError(t, os.WriteFile(configPath, []byte(tc.content), cryptoutilSharedMagic.CICDOutputFilePermissions))
+			}
+
+			err := lintFitnessStandaloneConfigOTLPNames.CheckInDir(newTestLogger(), tmpDir)
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
 }

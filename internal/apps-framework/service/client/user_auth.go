@@ -29,74 +29,31 @@ type User struct {
 // RegisterServiceUser registers a user via /service/api/v1/users/register and returns user with token.
 // Reusable for all services implementing user registration on /service paths.
 func RegisterServiceUser(client *http.Client, baseURL, username, password string) (*User, error) {
-	reqBody := map[string]string{
-		valueUsername: username,
-		valuePassword: password,
-	}
-
-	reqJSON, err := json.Marshal(reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader(reqJSON))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusCreated {
-		body, _ := io.ReadAll(resp.Body)
-
-		return nil, fmt.Errorf("registration failed with status %d: %s", resp.StatusCode, string(body))
-	}
-
-	var respBody map[string]string
-	if err := json.NewDecoder(resp.Body).Decode(&respBody); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	userID, err := googleUuid.Parse(respBody["user_id"])
-	if err != nil {
-		return nil, fmt.Errorf("invalid user_id in response: %w", err)
-	}
-
-	// Login to get JWT token.
-	token, err := LoginUser(client, baseURL, "/service/api/v1/users/login", username, password)
-	if err != nil {
-		return nil, fmt.Errorf("failed to login after registration: %w", err)
-	}
-
-	return &User{
-		ID:       userID,
-		Username: username,
-		Password: password,
-		Token:    token,
-	}, nil
+	return registerUser(client, baseURL, "/service/api/v1/users/register", "/service/api/v1/users/login", username, password, json.Marshal)
 }
 
 // RegisterBrowserUser registers a user via /browser/api/v1/users/register and returns user with token.
 // Reusable for all services implementing user registration on /browser paths.
 func RegisterBrowserUser(client *http.Client, baseURL, username, password string) (*User, error) {
+	return registerUser(client, baseURL, "/browser/api/v1/users/register", "/browser/api/v1/users/login", username, password, json.Marshal)
+}
+
+func registerUser(
+	client *http.Client,
+	baseURL, registerPath, loginPath, username, password string,
+	marshalJSON func(any) ([]byte, error),
+) (*User, error) {
 	reqBody := map[string]string{
 		valueUsername: username,
 		valuePassword: password,
 	}
 
-	reqJSON, err := json.Marshal(reqBody)
+	reqJSON, err := marshalJSON(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/browser/api/v1/users/register", bytes.NewReader(reqJSON))
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+registerPath, bytes.NewReader(reqJSON))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -127,7 +84,7 @@ func RegisterBrowserUser(client *http.Client, baseURL, username, password string
 	}
 
 	// Login to get JWT token.
-	token, err := LoginUser(client, baseURL, "/browser/api/v1/users/login", username, password)
+	token, err := loginUser(client, baseURL, loginPath, username, password, json.Marshal)
 	if err != nil {
 		return nil, fmt.Errorf("failed to login after registration: %w", err)
 	}
@@ -143,12 +100,20 @@ func RegisterBrowserUser(client *http.Client, baseURL, username, password string
 // LoginUser logs in a user at the specified path and returns JWT token.
 // Reusable for all services implementing JWT-based authentication.
 func LoginUser(client *http.Client, baseURL, loginPath, username, password string) (string, error) {
+	return loginUser(client, baseURL, loginPath, username, password, json.Marshal)
+}
+
+func loginUser(
+	client *http.Client,
+	baseURL, loginPath, username, password string,
+	marshalJSON func(any) ([]byte, error),
+) (string, error) {
 	reqBody := map[string]string{
 		valueUsername: username,
 		valuePassword: password,
 	}
 
-	reqJSON, err := json.Marshal(reqBody)
+	reqJSON, err := marshalJSON(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -208,29 +173,29 @@ func generateCredentials(
 // RegisterTestUserService registers a test user with randomly generated credentials via /service paths.
 // Reusable for all services implementing user registration.
 func RegisterTestUserService(client *http.Client, baseURL string) (*User, error) {
+	return registerTestUser(client, baseURL, "/service/api/v1/users/register", "/service/api/v1/users/login", cryptoutilSharedUtilRandom.GenerateUsernameSimple, cryptoutilSharedUtilRandom.GeneratePasswordSimple)
+}
+
+func registerTestUser(
+	client *http.Client,
+	baseURL, registerPath, loginPath string,
+	generateUsernameFn, generatePasswordFn func() (string, error),
+) (*User, error) {
 	username, password, err := generateCredentials(
-		cryptoutilSharedUtilRandom.GenerateUsernameSimple,
-		cryptoutilSharedUtilRandom.GeneratePasswordSimple,
+		generateUsernameFn,
+		generatePasswordFn,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return RegisterServiceUser(client, baseURL, username, password)
+	return registerUser(client, baseURL, registerPath, loginPath, username, password, json.Marshal)
 }
 
 // RegisterTestUserBrowser registers a test user with randomly generated credentials via /browser paths.
 // Reusable for all services implementing user registration.
 func RegisterTestUserBrowser(client *http.Client, baseURL string) (*User, error) {
-	username, password, err := generateCredentials(
-		cryptoutilSharedUtilRandom.GenerateUsernameSimple,
-		cryptoutilSharedUtilRandom.GeneratePasswordSimple,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return RegisterBrowserUser(client, baseURL, username, password)
+	return registerTestUser(client, baseURL, "/browser/api/v1/users/register", "/browser/api/v1/users/login", cryptoutilSharedUtilRandom.GenerateUsernameSimple, cryptoutilSharedUtilRandom.GeneratePasswordSimple)
 }
 
 // SendAuthenticatedRequest sends an HTTP request with Bearer token authorization.

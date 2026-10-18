@@ -3,6 +3,7 @@ package lint_deployments_test
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -187,13 +188,14 @@ database-url: "postgres://user:pass@db:5432/mydb"
 func TestIntegrationRealFiles(t *testing.T) {
 	t.Parallel()
 
-	// Only run when real directories exist.
-	if _, err := os.Stat("../../../../../../deployments"); os.IsNotExist(err) {
-		t.Skip("not running from project root context")
-	}
+	_, sourceFile, _, ok := runtime.Caller(0)
+	require.True(t, ok, "cannot determine integration test source path")
 
-	deploymentsDir := "../../../../../../deployments"
-	configsDir := "../../../../../../configs"
+	projectRoot := filepath.Clean(filepath.Join(filepath.Dir(sourceFile), "..", "..", "..", ".."))
+	require.FileExists(t, filepath.Join(projectRoot, "go.mod"))
+
+	deploymentsDir := filepath.Join(projectRoot, "deployments")
+	configsDir := filepath.Join(projectRoot, cryptoutilSharedMagic.CICDConfigsDir)
 
 	t.Run("real compose files validate", func(t *testing.T) {
 		t.Parallel()

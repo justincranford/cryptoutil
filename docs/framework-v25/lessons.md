@@ -12,7 +12,7 @@ after each phase's quality gates pass.
 2. [Phase 2](#phase-2-extend-sm-kms-api-with-pki-endpoints): All 18 PKI routes are registered under both public API prefixes; OpenAPI and handler tests pass.
 3. [Phase 3](#phase-3-delete-pki-ca-service-artifacts): The standalone pki-ca service artifacts are absent and normal/tagged builds pass.
 4. [Phase 4](#phase-4-delete-pki-product-and-update-registry): The canonical registry, runtime registry, and fitness validation reflect 3 products and 7 PS-IDs.
-5. [Phase 5](#phase-5-quality-gates): Full builds, shuffled tests, Go linters, cicd-lint checks, PKI coverage, and sm-kms race tests pass.
+5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds. Phase 5 remains in progress because literal zero-skip, supported-engine Linux race/lifecycle, mutation, authenticated-load, and legacy-volume validation remain open.
 6. [Phase 6](#phase-6-knowledge-propagation): README and handbook topology documentation are reconciled, lessons are recorded, and docs propagation validation passes.
 
 ---
@@ -121,21 +121,19 @@ Treat the machine-readable registry as the source of truth, validate all derived
 
 ### What Worked
 
-The standard and tagged builds, full shuffled test suite, normal and tagged golangci-lint runs, eight cicd-lint checks, PKI coverage, and sm-kms race tests all passed. Every PKI package with executable statements exceeded 95% coverage. The current sm-kms aggregate coverage is 79.9%, above the retained 78.3% baseline; businesslogic improved from 95.2% to 95.3%, and handler coverage remains 100%.
-
-The final coverage review added focused tests for issuer/date-bound storage filters, decrementing an uninitialized gauge, and JSON encoder failure propagation. Those paths now reach 100% function coverage; storage is 98.9%, observability is 100%, and the PKI handler package is 95.3%. Thirty functions remain below 95% individually, but no PKI package is below its package target. Their uncovered statements are mostly alternate validation, crypto/persistence failures, and response-write failures. The `SendStatus` error branches in `ESTCSRAttrs` and `ocspErrorResponse` cannot be forced through Fiber's in-memory `app.Test()` writer, so no tests were added solely to inflate function percentages.
+Recorded normal/tagged builds, the default-concurrency shuffled full suite, normal/tagged golangci-lint, and applicable cicd-lint checks passed. The latest full run has 17,637 passing tests, no failures, 63 explicitly explained skips, and 41 packages without test files. The current pinned coverage profile passes all 323 eligible thresholds; the focused sysinfo profile reaches 100.0%. A focused shuffled Linux race run passed for Authz, IDP, RS, and framework listener packages after fixing admin-listener publication races, but full supported-engine race acceptance remains open.
 
 ### What Didn't Work
 
-The Windows host has no GCC compiler, so the local race command could not run. An initial inline Windows coverage-profile argument was parsed as an extra package.
+The earlier CI-equivalent coverage baseline reported 152/320 executable packages meeting thresholds and 168/320 below (71.5% aggregate statement coverage); this is historical and superseded by the pinned 352-package profile, which now passes all thresholds. The historical aggregate comparison remains inconclusive because those profiles are not like-for-like. Full-repository race validation remains outstanding. The Windows host has no GCC compiler, and Docker Engine 29.8.2 is below the documented 29.9.1 minimum, so the local environment cannot satisfy the supported Linux race/lifecycle gates. An initial inline Windows coverage-profile argument was parsed as an extra package.
 
 ### Root Causes
 
-Go's race detector requires CGO and a C compiler; the host has neither. The inline coverage argument form was incompatible with path parsing in this shell invocation.
+The original coverage gate pinned a stale no-test inventory and the initial profile did not pass package thresholds; after reconciliation, the current pinned gate validates 352 packages and all 323 eligible thresholds. Go's race detector requires CGO and a C compiler; the Windows host has neither, and its Docker Engine is below the supported minimum, so no supported full-repository race result was established there. A quoted coverage-profile path is required by the Windows shell invocation.
 
 ### Patterns for Future Phases
 
-Run race tests in a Go container with CGO enabled when the Windows host lacks GCC. Pass the coverage-profile path as a quoted, separate argument and validate it with `go tool cover` before retaining the artifact. Treat function-level coverage as a diagnostic: inspect uncovered behavior, test meaningful branches, and document structural or external-boundary limits without weakening package targets.
+Keep the pinned package inventory and thresholds unchanged; rerun the coverage gate after test changes. Run full race tests in a supported Go/Linux environment with CGO and a C compiler when the Windows host lacks GCC. Pass the coverage-profile path as a quoted argument and validate it with `go tool cover`. Treat function-level coverage as a diagnostic, inspect uncovered behavior, test meaningful branches, and document structural or external-boundary limits without weakening package targets.
 
 ---
 

@@ -23,6 +23,16 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+func waitForPublicServerPort(t *testing.T, server cryptoutilAppsFrameworkServiceServer.IPublicServer) int {
+	t.Helper()
+
+	require.Eventually(t, func() bool { return server.ActualPort() > 0 },
+		cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval,
+		"public server should allocate a dynamic port")
+
+	return server.ActualPort()
+}
+
 // TestPublicHTTPServer_TableDriven_HappyPath tests successful public server operations.
 func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 	t.Parallel()
@@ -63,10 +73,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 					_ = server.Start(ctx)
 				}()
 
-				// Wait for server to be ready.
-				time.Sleep(200 * time.Millisecond)
-
-				port := server.ActualPort()
+				port := waitForPublicServerPort(t, server)
 				require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 				// Shutdown.
@@ -97,10 +104,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 					_ = server.Start(ctx)
 				}()
 
-				// Wait for server to be ready.
-				time.Sleep(200 * time.Millisecond)
-
-				port := server.ActualPort()
+				port := waitForPublicServerPort(t, server)
 				require.Greater(t, port, 0)
 
 				// Query service health endpoint.
@@ -155,10 +159,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 					_ = server.Start(ctx)
 				}()
 
-				// Wait for server to be ready.
-				time.Sleep(200 * time.Millisecond)
-
-				port := server.ActualPort()
+				port := waitForPublicServerPort(t, server)
 				require.Greater(t, port, 0)
 
 				// Query browser health endpoint.
@@ -213,8 +214,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 					_ = server.Start(ctx)
 				}()
 
-				// Wait for server to be ready.
-				time.Sleep(200 * time.Millisecond)
+				waitForPublicServerPort(t, server)
 
 				// Shutdown.
 				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
@@ -305,8 +305,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 					_ = server.Start(ctx)
 				}()
 
-				// Wait for server to start.
-				time.Sleep(200 * time.Millisecond)
+				waitForPublicServerPort(t, server)
 
 				// Shutdown with nil context (should NOT error).
 				err = server.Shutdown(nil) //nolint:staticcheck // Testing nil context.

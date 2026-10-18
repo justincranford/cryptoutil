@@ -18,7 +18,6 @@ import (
 
 	pkcs12 "software.sslmate.com/src/go-pkcs12"
 
-	cryptoutilSharedCryptoAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -31,17 +30,34 @@ type Generator struct {
 	keyPool             *cryptoutilSharedPool.ValueGenPool[*cryptoutilSharedCryptoKeygen.KeyPair]
 	getKeyPairFn        func() *cryptoutilSharedCryptoKeygen.KeyPair
 	mkdirAllFn          func(string, os.FileMode) error
+	mkdirTempFn         func(string, string) (string, error)
 	writeFileFn         func(string, []byte, os.FileMode) error
 	renameFn            func(string, string) error
+	removeAllFn         func(string) error
+	secureStagingDirFn  func(string) error
 	createCAFn          func(issuer *cryptoutilSharedCryptoCertificate.Subject, issuerKey any, name string, kp *cryptoutilSharedCryptoKeygen.KeyPair, dur time.Duration, maxPath int) (*cryptoutilSharedCryptoCertificate.Subject, error)
 	createLeafFn        func(issuer *cryptoutilSharedCryptoCertificate.Subject, kp *cryptoutilSharedCryptoKeygen.KeyPair, name string, dur time.Duration, dns []string, ips []net.IP, emails []string, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error)
 	encodePKCS12Fn      func(priv any, cert *x509.Certificate, chain []*x509.Certificate) ([]byte, error)
 	encodeTrustPKCS12Fn func(certs []*x509.Certificate) ([]byte, error)
+	encodeCertChainFn   func(certs []*x509.Certificate) ([]byte, error)
 	getRealmsForPSIDFn  func(psID string) ([]string, error)
 }
 
 // NewGenerator creates a Generator with production dependencies.
 func NewGenerator(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService) (*Generator, error) {
+	return newGenerator(ctx, telemetryService, cryptoutilSharedPool.NewValueGenPool[*cryptoutilSharedCryptoKeygen.KeyPair])
+}
+
+type ecdsaPoolFactory func(
+	*cryptoutilSharedPool.ValueGenPoolConfig[*cryptoutilSharedCryptoKeygen.KeyPair],
+	error,
+) (*cryptoutilSharedPool.ValueGenPool[*cryptoutilSharedCryptoKeygen.KeyPair], error)
+
+func newGenerator(
+	ctx context.Context,
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService,
+	newPoolFn ecdsaPoolFactory,
+) (*Generator, error) {
 	switch {
 	case ctx == nil:
 		return nil, fmt.Errorf("context must be non-nil")
@@ -49,7 +65,7 @@ func NewGenerator(ctx context.Context, telemetryService *cryptoutilSharedTelemet
 		return nil, fmt.Errorf("telemetry service must be non-nil")
 	}
 
-	pool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(
+	poolConfig, configErr := cryptoutilSharedPool.NewValueGenPoolConfig(
 		ctx, telemetryService, "pki-init ECDSA-P384",
 		cryptoutilSharedMagic.DefaultPoolConfigECDSAP384.NumWorkers,
 		cryptoutilSharedMagic.DefaultPoolConfigECDSAP384.MaxSize,
@@ -57,17 +73,22 @@ func NewGenerator(ctx context.Context, telemetryService *cryptoutilSharedTelemet
 		cryptoutilSharedMagic.MaxPoolLifetimeDuration,
 		cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPairFunction(elliptic.P384()),
 		false,
-	))
+	)
+
+	pool, err := newPoolFn(poolConfig, configErr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ECDSA P-384 key pool: %w", err)
 	}
 
 	return &Generator{
-		keyPool:      pool,
-		getKeyPairFn: pool.Get,
-		mkdirAllFn:   os.MkdirAll,
-		writeFileFn:  os.WriteFile,
-		renameFn:     os.Rename,
+		keyPool:            pool,
+		getKeyPairFn:       pool.Get,
+		mkdirAllFn:         os.MkdirAll,
+		mkdirTempFn:        os.MkdirTemp,
+		writeFileFn:        os.WriteFile,
+		renameFn:           os.Rename,
+		removeAllFn:        os.RemoveAll,
+		secureStagingDirFn: securePrivateStagingDirectory,
 		createCAFn: func(issuer *cryptoutilSharedCryptoCertificate.Subject, issuerKey any, name string, kp *cryptoutilSharedCryptoKeygen.KeyPair, dur time.Duration, maxPath int) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 			return cryptoutilSharedCryptoCertificate.CreateCASubject(issuer, issuerKey, name, kp, dur, maxPath)
 		},
@@ -100,7 +121,7 @@ func (g *Generator) Generate(tierID, targetDir string) (resultErr error) {
 		return fmt.Errorf("failed to resolve tier %q: %w", tierID, err)
 	}
 
-	if err := os.MkdirAll(targetDir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
+	if err := g.mkdirAllFn(targetDir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
 		return fmt.Errorf("failed to create output directory %q: %w", targetDir, err)
 	}
 
@@ -124,18 +145,18 @@ func (g *Generator) Generate(tierID, targetDir string) (resultErr error) {
 		return err
 	}
 
-	stagingRoot, err := os.MkdirTemp(targetDir, ".pki-init-staging-")
+	stagingRoot, err := g.mkdirTempFn(targetDir, ".pki-init-staging-")
 	if err != nil {
 		return fmt.Errorf("failed to create private staging directory in %q: %w", targetDir, err)
 	}
 
 	defer func() {
-		if err := os.RemoveAll(stagingRoot); err != nil {
+		if err := g.removeAllFn(stagingRoot); err != nil {
 			resultErr = errors.Join(resultErr, fmt.Errorf("failed to remove private staging directory %q: %w", stagingRoot, err))
 		}
 	}()
 
-	if err := securePrivateStagingDirectory(stagingRoot); err != nil {
+	if err := g.secureStagingDirFn(stagingRoot); err != nil {
 		return fmt.Errorf("failed to secure private staging directory: %w", err)
 	}
 
@@ -384,7 +405,7 @@ func (g *Generator) generatePSIDCerts(basePath, psID string, shared *sharedCAs) 
 			return nil, fmt.Errorf("cat6 admin CA suffix=%s: %w", suffix, caErr)
 		}
 
-		caPEM, pemErr := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(adminIssuing.KeyMaterial.CertificateChain)
+		caPEM, pemErr := g.encodeCertChain(adminIssuing.KeyMaterial.CertificateChain)
 		if pemErr != nil {
 			return nil, fmt.Errorf("cat6 pem encode admin CA cert chain suffix=%s: %w", suffix, pemErr)
 		}

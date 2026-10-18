@@ -11,6 +11,24 @@ import (
 )
 
 func Format(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
+	return formatWithFileOperations(logger, filesByExtension, formatFileOperations{
+		readFile:  os.ReadFile,
+		stat:      os.Stat,
+		writeFile: os.WriteFile,
+	})
+}
+
+type formatFileOperations struct {
+	readFile  func(string) ([]byte, error)
+	stat      func(string) (os.FileInfo, error)
+	writeFile func(string, []byte, os.FileMode) error
+}
+
+func formatWithFileOperations(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	filesByExtension map[string][]string,
+	fileOperations formatFileOperations,
+) error {
 	files := cryptoutilCmdCicdCommon.FilterFilesForCommand(cryptoutilCmdCicdCommon.FlattenFileMap(filesByExtension), "format-text")
 	sort.Strings(files)
 	logger.Log(fmt.Sprintf("Normalizing line endings in %d text files", len(files)))
@@ -20,7 +38,7 @@ func Format(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string]
 	modified := 0
 
 	for _, filePath := range files {
-		content, err := os.ReadFile(filePath)
+		content, err := fileOperations.readFile(filePath)
 		if err != nil {
 			failures = append(failures, fmt.Errorf("failed to read %s: %w", filePath, err))
 
@@ -32,14 +50,14 @@ func Format(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string]
 			continue
 		}
 
-		fileInfo, err := os.Stat(filePath)
+		fileInfo, err := fileOperations.stat(filePath)
 		if err != nil {
 			failures = append(failures, fmt.Errorf("failed to stat %s: %w", filePath, err))
 
 			continue
 		}
 
-		if err := os.WriteFile(filePath, normalized, fileInfo.Mode().Perm()); err != nil {
+		if err := fileOperations.writeFile(filePath, normalized, fileInfo.Mode().Perm()); err != nil {
 			failures = append(failures, fmt.Errorf("failed to write %s: %w", filePath, err))
 
 			continue

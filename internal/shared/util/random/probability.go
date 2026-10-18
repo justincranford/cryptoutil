@@ -29,17 +29,18 @@ func SkipByProbability(t *testing.T, prob float32) {
 
 	skipByProbability(t, prob, func() (float64, error) {
 		return normalizedRandomFloat64(crand.Reader)
-	})
+	}, t.Skip)
 }
 
-func skipByProbability(t *testing.T, prob float32, randomFloatFn func() (float64, error)) {
+func skipByProbability(t *testing.T, prob float32, randomFloatFn func() (float64, error), skipFn func(...any)) {
 	t.Helper()
+	require.NotNil(t, skipFn)
 
 	skip, err := shouldSkipByProbability(prob, randomFloatFn)
 	require.NoError(t, err)
 
 	if skip {
-		t.Skip(SkipMessage)
+		skipFn(SkipMessage)
 	}
 }
 

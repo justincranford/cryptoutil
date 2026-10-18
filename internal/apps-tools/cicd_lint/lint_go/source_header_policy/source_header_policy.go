@@ -59,6 +59,14 @@ func checkInDirWithYear(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, 
 }
 
 func findViolations(rootDir string, currentYear int) ([]string, error) {
+	return findViolationsWithFileChecker(rootDir, currentYear, checkFile)
+}
+
+func findViolationsWithFileChecker(
+	rootDir string,
+	currentYear int,
+	fileChecker func(string, int) ([]string, error),
+) ([]string, error) {
 	var violations []string
 
 	err := filepath.WalkDir(rootDir, func(path string, d os.DirEntry, walkErr error) error {
@@ -79,7 +87,7 @@ func findViolations(rootDir string, currentYear int) ([]string, error) {
 			return nil
 		}
 
-		fileViolations, err := checkFile(path, currentYear)
+		fileViolations, err := fileChecker(path, currentYear)
 		if err != nil {
 			return err
 		}
@@ -96,6 +104,14 @@ func findViolations(rootDir string, currentYear int) ([]string, error) {
 }
 
 func checkFile(path string, currentYear int) ([]string, error) {
+	return checkFileWithCopyrightYearParser(path, currentYear, parseCopyrightYears)
+}
+
+func checkFileWithCopyrightYearParser(
+	path string,
+	currentYear int,
+	parseYears func(string, string) (int, int, error),
+) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open %s: %w", path, err)
@@ -118,7 +134,7 @@ func checkFile(path string, currentYear int) ([]string, error) {
 	}
 
 	if match := copyrightHeaderPattern.FindStringSubmatch(header); len(match) == copyrightRangeMatchSize {
-		startYear, endYear, parseErr := parseCopyrightYears(match[1], match[2])
+		startYear, endYear, parseErr := parseYears(match[1], match[2])
 		if parseErr != nil {
 			violations = append(violations, fmt.Sprintf("%s: invalid copyright header years: %v", path, parseErr))
 		} else {

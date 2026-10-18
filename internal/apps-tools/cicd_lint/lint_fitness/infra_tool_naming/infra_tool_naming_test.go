@@ -36,6 +36,18 @@ func TestFindViolationsInDir_EmptyCmdDir_NoViolations(t *testing.T) {
 	assert.Empty(t, violations)
 }
 
+func TestFindViolationsInDir_NonDirectoryEntryIgnored(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	mkdir(t, filepath.Join(tmpDir, "cmd"))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "cmd", "README.md"), []byte("documentation"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	violations, err := lintFitnessInfraToolNaming.FindViolationsInDir(tmpDir)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
 func TestFindViolationsInDir_NonExistentCmdDir_ReturnsError(t *testing.T) {
 	t.Parallel()
 
@@ -125,6 +137,19 @@ func TestCheckInDir_Clean_NoError(t *testing.T) {
 	err := lintFitnessInfraToolNaming.CheckInDir(newTestLogger(), tmpDir)
 
 	require.NoError(t, err)
+}
+
+func TestCheckInDir_ReadError(t *testing.T) {
+	t.Parallel()
+
+	err := lintFitnessInfraToolNaming.CheckInDir(newTestLogger(), t.TempDir())
+	require.ErrorContains(t, err, "failed to check infra-tool naming")
+}
+
+func TestCheck_FromPackageDirectory(t *testing.T) {
+	t.Parallel()
+
+	require.ErrorContains(t, lintFitnessInfraToolNaming.Check(newTestLogger()), "failed to check infra-tool naming")
 }
 
 func TestFindViolationsInDir_Integration(t *testing.T) {

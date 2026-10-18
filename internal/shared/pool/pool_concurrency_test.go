@@ -18,6 +18,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type cancelOnDoneCallContext struct {
+	context.Context
+	done             chan struct{}
+	cancelOnDoneCall uint32
+	doneCalls        atomic.Uint32
+}
+
+func (ctx *cancelOnDoneCallContext) Done() <-chan struct{} {
+	if ctx.doneCalls.Add(1) == ctx.cancelOnDoneCall {
+		close(ctx.done)
+	}
+
+	return ctx.done
+}
+
+func (ctx *cancelOnDoneCallContext) Err() error {
+	select {
+	case <-ctx.done:
+		return context.Canceled
+	default:
+		return nil
+	}
+}
+
 // TestNewValueGenPool_Errors covers constructor error paths and the large-values safety cap.
 func TestNewValueGenPool_Errors(t *testing.T) {
 	t.Parallel()
@@ -59,6 +83,23 @@ func TestNewValueGenPool_Errors(t *testing.T) {
 				return NewValueGenPool(cfg, nil)
 			},
 			wantErr: "generate function can't be nil",
+		},
+		{
+			name: "non-positive maintenance interval",
+			setupFn: func() (*ValueGenPool[googleUuid.UUID], error) {
+				cfg, err := NewValueGenPoolConfig(
+					context.Background(), testTelemetryService,
+					"invalid-maintenance-interval", 1, 1, 1, time.Second, uuidGenFn, false,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				cfg.maintenanceInterval = 0
+
+				return NewValueGenPool(cfg, nil)
+			},
+			wantErr: "maintenance interval must be positive",
 		},
 		{
 			name: "large max lifetime values",
@@ -146,6 +187,57 @@ func TestGetAndGetMany_CanceledBeforeValue(t *testing.T) {
 	}
 }
 
+func TestCancellationDuringWait_LogsVerboseBranches(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		cancelOnDoneCall uint32
+		run              func(*ValueGenPool[googleUuid.UUID])
+	}{
+		{
+			name:             "getter cancellation after initial check",
+			cancelOnDoneCall: 2,
+			run: func(poolInstance *ValueGenPool[googleUuid.UUID]) {
+				require.Equal(t, googleUuid.UUID{}, poolInstance.Get())
+			},
+		},
+		{
+			name:             "worker cancellation during permission wait",
+			cancelOnDoneCall: 1,
+			run: func(poolInstance *ValueGenPool[googleUuid.UUID]) {
+				poolInstance.permissionChannel = make(chan struct{}, 1)
+				poolInstance.permissionChannel <- struct{}{}
+
+				poolInstance.generateWorker(1)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := &cancelOnDoneCallContext{
+				Context:          context.Background(),
+				done:             make(chan struct{}),
+				cancelOnDoneCall: tc.cancelOnDoneCall,
+			}
+			poolInstance := &ValueGenPool[googleUuid.UUID]{
+				cfg: &ValueGenPoolConfig[googleUuid.UUID]{
+					ctx:              context.Background(),
+					telemetryService: testTelemetryService,
+					poolName:         tc.name,
+					verbose:          true,
+				},
+				stopGeneratingCtx: ctx,
+			}
+
+			tc.run(poolInstance)
+		})
+	}
+}
+
 // TestWorker_Limits covers value and time limit error paths in generatePublishRelease and generateWorker.
 func TestWorker_Limits(t *testing.T) {
 	t.Parallel()
@@ -224,6 +316,36 @@ func TestWorker_Limits(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGeneratePublishRelease_ValueLimit(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	poolConfig, err := NewValueGenPoolConfig(
+		ctx, testTelemetryService,
+		"value-limit-direct", 1, 1, 1, time.Minute,
+		func() (googleUuid.UUID, error) { return googleUuid.NewV7() },
+		false,
+	)
+	require.NoError(t, err)
+
+	meter := testTelemetryService.MetricsProvider.Meter("cryptoutil.pool.value-limit-direct")
+	generateCounterMetric, err := meter.Int64Counter("cryptoutil.pool.generate.count")
+	require.NoError(t, err)
+
+	poolInstance := &ValueGenPool[googleUuid.UUID]{
+		poolStartTime:         time.Now().UTC(),
+		generateCounter:       1,
+		generateCounterMetric: generateCounterMetric,
+		cfg:                   poolConfig,
+		permissionChannel:     make(chan struct{}, 1),
+	}
+
+	poolInstance.permissionChannel <- struct{}{}
+
+	err = poolInstance.generatePublishRelease(1, time.Now().UTC())
+	require.ErrorContains(t, err, "reached generate limit")
 }
 
 func TestCancel_FullGenerateBuffer(t *testing.T) {

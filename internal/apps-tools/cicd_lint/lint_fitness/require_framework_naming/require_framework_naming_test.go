@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -68,6 +69,14 @@ func TestIsBannedImport_EmptyString_Allowed(t *testing.T) {
 	t.Parallel()
 
 	require.False(t, isBannedImport(""))
+}
+
+func TestIsBannedImport_SkeletonAllowlistBranch(t *testing.T) {
+	t.Parallel()
+
+	importPath := bannedImportFragment + allowedSkeletonPrefix
+
+	require.False(t, isBannedImport(importPath))
 }
 
 // --- checkFile unit tests ---
@@ -181,6 +190,18 @@ func TestCheckFile_NonexistentFile_Error(t *testing.T) {
 	violations, err := checkFile("/nonexistent/file.go")
 	require.Error(t, err)
 	require.Nil(t, violations)
+}
+
+func TestCheckFile_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	filePath := filepath.Join(t.TempDir(), "large.go")
+	writeFile(t, filePath, strings.Repeat("x", 70*1024))
+
+	_, err := checkFile(filePath)
+
+	require.ErrorContains(t, err, "scanning file")
+	require.ErrorContains(t, err, "token too long")
 }
 
 // --- CheckInDir unit tests ---
@@ -316,6 +337,24 @@ func TestCheckInDir_WalkCallbackError(t *testing.T) {
 	err := checkInDir(newTestLogger(), ".", stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "walking directory tree")
+}
+
+func TestCheckInDir_FileReadError(t *testing.T) {
+	t.Parallel()
+
+	existingFile := filepath.Join(t.TempDir(), "existing.go")
+	writeFile(t, existingFile, "package test\n")
+	info, err := os.Stat(existingFile)
+	require.NoError(t, err)
+
+	stubWalkFn := func(_ string, fn filepath.WalkFunc) error {
+		return fn("missing.go", info, nil)
+	}
+
+	err = checkInDir(newTestLogger(), ".", stubWalkFn)
+
+	require.ErrorContains(t, err, "walking directory tree")
+	require.ErrorContains(t, err, "open missing.go")
 }
 
 // --- Integration test against real workspace ---

@@ -57,32 +57,15 @@ func TestPublicServerBase_StartContextCancellation(t *testing.T) {
 func TestPublicServerBase_StartListenError(t *testing.T) {
 	t.Parallel()
 
-	// Create first server to occupy a specific port.
-	config1 := &PublicServerConfig{
-		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-		Port:        0, // Dynamic allocation.
-		TLSMaterial: createTestTLSMaterial(t),
-	}
-
-	base1, err := NewPublicServerBase(config1)
+	// Reserve a dynamic port directly so the listener error test does not depend on another server starting first.
+	listener, err := net.Listen("tcp", net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, "0"))
 	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, listener.Close()) })
 
-	// Start first server in background.
-	ctx1 := context.Background()
+	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
+	require.True(t, ok)
 
-	errChan := make(chan error, 1)
-
-	go func() {
-		errChan <- base1.Start(ctx1)
-	}()
-
-	// Wait for first server to start and get its port.
-	// Use a small sleep to allow server to bind.
-	require.Eventually(t, func() bool {
-		return base1.ActualPort() != 0
-	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
-
-	occupiedPort := base1.ActualPort()
+	occupiedPort := tcpAddr.Port
 
 	// Try to create second server on same port.
 	config2 := &PublicServerConfig{
@@ -98,12 +81,6 @@ func TestPublicServerBase_StartListenError(t *testing.T) {
 	err = base2.Start(context.Background())
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create listener")
-
-	// Clean up first server.
-	_ = base1.Shutdown(context.Background())
-
-	// Wait for goroutine to finish.
-	<-errChan
 }
 
 // TestPublicServerBase_ShutdownTwice tests Shutdown called twice.

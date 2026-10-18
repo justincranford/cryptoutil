@@ -84,6 +84,14 @@ func ValidateSecrets(deploymentPath string) (*SecretValidationResult, error) {
 
 // validateSecretFileLengths checks that secret files meet minimum length requirements.
 func validateSecretFileLengths(secretsDir string, result *SecretValidationResult) {
+	validateSecretFileLengthsWithReadFile(secretsDir, result, os.ReadFile)
+}
+
+func validateSecretFileLengthsWithReadFile(
+	secretsDir string,
+	result *SecretValidationResult,
+	readFileFn func(string) ([]byte, error),
+) {
 	entries, err := os.ReadDir(secretsDir)
 	if err != nil {
 		result.Warnings = append(result.Warnings,
@@ -104,7 +112,7 @@ func validateSecretFileLengths(secretsDir string, result *SecretValidationResult
 
 		filePath := filepath.Join(secretsDir, name)
 
-		content, readErr := os.ReadFile(filePath)
+		content, readErr := readFileFn(filePath)
 		if readErr != nil {
 			result.Warnings = append(result.Warnings,
 				fmt.Sprintf("cannot read secret file: %s", name))

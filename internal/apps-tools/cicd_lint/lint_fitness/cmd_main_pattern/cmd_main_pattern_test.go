@@ -237,6 +237,24 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to walk cmd directory")
 }
 
+func TestCheckInDir_WalkCallbackError(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-walk-callback-error")
+	root := t.TempDir()
+	cmdDir := filepath.Join(root, "cmd")
+	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+
+	injectedErr := fmt.Errorf("injected callback error")
+	walkFn := func(_ string, callback filepath.WalkFunc) error {
+		return callback(filepath.Join(cmdDir, "unreadable"), nil, injectedErr)
+	}
+
+	err := checkInDir(logger, root, walkFn)
+	require.ErrorIs(t, err, injectedErr)
+	require.Contains(t, err.Error(), "failed to walk cmd directory")
+}
+
 func TestCheckInDir_IgnoresNonMainFiles(t *testing.T) {
 	t.Parallel()
 

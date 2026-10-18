@@ -20,7 +20,7 @@ type StorageFormat string
 
 const (
 	// FormatPEM stores certificates and keys in PEM format (default per Session 4 Q2).
-	FormatPEM StorageFormat = "pem"
+	FormatPEM StorageFormat = cryptoutilSharedMagic.PKICRLFormatPEM
 
 	// FormatPKCS12 stores certificates and keys in PKCS#12 format.
 	FormatPKCS12 StorageFormat = "pkcs12"

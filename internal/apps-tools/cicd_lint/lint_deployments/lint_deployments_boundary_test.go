@@ -223,13 +223,9 @@ func TestLint_WithRealDirs(t *testing.T) {
 	original, err := os.Getwd()
 	require.NoError(t, err)
 
-	// Navigate five directories up from the package dir to reach the project root.
-	// Package path: internal/apps-tools/cicd_lint/lint_deployments/ (5 levels below module root).
-	root := filepath.Join(original, "../../../../../")
-
-	if _, statErr := os.Stat(filepath.Join(root, defaultDeploymentsDir)); os.IsNotExist(statErr) {
-		t.Skip("cannot locate project deployments/ directory — not running from expected workspace")
-	}
+	deploymentPath := findRealDeploymentPath(cryptoutilSharedMagic.OTLPServiceSMKMS)
+	require.NotEmpty(t, deploymentPath, "cannot locate the real sm-kms deployment")
+	root := filepath.Dir(filepath.Dir(deploymentPath))
 
 	require.NoError(t, os.Chdir(root))
 	t.Cleanup(func() { require.NoError(t, os.Chdir(original)) })

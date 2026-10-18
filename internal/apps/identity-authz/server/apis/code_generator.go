@@ -8,6 +8,7 @@ import (
 	crand "crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -16,7 +17,7 @@ import (
 func GenerateAuthorizationCode() (string, error) {
 	bytes := make([]byte, cryptoutilSharedMagic.DefaultAuthCodeLength)
 
-	_, err := crand.Read(bytes)
+	_, err := io.ReadFull(crand.Reader, bytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate authorization code: %w", err)
 	}

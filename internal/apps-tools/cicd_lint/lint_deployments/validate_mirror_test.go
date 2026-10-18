@@ -3,7 +3,6 @@ package lint_deployments
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -407,23 +406,12 @@ func TestValidateStructuralMirror_MatchedAndOrphaned(t *testing.T) {
 func TestValidateStructuralMirror_UnreadableDeployments(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	tmpDir := t.TempDir()
 	deploymentsDir := filepath.Join(tmpDir, defaultDeploymentsDir)
 	configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 
-	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	require.NoError(t, os.WriteFile(deploymentsDir, []byte("not a directory"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
-
-	// Make deployments dir unreadable.
-	require.NoError(t, os.Chmod(deploymentsDir, 0o000))
-
-	t.Cleanup(func() {
-		_ = os.Chmod(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
-	})
 
 	_, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 	require.Error(t, err)
@@ -434,23 +422,12 @@ func TestValidateStructuralMirror_UnreadableDeployments(t *testing.T) {
 func TestValidateStructuralMirror_UnreadableConfigs(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	tmpDir := t.TempDir()
 	deploymentsDir := filepath.Join(tmpDir, defaultDeploymentsDir)
 	configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
-	require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
-
-	// Make configs dir unreadable.
-	require.NoError(t, os.Chmod(configsDir, 0o000))
-
-	t.Cleanup(func() {
-		_ = os.Chmod(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
-	})
+	require.NoError(t, os.WriteFile(configsDir, []byte("not a directory"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 	require.Error(t, err)

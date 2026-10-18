@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -120,32 +119,6 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_ScannerError(t *testing.T) {
 	require.Contains(t, err.Error(), "error reading")
 }
 
-// Sequential: changes the process working directory with os.Chdir.
-func TestFindUnaliasedCryptoutilImports_WalkCallbackError(t *testing.T) {
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, os.Chdir(origDir)) }()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("chmod 0o000 on directories does not work on Windows")
-	}
-
-	tmpDir := t.TempDir()
-	require.NoError(t, os.Chdir(tmpDir))
-
-	// Create a subdirectory and make it inaccessible so filepath.Walk passes an error to the callback.
-	lockedDir := filepath.Join(tmpDir, "locked")
-	require.NoError(t, os.MkdirAll(lockedDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(lockedDir, "main.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.Chmod(lockedDir, 0o000))
-
-	defer func() { _ = os.Chmod(filepath.Join(tmpDir, "locked"), 0o700) }()
-
-	_, err = FindUnaliasedCryptoutilImports(filepath.Walk)
-	require.Error(t, err)
-}
-
 // Sequential: replaces process-global os.Stderr.
 func TestPrintCryptoutilImportViolations(t *testing.T) {
 	oldStderr := os.Stderr
@@ -249,41 +222,6 @@ func TestCheckNoUnaliasedCryptoutilImports_WithViolations(t *testing.T) {
 }
 
 // Sequential: changes the process working directory with os.Chdir.
-func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
-	}
-
-	// Save current directory.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.Chdir(origDir))
-	}()
-
-	// Create temp directory.
-	tempDir := t.TempDir()
-	require.NoError(t, os.Chdir(tempDir))
-
-	// Create a file (not a directory) that will be treated as a directory during walk.
-	// This will cause an error in filepath.Walk.
-	require.NoError(t, os.WriteFile("main.go", []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	// Make main.go unreadable to trigger error.
-	require.NoError(t, os.Chmod("main.go", 0o000))
-
-	defer func() {
-		// Restore permissions for cleanup.
-		_ = os.Chmod(filepath.Join(tempDir, "main.go"), cryptoutilSharedMagic.CacheFilePermissions)
-	}()
-
-	// Test - should get error from reading file.
-	_, err = FindUnaliasedCryptoutilImports(filepath.Walk)
-	require.Error(t, err)
-}
-
-// Sequential: changes the process working directory with os.Chdir.
 func TestFindUnaliasedCryptoutilImports_VendorDirSkipped(t *testing.T) {
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -307,11 +245,7 @@ func TestFindUnaliasedCryptoutilImports_VendorDirSkipped(t *testing.T) {
 }
 
 // Sequential: changes the process working directory with os.Chdir.
-func TestCheck_WalkError(t *testing.T) {
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
-	}
-
+func TestCheck_GoFileScanError(t *testing.T) {
 	origDir, err := os.Getwd()
 	require.NoError(t, err)
 
@@ -320,11 +254,8 @@ func TestCheck_WalkError(t *testing.T) {
 	tmpDir := t.TempDir()
 	require.NoError(t, os.Chdir(tmpDir))
 
-	// Create an unreadable file to cause a walk error.
-	require.NoError(t, os.WriteFile("bad.go", []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.Chmod("bad.go", 0o000))
-
-	defer func() { _ = os.Chmod(filepath.Join(tmpDir, "bad.go"), cryptoutilSharedMagic.CacheFilePermissions) }()
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	require.NoError(t, os.WriteFile("bad.go", []byte("package main\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 

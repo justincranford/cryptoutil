@@ -146,6 +146,24 @@ func TestStartApplicationListener_ReturnsNotImplementedError(t *testing.T) {
 	require.NotNil(t, listener) // Returns partial listener even with error.
 }
 
+func TestStartApplicationListener_ServiceFrameworkCreationError(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings()
+	cfg := &cryptoutilAppsFrameworkServiceServerListener.ApplicationConfig{
+		ServiceFrameworkServerSettings: settings,
+		DB:                             &gorm.DB{},
+		DBType:                         cryptoutilAppsFrameworkServiceServerRepository.DatabaseType(cryptoutilSharedMagic.DevSetupTestInvalidName),
+		PublicServerFactory:            mockPublicServerFactory,
+	}
+
+	listener, err := cryptoutilAppsFrameworkServiceServerListener.StartApplicationListener(context.Background(), cfg)
+
+	require.Nil(t, listener)
+	require.ErrorContains(t, err, "failed to create service template")
+	require.ErrorContains(t, err, "invalid database type")
+}
+
 // ===========================
 // ApplicationListener Method Tests
 // ===========================

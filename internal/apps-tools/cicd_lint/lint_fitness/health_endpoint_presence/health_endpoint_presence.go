@@ -24,9 +24,19 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir verifies health endpoint presence under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
+	return checkInDirWithAbs(logger, rootDir, filepath.Abs, readDirFn, readFileFn)
+}
+
+func checkInDirWithAbs(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	rootDir string,
+	absFn func(string) (string, error),
+	readDirFn func(string) ([]os.DirEntry, error),
+	readFileFn func(string) ([]byte, error),
+) error {
 	logger.Log("Checking health endpoint presence in services...")
 
-	projectRoot, err := filepath.Abs(rootDir)
+	projectRoot, err := absFn(rootDir)
 	if err != nil {
 		return fmt.Errorf("failed to resolve root dir: %w", err)
 	}
@@ -87,7 +97,7 @@ func discoverServices(appsDir string, readDirFn func(string) ([]os.DirEntry, err
 
 		productDir := filepath.Join(appsDir, product)
 
-		svcEntries, err := os.ReadDir(productDir)
+		svcEntries, err := readDirFn(productDir)
 		if err != nil {
 			return nil, fmt.Errorf("read product dir %s: %w", product, err)
 		}

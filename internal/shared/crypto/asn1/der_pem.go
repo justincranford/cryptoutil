@@ -10,6 +10,7 @@ import (
 	"crypto/ed25519"
 	rsa "crypto/rsa"
 	"crypto/x509"
+	stdasn1 "encoding/asn1"
 	"encoding/pem"
 	"fmt"
 	"os"
@@ -92,14 +93,28 @@ func DEREncode(key any) ([]byte, string, error) {
 
 func derEncodeWithFns(key any, marshalPKCS8Fn func(any) ([]byte, error), marshalPKIXFn func(any) ([]byte, error)) ([]byte, string, error) {
 	switch x509Type := key.(type) {
-	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ecdh.PrivateKey:
+	case *ecdh.PrivateKey:
+		privateKeyBytes, err := marshalECDHPrivateKeyInfo(x509Type, marshalPKCS8Fn, parseObjectIdentifier, stdasn1.Marshal)
+		if err != nil {
+			return nil, "", fmt.Errorf("encode failed: %w", err)
+		}
+
+		return privateKeyBytes, cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, nil
+	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey:
 		privateKeyBytes, err := marshalPKCS8Fn(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
 
 		return privateKeyBytes, cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, nil
-	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey, *ecdh.PublicKey:
+	case *ecdh.PublicKey:
+		publicKeyBytes, err := marshalECDHPublicKeyInfo(x509Type, marshalPKIXFn, parseObjectIdentifier, stdasn1.Marshal)
+		if err != nil {
+			return nil, "", fmt.Errorf("encode failed: %w", err)
+		}
+
+		return publicKeyBytes, cryptoutilSharedMagic.StringPEMTypePKIXPublicKey, nil
+	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey:
 		publicKeyBytes, err := marshalPKIXFn(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
@@ -125,9 +140,9 @@ func DERDecode(bytes []byte, x509Type string) (any, error) {
 
 	switch x509Type {
 	case cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey:
-		key, err = x509.ParsePKCS8PrivateKey(bytes) // Generic: RSA, EC, ED
+		key, err = parsePKCS8PrivateKey(bytes)
 	case cryptoutilSharedMagic.StringPEMTypePKIXPublicKey:
-		key, err = x509.ParsePKIXPublicKey(bytes) // Generic: RSA, EC, ED
+		key, err = parsePKIXPublicKey(bytes)
 	case cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey:
 		key, err = x509.ParsePKCS1PrivateKey(bytes) // RSA PrivateKey
 	case cryptoutilSharedMagic.StringPEMTypeRSAPublicKey:
@@ -255,10 +270,18 @@ func DERWrite(key any, filename string) error {
 // PEMEncodeCertChain encodes a certificate chain as concatenated PEM blocks.
 // Certificates are encoded in the order provided (typically leaf first, root last).
 func PEMEncodeCertChain(certs []*x509.Certificate) ([]byte, error) {
+	return pemEncodeCertChainWithFn(certs, PEMEncode)
+}
+
+func pemEncodeCertChainWithFn(certs []*x509.Certificate, pemEncodeFn func(any) ([]byte, error)) ([]byte, error) {
 	var out []byte
 
 	for i, cert := range certs {
-		pemBytes, err := PEMEncode(cert)
+		if cert == nil {
+			return nil, fmt.Errorf("failed to PEM-encode certificate %d: certificate is nil", i)
+		}
+
+		pemBytes, err := pemEncodeFn(cert)
 		if err != nil {
 			return nil, fmt.Errorf("failed to PEM-encode certificate %d: %w", i, err)
 		}

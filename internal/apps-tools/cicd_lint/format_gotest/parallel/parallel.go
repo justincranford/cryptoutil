@@ -48,6 +48,20 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) (int, int, int,
 }
 
 func fixFile(filePath string) (bool, int, error) {
+	return fixFileWithOperations(filePath, parallelFileOperations{
+		readFile:  os.ReadFile,
+		stat:      os.Stat,
+		writeFile: os.WriteFile,
+	})
+}
+
+type parallelFileOperations struct {
+	readFile  func(string) ([]byte, error)
+	stat      func(string) (os.FileInfo, error)
+	writeFile func(string, []byte, os.FileMode) error
+}
+
+func fixFileWithOperations(filePath string, fileOperations parallelFileOperations) (bool, int, error) {
 	fset := token.NewFileSet()
 
 	file, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -87,7 +101,7 @@ func fixFile(filePath string) (bool, int, error) {
 		return insertions[left].offset < insertions[right].offset
 	})
 
-	content, err := os.ReadFile(filePath)
+	content, err := fileOperations.readFile(filePath)
 	if err != nil {
 		return false, len(insertions), fmt.Errorf("failed to read file: %w", err)
 	}
@@ -108,12 +122,12 @@ func fixFile(filePath string) (bool, int, error) {
 		return false, len(insertions), fmt.Errorf("failed to format file: %w", err)
 	}
 
-	fileInfo, err := os.Stat(filePath)
+	fileInfo, err := fileOperations.stat(filePath)
 	if err != nil {
 		return false, len(insertions), fmt.Errorf("failed to stat file: %w", err)
 	}
 
-	if err := os.WriteFile(filePath, formattedContent, fileInfo.Mode().Perm()); err != nil {
+	if err := fileOperations.writeFile(filePath, formattedContent, fileInfo.Mode().Perm()); err != nil {
 		return false, len(insertions), fmt.Errorf("failed to write file: %w", err)
 	}
 

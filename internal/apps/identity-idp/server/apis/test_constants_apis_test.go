@@ -1,5 +1,7 @@
 package apis
 
+import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 const (
 	testAmericaNewYork                       = "America/New_York"
 	testTest                                 = "Test"
@@ -13,7 +15,8 @@ const (
 	testCustomScopeValue2BF082C3             = "custom_scope"
 	testEmailScope                           = "email scope"
 	testEnUs                                 = "en-US"
-	testEyJhbGciOiJsuzI1NiIsInR5cCi6IkpXvcj9 = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+	testRedactedSecretValue                  = "******"
+	testEyJhbGciOiJsuzI1NiIsInR5cCi6IkpXvcj9 = testRedactedSecretValue
 	testHashedpassword                       = "hashedpassword"
 	testHashedsecret                         = "hashedsecret"
 	testHTTPSExampleCom                      = "https://example.com"
@@ -36,4 +39,15 @@ const (
 	testTokenEndpoint                        = "token_endpoint"
 	testUserValue04F8996D                    = "user"
 	testUserinfoEndpoint                     = "userinfo_endpoint"
+	testBasicAuthorizationHeader             = "Basic token"
+	testConsentDecisionApprove               = "approve"
+	testEmptyPrivateKeyJSON                  = "{}"
+	testInvalidBearerAuthorizationHeader     = cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix + testInvalidUUIDValue
+	testInvalidUUIDTokenCase                 = "invalid UUID token"
+	testInvalidUUIDValue                     = "not-a-uuid"
+	testJSONContentType                      = "application/json"
+	testSessionCookieName                    = "session"
+	testUserInfoClientID                     = "userinfo-client"
+	testUserInfoDisplayName                  = "User Info Test"
+	testUserInfoEmail                        = "userinfo@example.com"
 )

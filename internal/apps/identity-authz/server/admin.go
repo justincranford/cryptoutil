@@ -198,14 +198,32 @@ func (s *AdminServer) Start(ctx context.Context) error {
 
 // generateSelfSignedTLSConfig generates a self-signed TLS certificate for testing.
 func generateSelfSignedTLSConfig() (*tls.Config, error) {
+	return generateSelfSignedTLSConfigWithGenerators(
+		func() (*ecdsa.PrivateKey, error) {
+			return ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+		},
+		func() (*big.Int, error) {
+			return crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits))
+		},
+		func(template *x509.Certificate, privateKey *ecdsa.PrivateKey) ([]byte, error) {
+			return x509.CreateCertificate(crand.Reader, template, template, &privateKey.PublicKey, privateKey)
+		},
+	)
+}
+
+func generateSelfSignedTLSConfigWithGenerators(
+	generatePrivateKeyFn func() (*ecdsa.PrivateKey, error),
+	generateSerialNumberFn func() (*big.Int, error),
+	createCertificateFn func(*x509.Certificate, *ecdsa.PrivateKey) ([]byte, error),
+) (*tls.Config, error) {
 	// Generate ECDSA P-256 key pair.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	privateKey, err := generatePrivateKeyFn()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate private key: %w", err)
 	}
 
 	// Create certificate template.
-	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits))
+	serialNumber, err := generateSerialNumberFn()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
@@ -225,7 +243,7 @@ func generateSelfSignedTLSConfig() (*tls.Config, error) {
 	}
 
 	// Create self-signed certificate.
-	certDER, err := x509.CreateCertificate(crand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	certDER, err := createCertificateFn(&template, privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate: %w", err)
 	}

@@ -29,14 +29,8 @@ import (
 // 3. Wait for expiration + cleanup
 // 4. Rotate to version 3 (24h grace period)
 // 5. Verify versions 1 (expired), 2 (active), 3 (active).
-//
-// NOTE: This test is marked t.Skip() due to concurrent transaction deadlocks
-// when rotating multiple times in rapid succession. The underlying rotation
-// service works correctly for single rotations (see other passing tests),
-// but sequential rotations encounter SQLite WAL locking issues in test environment.
 func TestCompleteRotationLifecycle(t *testing.T) {
 	t.Parallel()
-	t.Skip("Skipping due to concurrent transaction deadlocks in rapid sequential rotations")
 
 	ctx := context.Background()
 	db := setupTestDB(t)
@@ -112,14 +106,8 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 // 2. Rotate all 5 concurrently
 // 3. Verify each client has 2 active secrets
 // 4. Verify no race conditions.
-//
-// NOTE: This test is marked t.Skip() due to concurrent transaction deadlocks
-// in SQLite WAL mode when rotating multiple clients simultaneously. Individual
-// client rotations work correctly (see other passing tests), but concurrent
-// rotations encounter "database table is locked" errors in test environment.
 func TestMultiClientConcurrentRotation(t *testing.T) {
 	t.Parallel()
-	t.Skip("Skipping due to concurrent transaction deadlocks when rotating multiple clients simultaneously")
 
 	ctx := context.Background()
 	db := setupTestDB(t)
@@ -260,12 +248,13 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	})
 	require.NoError(t, err)
 
-	// Configure connection pool for concurrent transactions
+	// Match the production SQLite pool: database/sql serializes transactions on its single connection.
+	// The caller-level goroutines in TestMultiClientConcurrentRotation remain concurrent.
 	dbSQL, err := db.DB()
 	require.NoError(t, err)
-	dbSQL.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Allow concurrent transactions
-	dbSQL.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Match max open
-	dbSQL.SetConnMaxLifetime(0)                                                      // In-memory DB: never close connections
+	dbSQL.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	dbSQL.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	dbSQL.SetConnMaxLifetime(0) // In-memory DB: never close connections.
 	dbSQL.SetConnMaxIdleTime(0)
 
 	// Apply migrations

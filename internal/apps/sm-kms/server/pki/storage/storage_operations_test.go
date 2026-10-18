@@ -74,6 +74,22 @@ func TestMemoryStore_Store_DuplicateSerialNumber(t *testing.T) {
 	require.Contains(t, err.Error(), "serial number already exists")
 }
 
+func TestMemoryStore_Store_DuplicateRequestID(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := NewMemoryStore()
+	requestID := googleUuid.Must(googleUuid.NewV7())
+
+	first := newTestCert(googleUuid.Must(googleUuid.NewV7()).String(), testLiteralCNTest, testLiteralUser123, testLiteralCNCA, newTestExpiration())
+	first.RequestID = requestID
+	require.NoError(t, store.Store(ctx, first))
+
+	second := newTestCert(googleUuid.Must(googleUuid.NewV7()).String(), testLiteralCNTest2, testLiteralUser123, testLiteralCNCA, newTestExpiration())
+	second.RequestID = requestID
+	require.ErrorIs(t, store.Store(ctx, second), ErrCertificateExists)
+}
+
 // TestMemoryStore_List_OffsetBeyondResults tests that listing with Offset >= total results
 // returns an empty slice (not an error).
 func TestMemoryStore_List_OffsetBeyondResults(t *testing.T) {

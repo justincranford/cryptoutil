@@ -474,9 +474,9 @@ Provides PostgreSQL leader+follower for all services.
 **Key rules**:
 - Network: `postgres-network`
 - Leader service: `postgres-leader`
-- Init scripts in `docker-entrypoint-initdb.d/` create per-PS-ID databases
-- Each PS-ID gets its own database created by init script
-- Both leader and follower mount the suite `{SUITE}-certs:/certs:ro` named volume (D5 full-volume strategy)
+- Init scripts create 21 leader databases and 21 matching follower databases (7 PS-IDs × 3 deployment tiers).
+- Product/suite overrides pass the active tier and PS-ID list to `postgres-follower`; service/product/suite cert volumes are mounted at `/mnt/ps-certs-src`.
+- Follower startup waits for the active PostgreSQL app instances to become healthy after migrations, copies each leader schema to the matching follower database, then creates its subscription. Logical replication does not replicate DDL.
 - `pg_hba.conf` bind-mounted from `../shared-postgres/pg_hba.conf` into both nodes
 
 **V12 PostgreSQL mTLS — Cert Category Reference**:
@@ -521,6 +521,16 @@ all-tables/DML configuration. It never modifies the legacy `*_database` sources.
 tier role from `postgres-username.secret` (the same role used by that tier's application URLs),
 which must have the administrative privileges needed to create databases and alter
 database/publication ownership.
+
+Follower initialization follows the same empty-volume rule: `init-follower-databases.sql` is only
+run for a new data directory. On every follower startup, `setup-logical-replication.sh` creates
+missing active-tier subscriber databases before schema preparation and subscription setup. New
+subscriptions copy rows from the matching leader database; therefore, complete and verify the
+leader's per-PS-ID data migration before restarting the follower. The setup leaves existing
+follower databases and legacy `*_database` sources untouched. If an existing target is non-empty
+but has no subscription, do not assume the initial copy merges its rows: table synchronization is
+asynchronous and may fail on conflicting data. Verify synchronization before accepting cutover and
+reconcile that target explicitly rather than dropping it.
 
 Run the following from a tier deployment directory (for example, `deployments/identity`) so
 Compose resolves the shared PostgreSQL include and its environment files correctly:

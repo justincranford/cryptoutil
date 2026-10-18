@@ -7,6 +7,7 @@ package listener
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"testing"
 
@@ -21,6 +22,11 @@ const (
 	testCertPath                          = "/certs/cert.crt"
 	testKeyPath                           = "/certs/cert.key"
 	testCAPath                            = "/certs/ca.crt"
+	testCABundleWithCertificate           = "CA bundle with certificate"
+	testCABundleMalformedCertificateDER   = "CA bundle with malformed certificate DER"
+	testCABundleNonCertificatePEM         = "CA bundle with non-certificate PEM block"
+	testFailedToParseCACertificate        = "failed to parse CA certificate"
+	testInvalidClientPolicyCase           = "invalid client policy"
 	requestPolicyNoCAName                 = "request policy without CA file"
 	requireAnyPolicyNoCAName              = "require-any policy without CA file"
 	verifyIfGivenNoCAName                 = "verify-if-given without CA file fails"
@@ -127,6 +133,13 @@ func TestApplyAdminMTLS(t *testing.T) {
 			wantErr: requiresCAFileError,
 		},
 		{
+			name: testInvalidClientPolicyCase,
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+				AdminTLSClientPolicy: testInvalidTLSClientPolicy,
+			},
+			wantErr: "invalid admin TLS client policy",
+		},
+		{
 			name: certReadErrorName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				AdminTLSCertFile: testCertPath,
@@ -173,6 +186,38 @@ func TestApplyAdminMTLS(t *testing.T) {
 			},
 			stubFiles: stubReadFile{
 				testCAPath: []byte("not-a-valid-cert-pem-but-decoded-ok"),
+			},
+			wantClientCA:   true,
+			wantClientAuth: tls.NoClientCert,
+		},
+		{
+			name: testCABundleNonCertificatePEM,
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+				AdminTLSCAFile: testCAPath,
+			},
+			stubFiles: stubReadFile{
+				testCAPath: pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: []byte("ignored")}),
+			},
+			wantClientCA:   true,
+			wantClientAuth: tls.NoClientCert,
+		},
+		{
+			name: testCABundleMalformedCertificateDER,
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+				AdminTLSCAFile: testCAPath,
+			},
+			stubFiles: stubReadFile{
+				testCAPath: pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: []byte(cryptoutilSharedMagic.DevSetupTestInvalidName)}),
+			},
+			wantErr: testFailedToParseCACertificate,
+		},
+		{
+			name: testCABundleWithCertificate,
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+				AdminTLSCAFile: testCAPath,
+			},
+			stubFiles: stubReadFile{
+				testCAPath: certPEM,
 			},
 			wantClientCA:   true,
 			wantClientAuth: tls.NoClientCert,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -155,6 +156,24 @@ func TestCheckInDir_ScanOpenError(t *testing.T) {
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "filesystem walk failed")
+}
+
+func TestCheckInDir_AbsolutePathError(t *testing.T) {
+	t.Parallel()
+
+	err := checkInDir(newTestLogger(), t.TempDir(), func(string) (string, error) {
+		return "", fmt.Errorf("injected absolute path error")
+	}, filepath.Walk, os.Open)
+	require.ErrorContains(t, err, "failed to resolve root dir")
+}
+
+func TestScanForAdminBindViolations_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	p := writeGoFile(t, tmp, "long.go", "package main\n"+strings.Repeat("x", 70000)+"\n")
+	_, err := scanForAdminBindViolations(p, tmp, os.Open)
+	require.ErrorContains(t, err, "scanning file")
 }
 
 func findProjectRoot() (string, error) {

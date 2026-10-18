@@ -103,6 +103,76 @@ func TestInMemoryAuthorizationRequestStore_Update(t *testing.T) {
 	require.Equal(t, request.RequestID, retrieved.RequestID, "Retrieved request should match updated")
 }
 
+func TestInMemoryAuthorizationRequestStore_UpdateAuthorizationCodeIndex(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		original    string
+		updated     string
+		wantIndexed bool
+	}{
+		{
+			name:        "replace code",
+			original:    testTestCode,
+			updated:     testTestCode + "-updated",
+			wantIndexed: true,
+		},
+		{
+			name:     "clear code",
+			original: testTestCode + "-clear",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
+			ctx := context.Background()
+			request := &cryptoutilIdentityAuthz.AuthorizationRequest{
+				RequestID: googleUuid.New(),
+				Code:      tc.original,
+				CreatedAt: time.Now().UTC(),
+				ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
+			}
+
+			require.NoError(t, store.Store(ctx, request))
+
+			request.Code = tc.updated
+			require.NoError(t, store.Update(ctx, request))
+
+			_, err := store.GetByCode(ctx, tc.original)
+			require.ErrorContains(t, err, "authorization code not found")
+
+			if tc.wantIndexed {
+				retrieved, err := store.GetByCode(ctx, tc.updated)
+				require.NoError(t, err)
+				require.Equal(t, request.RequestID, retrieved.RequestID)
+			}
+		})
+	}
+}
+
+func TestInMemoryAuthorizationRequestStore_GetByCodeAfterRequestMutation(t *testing.T) {
+	t.Parallel()
+
+	store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
+	ctx := context.Background()
+	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
+		RequestID: googleUuid.New(),
+		Code:      testTestCode,
+		CreatedAt: time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
+	}
+
+	require.NoError(t, store.Store(ctx, request))
+	request.Code = testTestCode + "-replaced"
+
+	_, err := store.GetByCode(ctx, testTestCode)
+	require.ErrorContains(t, err, "authorization code not found")
+}
+
 // TestInMemoryAuthorizationRequestStore_Delete validates request deletion.
 func TestInMemoryAuthorizationRequestStore_Delete(t *testing.T) {
 	t.Parallel()
@@ -148,6 +218,7 @@ func TestInMemoryAuthorizationRequestStore_ExpiredRequest(t *testing.T) {
 		ClientID:     testTestClient,
 		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
+		Code:         testTestCode,
 		CreatedAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute),
 		ExpiresAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Expired.
 	}
@@ -158,6 +229,9 @@ func TestInMemoryAuthorizationRequestStore_ExpiredRequest(t *testing.T) {
 	_, err = store.GetByRequestID(ctx, requestID)
 	require.Error(t, err, "GetByRequestID should fail for expired request")
 	require.Contains(t, err.Error(), "expired", "Error should indicate expiration")
+
+	_, err = store.GetByCode(ctx, request.Code)
+	require.ErrorContains(t, err, "authorization code expired")
 }
 
 // TestInMemoryAuthorizationRequestStore_NotFound validates missing request handling.

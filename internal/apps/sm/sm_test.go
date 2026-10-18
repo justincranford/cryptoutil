@@ -142,6 +142,16 @@ func TestSm_KMSService_InvalidSubcommand(t *testing.T) {
 	)
 }
 
+func TestSm_PKIInitRequiresArguments(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := Sm([]string{cryptoutilSharedMagic.PSIDPKIInit}, nil, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
+	require.Contains(t, stderr.String(), "usage: pki-init")
+}
+
 func TestSm_EntryPoint(t *testing.T) {
 	t.Parallel()
 

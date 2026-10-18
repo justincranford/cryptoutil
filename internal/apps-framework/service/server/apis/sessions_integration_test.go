@@ -21,32 +21,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIssueAndValidateSession_Integration(t *testing.T) {
-	t.Parallel()
-
-	if testGormDB == nil {
-		t.Skip("testGormDB not initialized, skipping integration test")
-	}
-
-	// Full integration test requires complex setup (telemetry, JWK, barrier, etc.)
-	// For coverage purposes, unit tests above exercise the handler paths.
-	t.Skip("Full integration test requires complete infrastructure setup")
-}
-
-// TestIssueSession_ServiceSessionType tests the service session type path.
-// NOTE: This test is skipped because calling session manager methods with nil manager causes panic.
-func TestIssueSession_ServiceSessionType(t *testing.T) {
-	t.Parallel()
-	t.Skip("Requires non-nil session manager to avoid panic")
-}
-
-// TestValidateSession_ServiceSessionType tests the service session validation path.
-// NOTE: This test is skipped because calling session manager methods with nil manager causes panic.
-func TestValidateSession_ServiceSessionType(t *testing.T) {
-	t.Parallel()
-	t.Skip("Requires non-nil session manager to avoid panic")
-}
-
 // TestSessionConstants tests the package constants for coverage.
 func TestSessionConstants(t *testing.T) {
 	t.Parallel()

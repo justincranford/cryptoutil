@@ -3,7 +3,6 @@ package lint_deployments
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -274,18 +273,21 @@ func TestValidateAdmin_InternalEdgeCases(t *testing.T) {
 func TestValidateAdmin_ConfigUnreadableFile(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	dir := t.TempDir()
 	configDir := filepath.Join(dir, fileTypeConfig)
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.Symlink("/nonexistent/broken.yml",
-		filepath.Join(configDir, "broken.yml")))
+	require.NoError(t, os.WriteFile(filepath.Join(configDir, "unreadable.yml"), []byte("key: value"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateAdmin(dir)
-	require.NoError(t, err)
+	var readAttempted bool
+
+	result := &AdminValidationResult{Valid: true}
+	validateAdminConfigSettingsWithReadFile(configDir, result, func(string) ([]byte, error) {
+		readAttempted = true
+
+		return nil, os.ErrPermission
+	})
+
+	assert.True(t, readAttempted)
 	assert.True(t, result.Valid)
 }
 

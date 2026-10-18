@@ -10,6 +10,7 @@ const (
 	testFile1Txt               = "file1.txt"
 	testGitignoreValueA1AA6596 = "gitignore"
 	testGo                     = "go"
+	testLog                    = "log"
 	testTest                   = "test"
 	testTxt                    = "txt"
 )

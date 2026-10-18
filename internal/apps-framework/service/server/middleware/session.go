@@ -62,6 +62,10 @@ func SessionMiddleware(sessionValidator SessionValidator, isBrowser bool) fiber.
 // sessionMiddleware is the testable implementation with injectable splitNFn.
 func sessionMiddleware(sessionValidator SessionValidator, isBrowser bool, splitNFn func(string, string, int) []string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		if isUnauthenticatedAuthRequest(c.Method(), c.Path(), isBrowser) {
+			return c.Next()
+		}
+
 		// Extract token from Authorization header
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
@@ -138,6 +142,20 @@ func sessionMiddleware(sessionValidator SessionValidator, isBrowser bool, splitN
 
 		return c.Next()
 	}
+}
+
+func isUnauthenticatedAuthRequest(method, path string, isBrowser bool) bool {
+	if method != fiber.MethodPost {
+		return false
+	}
+
+	if isBrowser {
+		return path == cryptoutilSharedMagic.DefaultPublicBrowserAuthRegisterPath
+	}
+
+	return path == cryptoutilSharedMagic.DefaultPublicServiceAuthRegisterPath ||
+		path == cryptoutilSharedMagic.DefaultPublicServiceAuthClientRegisterPath ||
+		path == cryptoutilSharedMagic.DefaultPublicServiceAuthTokenPath
 }
 
 // BrowserSessionMiddleware validates browser session tokens.

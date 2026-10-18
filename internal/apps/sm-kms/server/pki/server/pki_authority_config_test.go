@@ -198,10 +198,10 @@ func TestPKIAuthorityConfigFromConfigFiles_ValidationErrors(t *testing.T) {
   validity: invalid
   max-path-length: 2
 `,
-			wantErr: "parse validity",
+			wantErr: pkiTestParseValidity,
 		},
 		{
-			name: "unsupported algorithm",
+			name: pkiTestUnsupportedAlgorithm,
 			content: `pki-authority:
   id: test
   common-name: Test
@@ -209,7 +209,7 @@ func TestPKIAuthorityConfigFromConfigFiles_ValidationErrors(t *testing.T) {
   validity: 24h
   max-path-length: 2
 `,
-			wantErr: "unsupported key algorithm",
+			wantErr: pkiTestUnsupportedKeyAlgorithm,
 		},
 	}
 
@@ -278,7 +278,7 @@ func TestPKIAuthorityConfigValidation(t *testing.T) {
 			configure: func(config *PKIAuthorityConfig) {
 				config.CRLURL = "http://pki.example.test/pki/cas/sm-kms-pki-development-authority/crl"
 			},
-			wantErr: "absolute HTTPS URL",
+			wantErr: pkiTestAbsoluteHTTPSURL,
 		},
 		{
 			name: "OCSP URL must identify its issuer",

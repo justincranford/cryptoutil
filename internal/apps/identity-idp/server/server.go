@@ -59,9 +59,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityIdpServerConf
 			publicServer := NewPublicServer(base, cfg)
 
 			// Register all routes (standard + idp-specific).
-			if err := publicServer.registerRoutes(); err != nil {
-				return fmt.Errorf("failed to register public routes: %w", err)
-			}
+			publicServer.registerRoutes()
 
 			return nil
 		},

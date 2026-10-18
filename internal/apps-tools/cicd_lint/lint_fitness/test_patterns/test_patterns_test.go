@@ -2,6 +2,8 @@
 package test_patterns
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -140,6 +142,64 @@ func TestCheck_EmptyTestFiles(t *testing.T) {
 
 	err := CheckFiles(logger, []string{})
 	require.NoError(t, err, "Should succeed with empty test files list")
+}
+
+func TestCheckFiles_BannedFilename(t *testing.T) {
+	t.Parallel()
+
+	testFile := filepath.Join(t.TempDir(), "handler_coverage_test.go")
+	require.NoError(t, os.WriteFile(testFile, []byte("package handler\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	err := CheckFiles(cryptoutilCmdCicdCommon.NewLogger("test"), []string{testFile})
+
+	require.ErrorContains(t, err, "banned test filename violations")
+}
+
+func TestCheckWalkError(t *testing.T) {
+	t.Parallel()
+
+	err := checkWithWalkDir(
+		cryptoutilCmdCicdCommon.NewLogger("test"),
+		func(_ string, _ fs.WalkDirFunc) error {
+			return errors.New("injected walk failure")
+		},
+	)
+
+	require.ErrorContains(t, err, "walking test files")
+	require.ErrorContains(t, err, "injected walk failure")
+}
+
+func TestCountTestingFailureCallsMalformedAndUnsupportedCalls(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		source     string
+		wantErrorf int
+		wantFatalf int
+	}{
+		{name: "malformed source", source: "package test\nfunc TestBroken( {"},
+		{
+			name: "other receivers and methods are ignored",
+			source: `package test
+func TestCalls(t *testing.T) {
+	other.Errorf("ignored")
+	t.Errorf()
+	t.Unknown("ignored")
+}`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			errorfCount, fatalfCount := countTestingFailureCalls([]byte(tc.source), "fixture_test.go")
+
+			require.Equal(t, tc.wantErrorf, errorfCount)
+			require.Equal(t, tc.wantFatalf, fatalfCount)
+		})
+	}
 }
 
 func TestCheck_WithValidTestFiles(t *testing.T) {

@@ -3,6 +3,7 @@ package lint_deployments
 import (
 	json "encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -77,13 +78,20 @@ func classifyFileStatus(relPath string) string {
 
 // GenerateDirectoryListing walks a directory and creates a listing of all files with metadata.
 func GenerateDirectoryListing(baseDir string) (DirectoryListing, error) {
+	return generateDirectoryListingWithWalkDir(baseDir, filepath.WalkDir)
+}
+
+func generateDirectoryListingWithWalkDir(
+	baseDir string,
+	walkDirFn func(string, fs.WalkDirFunc) error,
+) (DirectoryListing, error) {
 	if _, err := os.Stat(baseDir); os.IsNotExist(err) {
 		return nil, fmt.Errorf("directory does not exist: %s", baseDir)
 	}
 
 	listing := make(DirectoryListing)
 
-	err := filepath.WalkDir(baseDir, func(path string, d os.DirEntry, err error) error {
+	err := walkDirFn(baseDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}

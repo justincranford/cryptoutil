@@ -70,7 +70,7 @@ func TestNewInMemorySQLiteDBForTestMain_Table(t *testing.T) {
 			wantErr: testDBErrorSQLOpen,
 		},
 		{
-			name: "cleanup error",
+			name: testDBCaseCleanupError,
 			depsFn: func() dbDeps {
 				deps := defaultDBDeps()
 				deps.closeSQLDBFn = func(*sql.DB) error { return errors.New("close failure") }

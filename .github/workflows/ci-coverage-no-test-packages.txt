@@ -25,6 +25,3 @@ cryptoutil/internal/apps-framework/service/testing/e2e_helpers
 cryptoutil/internal/apps-framework/service/testing/httpservertests
 cryptoutil/internal/apps-framework/service/testing/testcli
 cryptoutil/internal/apps-framework/service/testutil
-cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/cmdsplit
-cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_catalog_files
-cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_catalog_propagation

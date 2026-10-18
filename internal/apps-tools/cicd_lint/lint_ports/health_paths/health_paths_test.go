@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testYamlExtension = "yml"
+
 func TestIsLikelyHealthPath(t *testing.T) {
 	t.Parallel()
 
@@ -242,7 +244,7 @@ func TestCheck_WithYamlFiles(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"yml": {configFile, composeFile},
+		testYamlExtension: {configFile, composeFile},
 	}
 
 	err := Check(logger, filesByExtension)
@@ -265,6 +267,20 @@ func TestCheck_WithOtelRelatedFiles(t *testing.T) {
 
 	err := Check(logger, filesByExtension)
 	require.NoError(t, err, "Otel-related files should be skipped")
+}
+
+func TestCheck_SkipsOtelAndArchivedComposeFiles(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger(t.Name())
+	filesByExtension := map[string][]string{
+		testYamlExtension: {
+			filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.PKIInitOtelCollectorContrib, cryptoutilSharedMagic.COMPOSE_YML)),
+			filepath.ToSlash(filepath.Join("deployments", "archived", "old-service", cryptoutilSharedMagic.COMPOSE_YML)),
+		},
+	}
+
+	require.NoError(t, Check(logger, filesByExtension))
 }
 
 func TestCheckHealthPathsInCompose_HealthcheckSectionExit(t *testing.T) {

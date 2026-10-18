@@ -72,9 +72,17 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // FindViolations returns all violations found under rootDir.
 func FindViolations(rootDir string) ([]Violation, error) {
+	return findViolationsWithFunctions(rootDir, filepath.WalkDir, checkFile)
+}
+
+func findViolations(rootDir string, walkDirFn func(string, fs.WalkDirFunc) error) ([]Violation, error) {
+	return findViolationsWithFunctions(rootDir, walkDirFn, checkFile)
+}
+
+func findViolationsWithFunctions(rootDir string, walkDirFn func(string, fs.WalkDirFunc) error, checkFileFn func(string) ([]Violation, error)) ([]Violation, error) {
 	var violations []Violation
 
-	err := filepath.WalkDir(rootDir, func(path string, d fs.DirEntry, walkErr error) error {
+	err := walkDirFn(rootDir, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -98,7 +106,7 @@ func FindViolations(rootDir string) ([]Violation, error) {
 			return nil
 		}
 
-		vs, err := checkFile(path)
+		vs, err := checkFileFn(path)
 		if err != nil {
 			return err
 		}

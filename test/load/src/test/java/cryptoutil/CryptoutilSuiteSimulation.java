@@ -2,10 +2,12 @@ package cryptoutil;
 
 import static cryptoutil.CryptoutiApi.CLEARTEXT;
 import static cryptoutil.CryptoutiApi.DEFAULT_PROVIDER;
+import static cryptoutil.CryptoutiApi.authenticateServiceClient;
 import static cryptoutil.CryptoutiApi.createElasticKey;
 import static cryptoutil.CryptoutiApi.decrypt;
 import static cryptoutil.CryptoutiApi.encrypt;
 import static cryptoutil.CryptoutiApi.generateMaterialKey;
+import static cryptoutil.CryptoutiApi.serviceClientBootstrapPopulation;
 import static cryptoutil.GatlingHttpUtil.createServiceApiProtocol;
 import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.rampUsers;
@@ -113,6 +115,7 @@ public class CryptoutilSuiteSimulation extends Simulation {
             createServiceApiProtocol("https://127.0.0.1:" + SM_KMS_PORT + "/service/api/v1");
         populations.add(
             scenario("Suite SM-KMS Crypto")
+                .exec(authenticateServiceClient())
                 .feed(UUID_FEEDER)
                 .exec(
                     createElasticKey(
@@ -141,6 +144,7 @@ public class CryptoutilSuiteSimulation extends Simulation {
             createServiceApiProtocol("https://127.0.0.1:" + SM_KMS_PORT + "/service/api/v1");
         populations.add(
             scenario("Suite SM-KMS Crypto Stress")
+                .exec(authenticateServiceClient())
                 .feed(UUID_FEEDER)
                 .exec(
                     createElasticKey(
@@ -170,7 +174,19 @@ public class CryptoutilSuiteSimulation extends Simulation {
         break;
     }
 
-    setUp(populations.toArray(new PopulationBuilder[0]))
+    PopulationBuilder[] configuredPopulations = populations.toArray(new PopulationBuilder[0]);
+    PopulationBuilder[] allPopulations =
+        PROFILE.equals("standard") || PROFILE.equals("stress")
+            ? new PopulationBuilder[] {
+              serviceClientBootstrapPopulation()
+                  .protocols(
+                      createServiceApiProtocol(
+                          "https://127.0.0.1:" + SM_KMS_PORT + "/service/api/v1"))
+                  .andThen(configuredPopulations)
+            }
+            : configuredPopulations;
+
+    setUp(allPopulations)
         .assertions(
             global().responseTime().max().lt(5000),
             global().successfulRequests().percent().gte(90.0));

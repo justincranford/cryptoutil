@@ -132,7 +132,7 @@ func TestHandleOCSPUsesPersistedCertificateStatus(t *testing.T) {
 			response, err := app.Test(request, -1)
 			require.NoError(t, err)
 			require.Equal(t, fiber.StatusOK, response.StatusCode)
-			require.Equal(t, "application/ocsp-response", response.Header.Get("Content-Type"))
+			require.Equal(t, cryptoutilSharedMagic.PKIContentTypeOCSPResponse, response.Header.Get("Content-Type"))
 
 			responseBody, err := io.ReadAll(response.Body)
 			require.NoError(t, err)

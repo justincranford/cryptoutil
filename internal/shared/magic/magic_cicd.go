@@ -116,7 +116,11 @@ const (
 // getProjectRoot finds the project root by walking up the directory tree to find .git directory.
 // Returns absolute path to project root, or "." as fallback if .git not found.
 func getProjectRoot() string {
-	dir, err := os.Getwd()
+	return getProjectRootWithFns(os.Getwd, os.Stat)
+}
+
+func getProjectRootWithFns(getwdFn func() (string, error), statFn func(string) (os.FileInfo, error)) string {
+	dir, err := getwdFn()
 	if err != nil {
 		return CurrentDirectory // Fallback to current directory
 	}
@@ -124,7 +128,7 @@ func getProjectRoot() string {
 	// Walk up directory tree until .git found.
 	for {
 		gitPath := filepath.Join(dir, ".git")
-		if _, err := os.Stat(gitPath); err == nil {
+		if _, err := statFn(gitPath); err == nil {
 			return dir // Found project root
 		}
 
@@ -602,4 +606,6 @@ var (
 		"vendor",
 		"workflow-reports",
 	}
+
+	DirectoryNameExclusionTestLoadTarget = "test/load/target"
 )

@@ -111,15 +111,15 @@ func enrollTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, issuer, ac
 	t.Helper()
 
 	reqBody := map[string]any{
-		testUserIDValueF89D6B69: userID.String(),
-		"issuer":                issuer,
-		"account_name":          accountName,
+		testUserIDValueF89D6B69:  userID.String(),
+		testTOTPIssuerField:      issuer,
+		testTOTPAccountNameField: accountName,
 	}
 
 	reqBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err, "Should marshal request body")
 
-	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(reqBytes))
+	req := httptest.NewRequest(testPost, testTOTPEnrollPath, bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := appTestTOTPHashRequest(app, req)

@@ -93,7 +93,7 @@ func listArtifacts(cfg *CleanupConfig) ([]artifact, int64, error) {
 			fmt.Sprintf("/repos/{owner}/{repo}/actions/artifacts?per_page=%d&page=%d", maxPerPage, page),
 		)
 
-		output, err := ghExec(args...)
+		output, err := cfg.executeGH(args...)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to fetch artifacts page %d: %w", page, err)
 		}
@@ -125,7 +125,7 @@ func deleteArtifact(cfg *CleanupConfig, artifactID int64) error {
 		"/repos/{owner}/{repo}/actions/artifacts/"+strconv.FormatInt(artifactID, cryptoutilSharedMagic.DecimalRadix),
 	)
 
-	if _, err := ghExec(args...); err != nil {
+	if _, err := cfg.executeGH(args...); err != nil {
 		return fmt.Errorf("failed to delete artifact %d: %w", artifactID, err)
 	}
 

@@ -86,6 +86,10 @@ func (r *RiskBasedAuthenticator) Authenticate(
 		return nil, fmt.Errorf("failed to assess risk: %w", err)
 	}
 
+	if riskScore == nil {
+		return nil, fmt.Errorf("failed to assess risk: risk engine returned no score")
+	}
+
 	// Get authentication requirements based on risk level.
 	requirements, found := r.thresholds[riskScore.Level]
 	if !found {
@@ -113,6 +117,10 @@ func (r *RiskBasedAuthenticator) Authenticate(
 
 	case RiskLevelHigh, RiskLevelCritical:
 		// High/Critical risk - require strong authentication.
+		decision.RequiresAuth = true
+
+	default:
+		// Unknown risk levels fail closed.
 		decision.RequiresAuth = true
 	}
 

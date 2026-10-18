@@ -2,6 +2,11 @@
 package parallel_tests
 
 import (
+	"errors"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -175,6 +180,78 @@ func TestCheckParallelUsage_ReadFileError(t *testing.T) {
 	issues := CheckParallelUsage("/nonexistent/path/that/does/not/exist_test.go")
 	require.NotEmpty(t, issues)
 	require.Contains(t, issues[0], "Error reading file")
+}
+
+func TestCheckParallelUsage_ParseError(t *testing.T) {
+	t.Parallel()
+
+	testFile := filepath.Join(t.TempDir(), "invalid_test.go")
+	require.NoError(t, os.WriteFile(testFile, []byte("package broken\nfunc Test( {\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	issues := CheckParallelUsage(testFile)
+
+	require.Len(t, issues, 1)
+	require.Contains(t, issues[0], "Error parsing file")
+}
+
+func TestTestingTParameter(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		source string
+		want   string
+	}{
+		{name: "no parameters", source: "package p\nfunc TestNoParams() {}"},
+		{name: "non-pointer", source: "package p\nfunc TestValue(t testing.T) {}"},
+		{name: "wrong package", source: "package p\nfunc TestOther(t *other.T) {}"},
+		{name: "unnamed parameter", source: "package p\nfunc TestUnnamed(*testing.T) {}"},
+		{name: "testing parameter alias", source: "package p\nfunc TestNamed(check *testing.T) {}", want: "check"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			file, err := parser.ParseFile(token.NewFileSet(), "test.go", tc.source, 0)
+			require.NoError(t, err)
+			require.Len(t, file.Decls, 1)
+
+			function, ok := file.Decls[0].(*ast.FuncDecl)
+			require.True(t, ok)
+			require.Equal(t, tc.want, testingTParameter(function))
+		})
+	}
+
+	require.Empty(t, testingTParameter(&ast.FuncDecl{Type: &ast.FuncType{}}))
+}
+
+func TestCheckWalkError(t *testing.T) {
+	t.Parallel()
+
+	err := checkWithWalkDir(
+		cryptoutilCmdCicdCommon.NewLogger("test-parallel-tests"),
+		func(_ string, _ fs.WalkDirFunc) error {
+			return errors.New("injected walk failure")
+		},
+	)
+
+	require.ErrorContains(t, err, "walking test files")
+	require.ErrorContains(t, err, "injected walk failure")
+}
+
+func TestCheckWalkCallbackError(t *testing.T) {
+	t.Parallel()
+
+	err := checkWithWalkDir(
+		cryptoutilCmdCicdCommon.NewLogger("test-parallel-tests"),
+		func(root string, walkFn fs.WalkDirFunc) error {
+			return walkFn(root, nil, errors.New("injected callback failure"))
+		},
+	)
+
+	require.ErrorContains(t, err, "walking test files")
+	require.ErrorContains(t, err, "injected callback failure")
 }
 
 func findProjectRoot() (string, error) {

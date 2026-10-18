@@ -264,7 +264,7 @@ func TestGetCRLWithService(t *testing.T) {
 	app := fiber.New()
 	app.Get("/ca/:caId/crl", func(c *fiber.Ctx) error {
 		caID := c.Params("caId")
-		formatParam := c.Query("format", "der")
+		formatParam := c.Query("format", cryptoutilSharedMagic.PKICRLFormatDER)
 		format := cryptoutilApiCaServer.GetCRLParamsFormat(formatParam)
 
 		return handler.GetCRL(c, caID, cryptoutilApiCaServer.GetCRLParams{Format: &format})
@@ -289,8 +289,8 @@ func TestGetCRLWithService(t *testing.T) {
 		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
-		require.Equal(t, "application/pkix-crl", resp.Header.Get("Content-Type"))
-		require.Contains(t, resp.Header.Get("Content-Disposition"), ".crl")
+		require.Equal(t, cryptoutilSharedMagic.PKIContentTypeCRLDER, resp.Header.Get("Content-Type"))
+		require.Contains(t, resp.Header.Get(cryptoutilSharedMagic.PKIHeaderContentDisposition), ".crl")
 
 		body, readErr := io.ReadAll(resp.Body)
 		require.NoError(t, readErr)
@@ -307,8 +307,8 @@ func TestGetCRLWithService(t *testing.T) {
 		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
-		require.Equal(t, "application/x-pem-file", resp.Header.Get("Content-Type"))
-		require.Contains(t, resp.Header.Get("Content-Disposition"), ".crl.pem")
+		require.Equal(t, cryptoutilSharedMagic.PKIContentTypeCRLPEM, resp.Header.Get("Content-Type"))
+		require.Contains(t, resp.Header.Get(cryptoutilSharedMagic.PKIHeaderContentDisposition), ".crl.pem")
 
 		body, readErr := io.ReadAll(resp.Body)
 		require.NoError(t, readErr)

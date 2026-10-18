@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -228,6 +229,30 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	err := checkInDir(newTestLogger(), t.TempDir(), stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "filesystem walk failed")
+}
+
+func TestCheckInDir_AbsolutePathError(t *testing.T) {
+	t.Parallel()
+
+	err := checkInDirWithAbs(newTestLogger(), t.TempDir(), func(_ string) (string, error) {
+		return "", fmt.Errorf("injected absolute path error")
+	}, filepath.Walk)
+
+	require.ErrorContains(t, err, "failed to resolve root dir")
+	require.ErrorContains(t, err, "injected absolute path error")
+}
+
+func TestCheckInDir_DomainFileScannerError(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	writeFile(t, filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, "domain", "large.go"),
+		"package domain\n"+strings.Repeat("x", 70*1024))
+
+	err := checkInDir(newTestLogger(), tmp, filepath.Walk)
+
+	require.ErrorContains(t, err, "filesystem walk failed")
+	require.ErrorContains(t, err, "token too long")
 }
 
 func TestCheckInDir_WalkCallbackError(t *testing.T) {

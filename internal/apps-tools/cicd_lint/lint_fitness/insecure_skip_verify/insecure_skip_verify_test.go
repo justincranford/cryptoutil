@@ -3,7 +3,6 @@ package insecure_skip_verify
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -96,27 +95,12 @@ func TestPrintInsecureSkipVerifyViolations(t *testing.T) {
 	lintGoCommon.PrintCryptoViolations("InsecureSkipVerify", violations)
 }
 
-// TestCheckInsecureSkipVerifyInDir_WalkError verifies that CheckInDir
-// returns error when FindInsecureSkipVerifyViolationsInDir returns a walk error.
-func TestCheckInsecureSkipVerifyInDir_WalkError(t *testing.T) {
+func TestCheckInsecureSkipVerifyInDir_MissingRoot(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	tmpDir := t.TempDir()
-
-	// Create an inaccessible subdirectory to trigger walk error.
-	badDir := filepath.Join(tmpDir, "baddir")
-	err := os.MkdirAll(badDir, 0o000)
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chmod(badDir, 0o700) })
-
-	err = CheckInDir(logger, tmpDir)
-	require.Error(t, err, "Should return error when walk fails")
-	require.Contains(t, err.Error(), "failed to check InsecureSkipVerify")
+	root := filepath.Join(t.TempDir(), "missing")
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), root)
+	require.ErrorContains(t, err, "failed to check InsecureSkipVerify")
 }
 
 // TestCheckInsecureSkipVerifyInDir_WithViolation verifies that CheckInDir
@@ -215,27 +199,6 @@ func Helper() *tls.Config { return &tls.Config{InsecureSkipVerify: true} }
 	require.NoError(t, err, "testing/ directory should be excluded")
 }
 
-// TestFindInsecureSkipVerifyViolationsInDir_WalkDirError verifies error on inaccessible dir.
-func TestFindInsecureSkipVerifyViolationsInDir_WalkDirError(t *testing.T) {
-	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
-	tmpDir := t.TempDir()
-
-	badDir := filepath.Join(tmpDir, "baddir")
-	err := os.MkdirAll(badDir, 0o000)
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = os.Chmod(badDir, 0o700) })
-
-	violations, err := FindInsecureSkipVerifyViolationsInDir(tmpDir)
-	require.Error(t, err, "Should error when a subdirectory cannot be accessed")
-	require.Nil(t, violations)
-}
-
 func TestCheck_DelegatesCheckInDir(t *testing.T) {
 	t.Parallel()
 
@@ -284,6 +247,17 @@ func TestFindInsecureSkipVerifyViolationsInDir_NonExistentRoot(t *testing.T) {
 	require.Error(t, err, "Non-existent root should return an error")
 }
 
+func TestFindInsecureSkipVerifyViolationsInDir_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	require.NoError(t, os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
+
+	_, err := FindInsecureSkipVerifyViolationsInDir(root)
+	require.ErrorContains(t, err, "error reading file")
+}
+
 func TestCheckFileForInsecureSkipVerify_ScannerError(t *testing.T) {
 	t.Parallel()
 
@@ -299,24 +273,13 @@ func TestCheckFileForInsecureSkipVerify_ScannerError(t *testing.T) {
 	require.Contains(t, err.Error(), "error reading file")
 }
 
-func TestFindInsecureSkipVerifyViolationsInDir_CheckFileError(t *testing.T) {
+func TestCheckFileForInsecureSkipVerify_OpenError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("chmod 0o000 does not work on Windows")
-	}
-
 	tempDir := t.TempDir()
-
-	// Create a Go file that is unreadable, so CheckFileForInsecureSkipVerify returns error during Walk.
-	goFile := filepath.Join(tempDir, "main.go")
-	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.Chmod(goFile, 0o000))
-
-	defer func() { _ = os.Chmod(goFile, cryptoutilSharedMagic.CacheFilePermissions) }()
-
-	_, err := FindInsecureSkipVerifyViolationsInDir(tempDir)
-	require.Error(t, err)
+	missingFile := filepath.Join(tempDir, "missing.go")
+	_, err := CheckFileForInsecureSkipVerify(missingFile)
+	require.ErrorContains(t, err, "failed to open file")
 }
 
 func findProjectRoot() (string, error) {

@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -13,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRunUsage(t *testing.T) {
@@ -32,6 +36,14 @@ func TestRunInvalidCommand(t *testing.T) {
 	require.Contains(t, err.Error(), "unknown command: invalid-command", "Error message should indicate unknown command")
 }
 
+func TestRunScriptCommandInvalidArgs(t *testing.T) {
+	t.Parallel()
+
+	err := run([]string{cmdGitHubCleanup}, []string{"--invalid"}, true)
+
+	require.ErrorContains(t, err, "failed commands")
+}
+
 func TestRunMultipleCommands(t *testing.T) {
 	t.Parallel()
 
@@ -45,94 +57,151 @@ func TestRunMultipleCommands(t *testing.T) {
 func TestRun_AllCommands_HappyPath(t *testing.T) {
 	t.Parallel()
 
+	commands := []string{
+		cmdLintText, cmdLintGo, cmdLintGoTest, cmdLintGoMod, cmdLintGolangci,
+		cmdLintWorkflow, cmdLintCompose, cmdLintPorts, cmdLintDeployments,
+		cmdLintDocs, cmdLintFitness, cmdLintOpenAPI, cmdLintJavaTest, cmdLintPythonTest,
+		cmdFormatGo, cmdFormatGoTest, cmdFormatText,
+	}
+
+	var (
+		executions atomic.Int32
+		executed   sync.Map
+	)
+
+	execute := func(
+		_ *cryptoutilCmdCicdCommon.Logger,
+		command string,
+		_ map[string][]string,
+		_ []string,
+	) cryptoutilCmdCicdCommon.CommandResult {
+		executions.Add(1)
+		executed.Store(command, struct{}{})
+
+		return cryptoutilCmdCicdCommon.CommandResult{Command: command}
+	}
+
+	err := runWithExecutor(commands, []string{}, true, execute)
+	require.NoError(t, err)
+	require.Equal(t, len(commands), int(executions.Load()))
+
+	for _, command := range commands {
+		_, ok := executed.Load(command)
+		require.True(t, ok, "command should execute: %s", command)
+	}
+}
+
+func TestRunWithExecutor_FileCollectionError(t *testing.T) {
+	t.Parallel()
+
+	listFiles := func(startDirectory string) (map[string][]string, error) {
+		require.Equal(t, cryptoutilSharedMagic.ListAllFilesStartDirectory, startDirectory)
+
+		return nil, fmt.Errorf("injected file collection failure")
+	}
+	execute := func(
+		_ *cryptoutilCmdCicdCommon.Logger,
+		command string,
+		_ map[string][]string,
+		_ []string,
+	) cryptoutilCmdCicdCommon.CommandResult {
+		assert.Failf(t, cryptoutilSharedMagic.CICDTestErrorfFailureMessage, "command %q executed after file collection failed", command)
+
+		return cryptoutilCmdCicdCommon.CommandResult{Command: command}
+	}
+
+	err := runWithExecutorAndFileLister([]string{cmdLintText}, nil, true, execute, listFiles)
+	require.ErrorContains(t, err, "failed to collect files: injected file collection failure")
+}
+
+func TestRunWithExecutor_VerboseCommands(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		commands []string
+		wantRuns int32
 	}{
-		{
-			name:     "lint-text command",
-			commands: []string{cmdLintText},
-		},
-		{
-			name:     "lint-go command",
-			commands: []string{cmdLintGo},
-		},
-		{
-			name:     "format-go command",
-			commands: []string{cmdFormatGo},
-		},
-		{
-			name:     "lint-go-test command",
-			commands: []string{cmdLintGoTest},
-		},
-		{
-			name:     "format-go-test command",
-			commands: []string{"format-go-test"},
-		},
-		{
-			name:     "format-text command",
-			commands: []string{cmdFormatText},
-		},
-		{
-			name:     "lint-workflow command",
-			commands: []string{cmdLintWorkflow},
-		},
-		{
-			name:     "lint-go-mod command",
-			commands: []string{cmdLintGoMod},
-		},
-		{
-			name:     "multiple commands together",
-			commands: []string{cmdLintText, cmdLintGo},
-		},
-		{
-			name:     "lint-compose command",
-			commands: []string{cmdLintCompose},
-		},
-		{
-			name:     "lint-ports command",
-			commands: []string{"lint-ports"},
-		},
-		{
-			name:     "lint-golangci command",
-			commands: []string{"lint-golangci"},
-		},
-		{
-			name:     "multiple commands together (subset)",
-			commands: []string{cmdLintText, cmdLintGo},
-		},
-		{
-			name:     "all commands together",
-			commands: []string{cmdLintText, cmdLintGo, cmdFormatGo, cmdLintGoTest, cmdFormatGoTest, cmdFormatText, cmdLintWorkflow, cmdLintGoMod, cmdLintCompose, cmdLintPorts, cmdLintGolangci, cmdLintOpenAPI},
-		},
-		{
-			name:     "lint-docs command",
-			commands: []string{cmdLintDocs},
-		},
-		{
-			name:     "lint-deployments command",
-			commands: []string{cmdLintDeployments},
-		},
-		{
-			name:     "lint-fitness command",
-			commands: []string{cmdLintFitness},
-		},
-		{
-			name:     "lint-openapi command",
-			commands: []string{cmdLintOpenAPI},
-		},
+		{name: "single command", commands: []string{cmdLintDocs}, wantRuns: 1},
+		{name: "multiple commands", commands: []string{cmdLintDocs, cmdLintDeployments}, wantRuns: 2},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := run(tc.commands, []string{}, false)
-			// Note: Some commands may fail due to project state (e.g., outdated dependencies).
-			// We're testing that the switch cases execute without panic, not that they pass.
-			if err != nil {
-				require.Contains(t, err.Error(), "failed commands:", "Error should indicate failed commands")
+			var executions atomic.Int32
+
+			execute := func(
+				_ *cryptoutilCmdCicdCommon.Logger,
+				command string,
+				_ map[string][]string,
+				_ []string,
+			) cryptoutilCmdCicdCommon.CommandResult {
+				executions.Add(1)
+
+				return cryptoutilCmdCicdCommon.CommandResult{Command: command}
 			}
+
+			require.NoError(t, runWithExecutor(tc.commands, nil, false, execute))
+			require.Equal(t, tc.wantRuns, executions.Load())
+		})
+	}
+}
+
+func TestExecuteCommand_Dispatch(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		command          string
+		wantFormatGo     bool
+		wantFormatGoTest bool
+	}{
+		{name: cmdLintGo, command: cmdLintGo},
+		{name: cmdFormatGo, command: cmdFormatGo, wantFormatGo: true},
+		{name: cmdLintGoTest, command: cmdLintGoTest},
+		{name: cmdFormatGoTest, command: cmdFormatGoTest, wantFormatGoTest: true},
+		{name: cmdFormatText, command: cmdFormatText},
+		{name: cmdLintPorts, command: cmdLintPorts},
+		{name: cmdLintGolangci, command: cmdLintGolangci},
+		{name: cmdLintDeployments, command: cmdLintDeployments},
+		{name: cmdLintFitness, command: cmdLintFitness},
+		{name: cmdLintOpenAPI, command: cmdLintOpenAPI},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var formatGoCalled, formatGoTestCalled bool
+
+			formatGo := func(
+				_ *cryptoutilCmdCicdCommon.Logger,
+				_ map[string][]string,
+			) error {
+				formatGoCalled = true
+
+				return nil
+			}
+			formatGoTest := func(_ *cryptoutilCmdCicdCommon.Logger) error {
+				formatGoTestCalled = true
+
+				return nil
+			}
+
+			result := executeCommandWithFormatters(
+				cryptoutilCmdCicdCommon.NewQuietLogger("test"),
+				tc.command,
+				map[string][]string{},
+				nil,
+				formatGo,
+				formatGoTest,
+			)
+
+			require.Equal(t, tc.command, result.Command)
+			require.Equal(t, tc.wantFormatGo, formatGoCalled)
+			require.Equal(t, tc.wantFormatGoTest, formatGoTestCalled)
 		})
 	}
 }

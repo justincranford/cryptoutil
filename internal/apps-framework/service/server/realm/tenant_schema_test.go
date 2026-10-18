@@ -95,6 +95,35 @@ func TestTenantManager_createTenantSchema(t *testing.T) {
 	}
 }
 
+func TestTenantManager_SchemaOperations_Success(t *testing.T) {
+	t.Parallel()
+
+	manager, err := NewTenantManager(setupTenantTestDB(t), nil)
+	require.NoError(t, err)
+
+	tenant := &TenantConfig{
+		ID:         googleUuid.Must(googleUuid.NewV7()).String(),
+		SchemaName: "tenant_schema_success",
+		Name:       "schema-success",
+		Enabled:    true,
+	}
+
+	var queryCount int
+
+	manager.execSchemaFn = func(_ context.Context, _ string) error {
+		queryCount++
+
+		return nil
+	}
+
+	ctx := context.Background()
+	require.NoError(t, manager.createTenantSchema(ctx, tenant))
+	require.True(t, manager.schemaCreated[tenant.ID])
+	require.NoError(t, manager.dropTenantSchema(ctx, tenant))
+	require.False(t, manager.schemaCreated[tenant.ID])
+	require.Equal(t, 2, queryCount)
+}
+
 // TestTenantManager_dropTenantSchema tests direct invocation of the private
 // dropTenantSchema method.
 func TestTenantManager_dropTenantSchema(t *testing.T) {

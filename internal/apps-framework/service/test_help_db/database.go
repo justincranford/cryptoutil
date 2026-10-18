@@ -76,7 +76,7 @@ func defaultContainerConnectionString(ctx context.Context, container *postgresCo
 }
 
 func defaultContainerTerminate(ctx context.Context, container *postgresContainerModule.PostgresContainer) error {
-	err := container.Terminate(ctx)
+	err := cryptoutilSharedContainer.TerminateTestContainer(ctx, container)
 
 	return wrapIfErr("terminate", err)
 }
@@ -214,18 +214,29 @@ func closeSQLDBAfterSetupFailure(deps dbDeps, sqlDB *sql.DB, cause error) error 
 // Requires Docker to be running. Fails the test if the container cannot be started.
 // Registers cleanup via t.Cleanup() to terminate the container and close the DB after the test.
 func NewPostgresTestContainer(ctx context.Context, t *testing.T) *gorm.DB {
+	return newPostgresTestContainerWithTestHooks(ctx, t, defaultDBDeps(), t.Fatalf, t.Cleanup, t.Errorf)
+}
+
+func newPostgresTestContainerWithTestHooks(
+	ctx context.Context,
+	t *testing.T,
+	deps dbDeps,
+	fatalfFn func(string, ...any),
+	cleanupFn func(func()),
+	errorfFn func(string, ...any),
+) *gorm.DB {
 	t.Helper()
 
-	db, cleanup, err := newPostgresTestContainerWithDeps(ctx, defaultDBDeps())
+	db, cleanup, err := newPostgresTestContainerWithDeps(ctx, deps)
 	if err != nil {
-		t.Fatalf("test_help_db: failed to create PostgreSQL test container: %v", err)
+		fatalfFn("test_help_db: failed to create PostgreSQL test container: %v", err)
 
 		return nil
 	}
 
-	t.Cleanup(func() {
+	cleanupFn(func() {
 		if cleanupErr := cleanup(); cleanupErr != nil {
-			t.Errorf("test_help_db: failed to clean up PostgreSQL test container: %v", cleanupErr)
+			errorfFn("test_help_db: failed to clean up PostgreSQL test container: %v", cleanupErr)
 		}
 	})
 
@@ -237,7 +248,7 @@ func newPostgresTestContainerWithDeps(ctx context.Context, deps dbDeps) (*gorm.D
 		return nil, nil, errors.New("context cannot be nil")
 	}
 
-	container, err := safeNewPostgresTestContainer(ctx, deps.newPostgresContainerFactoryFn)
+	container, err := safeNewPostgresTestContainer(ctx, deps.newPostgresContainerFactoryFn, deps.containerTerminateFn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to start PostgreSQL container: %w", err)
 	}
@@ -349,7 +360,11 @@ func buildClosedSQLiteDB(ctx context.Context, deps dbDeps, dsn string, applyMigr
 
 // safeNewPostgresTestContainer wraps container factory creation to recover from panics
 // that occur when Docker is unavailable (testcontainers panics on Windows with no Docker).
-func safeNewPostgresTestContainer(ctx context.Context, factoryFn func(context.Context) (*postgresContainerModule.PostgresContainer, error)) (c *postgresContainerModule.PostgresContainer, retErr error) {
+func safeNewPostgresTestContainer(
+	ctx context.Context,
+	factoryFn func(context.Context) (*postgresContainerModule.PostgresContainer, error),
+	terminateFn func(context.Context, *postgresContainerModule.PostgresContainer) error,
+) (c *postgresContainerModule.PostgresContainer, retErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			retErr = fmt.Errorf("docker unavailable (panic): %v", r)
@@ -358,7 +373,18 @@ func safeNewPostgresTestContainer(ctx context.Context, factoryFn func(context.Co
 
 	c, err := factoryFn(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("postgres container: %w", err)
+		retErr = fmt.Errorf("postgres container: %w", err)
+
+		if c != nil {
+			partialContainer := c
+			c = nil
+
+			if cleanupErr := terminateFn(ctx, partialContainer); cleanupErr != nil {
+				retErr = errors.Join(retErr, fmt.Errorf("failed to terminate PostgreSQL container after startup error: %w", cleanupErr))
+			}
+		}
+
+		return nil, retErr
 	}
 
 	return c, nil

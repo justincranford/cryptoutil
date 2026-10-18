@@ -6,15 +6,46 @@ import (
 	json "encoding/json"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz/server/apis"
+	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
+	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 )
 
 // handleEnrollTOTP tests.
+
+func TestHandleVerifyTOTPBackupCode_ConsumesCode(t *testing.T) {
+	t.Parallel()
+
+	db, app := newTOTPIntegrationTestApp(t)
+	userID := googleUuid.Must(googleUuid.NewV7())
+	createTestUser(t, db, userID, "totp-backup-code-consumption")
+
+	code := testTestCode1234
+	codeHash, err := cryptoutilSharedCryptoPassword.HashPassword(code)
+	require.NoError(t, err)
+
+	now := time.Now().UTC()
+	backupCode := cryptoutilIdentityMfa.BackupCode{
+		ID:        googleUuid.Must(googleUuid.NewV7()),
+		UserID:    userID,
+		CodeHash:  codeHash,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+	require.NoError(t, db.Create(&backupCode).Error)
+
+	firstResponse := verifyBackupCode(t, app, userID, code, fiber.StatusOK)
+	require.Equal(t, true, firstResponse[testTOTPVerifiedField])
+
+	secondResponse := verifyBackupCode(t, app, userID, code, fiber.StatusOK)
+	require.Equal(t, false, secondResponse[testTOTPVerifiedField])
+}
 
 func TestHandleGenerateTOTPBackupCodes_InvalidBody(t *testing.T) {
 	t.Parallel()

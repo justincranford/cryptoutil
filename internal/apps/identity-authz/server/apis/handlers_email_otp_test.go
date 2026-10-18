@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz/server/apis"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestHandleSendEmailOTP_InvalidBody(t *testing.T) {
@@ -64,10 +66,68 @@ func TestHandleSendEmailOTP_InvalidUserIDFormat(t *testing.T) {
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 }
 
-// Note: TestHandleSendEmailOTP_UserNotFound and TestHandleSendEmailOTP_Success removed.
-// These require complex repository/email service mock setup.
-// Handler is covered by error path tests (invalid body, invalid user ID, user not found).
-// Success path exercised in E2E tests with full service stack.
+func TestHandleSendEmailOTP_UserLookupAndDelivery(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		createUser bool
+		wantStatus int
+		wantError  string
+	}{
+		{name: testUserNotFoundCase, wantStatus: fiber.StatusNotFound},
+		{name: "OTP persistence failure", createUser: true, wantStatus: fiber.StatusInternalServerError, wantError: cryptoutilSharedMagic.ErrorServerError},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			config := createTokenTestConfig(t)
+			repoFactory := createTokenTestRepoFactory(t)
+
+			userID := googleUuid.Must(googleUuid.NewV7())
+			if tc.createUser {
+				user := &cryptoutilIdentityDomain.User{
+					ID:                userID,
+					Sub:               userID.String(),
+					PreferredUsername: userID.String(),
+					Email:             userID.String() + "@example.com",
+					PasswordHash:      testPasswordHash,
+				}
+				require.NoError(t, repoFactory.UserRepository().Create(t.Context(), user))
+			}
+
+			service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+			app := fiber.New(fiber.Config{DisableStartupMessage: true})
+			service.RegisterRoutes(app)
+
+			requestBody, err := json.Marshal(cryptoutilIdentityAuthz.SendEmailOTPRequest{
+				UserID: userID.String(),
+				Email:  userID.String() + "@example.com",
+			})
+			require.NoError(t, err)
+
+			request := httptest.NewRequest(testPost, "/oidc/v1/mfa/email-otp/send", bytes.NewReader(requestBody))
+			request.Header.Set("Content-Type", "application/json")
+
+			response, err := app.Test(request, -1)
+
+			require.NoError(t, err)
+			defer func() {
+				require.NoError(t, response.Body.Close())
+			}()
+
+			require.Equal(t, tc.wantStatus, response.StatusCode)
+
+			if tc.wantError != "" {
+				var result map[string]string
+				require.NoError(t, json.NewDecoder(response.Body).Decode(&result))
+				require.Equal(t, tc.wantError, result[cryptoutilSharedMagic.StringError])
+			}
+		})
+	}
+}
 
 func TestHandleVerifyEmailOTP_InvalidBody(t *testing.T) {
 	t.Parallel()

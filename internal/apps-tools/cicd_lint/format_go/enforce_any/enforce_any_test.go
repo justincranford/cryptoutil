@@ -4,7 +4,6 @@ package enforce_any
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -163,6 +162,21 @@ func TestProcessGoFile_ReadError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to read file")
 }
 
+func TestProcessGoFile_WriteError(t *testing.T) {
+	t.Parallel()
+
+	filePath := filepath.Join(t.TempDir(), "requires-write.go")
+	require.NoError(t, os.WriteFile(filePath, []byte(testGoContentWithInterfaceBraces), cryptoutilSharedMagic.CacheFilePermissions))
+
+	replacements, err := processGoFile(filePath, func(string, any, os.FileMode) error {
+		return os.ErrPermission
+	})
+
+	require.Zero(t, replacements)
+	require.ErrorIs(t, err, os.ErrPermission)
+	require.ErrorContains(t, err, "failed to write file")
+}
+
 // testGoContentWithInterfaceBraces is Go content with interface{} in a temp file
 // that will NOT match the format-go self-exclusion pattern (not in format_go dir).
 // CRITICAL: Uses interface{} in string literal intentionally via concatenation to prevent self-modification.
@@ -187,34 +201,4 @@ func TestEnforceAny_WithModificationsViaEnforceAny(t *testing.T) {
 	err = Enforce(logger, filesByExtension)
 	require.Error(t, err, "enforceAny should return error when files were modified")
 	require.Contains(t, err.Error(), "modified")
-}
-
-// TestProcessGoFile_WriteError tests that processGoFile returns an error when
-// the file has interface{} but cannot be written (read-only file).
-// Sequential: mutates filesystem state (chmod) that is not parallel-safe on some platforms.
-func TestProcessGoFile_WriteError(t *testing.T) {
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod(0o400) does not prevent writes on Windows")
-	}
-
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "readonly.go")
-
-	// Create file with interface{} that needs replacement.
-	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceBraces), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	// Make file read-only so WriteFile will fail.
-	err = os.Chmod(testFile, 0o400)
-	require.NoError(t, err)
-
-	replacements, err := ProcessGoFile(testFile)
-	require.Error(t, err, "processGoFile should fail when file is read-only")
-	require.Equal(t, 0, replacements, "Should return 0 replacements on error")
-	require.Contains(t, err.Error(), "failed to write file")
-
-	// Restore write permission for cleanup.
-	_ = os.Chmod(testFile, cryptoutilSharedMagic.CacheFilePermissions)
 }

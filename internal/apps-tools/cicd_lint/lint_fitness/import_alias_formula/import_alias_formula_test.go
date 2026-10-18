@@ -338,6 +338,25 @@ func TestCheck_RootFinder(t *testing.T) {
 	}
 }
 
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	rootDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "go.mod"), []byte("module test\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+	aliasMapPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile))
+	require.NoError(t, os.MkdirAll(filepath.Dir(aliasMapPath), cryptoutilSharedMagic.CICDTempDirPermissions))
+	require.NoError(t, os.WriteFile(aliasMapPath, []byte("external_aliases: []\ninternal_aliases: []\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(rootDir))
+	defer func() {
+		require.NoError(t, os.Chdir(originalDir))
+	}()
+
+	require.NoError(t, Check(cryptoutilCmdCicdCommon.NewLogger("test")))
+}
+
 func TestFindProjectRoot_Errors(t *testing.T) {
 	t.Parallel()
 

@@ -4,7 +4,6 @@ package github_actions
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -301,16 +300,8 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	require.Equal(t, "Test exception", exceptions.Exceptions[testActionsCheckout].Reason)
 }
 
-func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
+func TestLoadWorkflowActionExceptions_ReadError(t *testing.T) {
 	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
-	}
-
-	if os.Getuid() == 0 {
-		t.Skip("Skipping test when running as root (root can read all files)")
-	}
 
 	tmpDir := t.TempDir()
 	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
@@ -318,14 +309,7 @@ func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
-	content := `{"exceptions":{}}`
-	err = os.WriteFile(exceptionsFile, []byte(content), 0o000)
-	require.NoError(t, err)
-
-	defer func() {
-		// Restore permissions so cleanup can delete the file.
-		_ = os.Chmod(exceptionsFile, cryptoutilSharedMagic.CICDOutputFilePermissions)
-	}()
+	require.NoError(t, os.Mkdir(exceptionsFile, cryptoutilSharedMagic.DirPermissions))
 
 	exceptions, err := loadWorkflowActionExceptionsInDir(tmpDir)
 	require.Error(t, err, "Should fail when file exists but is unreadable")

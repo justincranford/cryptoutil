@@ -96,14 +96,14 @@ func (s *Service) authenticateClient(c *fiber.Ctx) (*cryptoutilIdentityDomain.Cl
 			// Here we just need to extract it for application-level verification (subject, fingerprint).
 			// Note: In production, Fiber/fasthttp must be configured with a TLS client policy of require-and-verify
 			// and tls.Config.ClientCAs set to the trusted CA pool.
-			peerCerts := c.Context().TLSConnectionState().PeerCertificates
-			if len(peerCerts) == 0 {
+			tlsState := c.Context().TLSConnectionState()
+			if tlsState == nil || len(tlsState.PeerCertificates) == 0 {
 				return nil, fmt.Errorf("mTLS required but no client certificate provided")
 			}
 
 			// Encode peer certificates as PEM for authenticator.
 			var pemChain strings.Builder
-			for _, cert := range peerCerts {
+			for _, cert := range tlsState.PeerCertificates {
 				err := pem.Encode(&pemChain, &pem.Block{
 					Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 					Bytes: cert.Raw,

@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
@@ -230,4 +231,41 @@ func TestCheckInDir_ReadFileFnError(t *testing.T) {
 	err := checkInDir(newLogger(), tmpDir, stubReadFileFn)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot read")
+}
+
+func TestUnmarshalYAML_RejectsInvalidNodeValues(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		node *yaml.Node
+		want string
+	}{
+		{
+			name: "unsupported mapping node",
+			node: &yaml.Node{Kind: yaml.MappingNode},
+			want: "expected string or sequence",
+		},
+		{
+			name: "sequence containing mapping",
+			node: &yaml.Node{
+				Kind: yaml.SequenceNode,
+				Content: []*yaml.Node{
+					{Kind: yaml.MappingNode, Content: []*yaml.Node{{Kind: yaml.ScalarNode, Value: "key"}, {Kind: yaml.ScalarNode, Value: "value"}}},
+				},
+			},
+			want: "decode sequence",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var value yamlStringOrSlice
+
+			err := value.UnmarshalYAML(tt.node)
+			require.ErrorContains(t, err, tt.want)
+		})
+	}
 }

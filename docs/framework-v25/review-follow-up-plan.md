@@ -2,11 +2,11 @@
 
 **Status**: Partially verified; dispositions and remaining validation are recorded below.
 **Created**: 2026-10-15
-**Scope**: Prior review recommendations 2–14 and additional recommendations 15–27, 29–37.
+**Scope**: Prior review recommendations 2–14 and additional recommendations 15–38.
 
-[`plan.md`](./plan.md) remains the completed 8-to-7 PS-ID consolidation plan. This document tracks
-review follow-up only. Recommendation 1 is omitted as requested. Recommendation 28 is omitted
-because there are no existing deployments or deployed data to remediate.
+[`plan.md`](./plan.md) records the implemented 8-to-7 PS-ID consolidation; Phase 5 quality-gate
+acceptance remains in progress. This document tracks review follow-up only. Recommendation 1 is
+omitted as requested. Recommendation 28 remains pending as described below.
 
 ## Status Definitions
 
@@ -33,38 +33,84 @@ and are independent of the numbered rows in the task evidence table.
 - **4 — Complete.** The inventory maintenance procedure is documented in ENG-HANDBOOK §10.2.3
   and propagated to testing instructions. The workflow uploads both inventories; docs, workflow,
   and text validators pass.
-- **5 — Partially verified.** Six synthetic result/profile edge cases pass and the actual
-  profile-driven gate parses the complete inventory without parser errors. It reports 152/320
-  packages meeting thresholds and 168/320 below threshold (71.5% aggregate statement coverage).
-  Failures span 84 `internal/apps-tools`, 54 `internal/apps`, 18 `internal/apps-framework`, and
-  12 `internal/shared` packages. In-scope PKI packages remain below 95%: handler 90.8%, bootstrap
-  93.2%, server 52.4%, revocation 80.4%, and storage 69.4%. Deployment-linter coverage now passes
-  its 98% infrastructure target at 98.1% (`test-output/reviewfollowup/lint-deployments-coverage-98.log`).
-  No package ceiling exception is justified by the current evidence; broader targeted coverage
-  remediation and a passing CI runner remain outstanding. Do not lower thresholds to clear the gate.
+- **5 — Partially verified.** Six synthetic result/profile edge cases pass. The final
+  profile-driven run now verifies all 352 pinned packages, 27 no-test packages, both expected
+  no-statement packages, and all 323 threshold-eligible packages with zero threshold failures;
+  aggregate coverage is 81.6% (informational). The profile and gate summary are recorded in
+  `tasks.md`. Earlier 71.5% and 79.5% collection results are historical. Keep the pinned
+  inventory and thresholds unchanged. The current run is not proven like-for-like with the
+  earlier 79.9%/78.3% aggregate and 95.3%/95.2% businesslogic baselines, so that comparison
+  remains inconclusive. The deployment-linter package's 98.1% result and synthetic gate cases
+  remain as previously evidenced.
 - **6 — Partially verified.** A focused shuffled Linux race run passes for Authz, IDP, RS, and
   framework listener packages after fixing unsynchronized admin-listener publication in Authz and
-  IDP (`test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log`). Full-repository race
-  validation remains outstanding.
+  IDP (`test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log`). The later full race
+  failure at `TestCheckInDir_RealWorkspace` came from its five-parent relative root resolving to
+  `/internal/apps`; the test now discovers the nearest `go.mod` from its working directory, and
+  the shuffled health-path package passes
+  (`test-output/reviewfollowup/health-path-real-workspace-shuffle.log`). A local race rerun is
+  unavailable because this Windows host has no GCC/Clang
+  (`health-path-real-workspace-race-shuffle.log`); the current Docker Engine 29.8.2 is below the
+  documented 29.9.1 minimum, and no supported Linux runner is available in this continuation.
+  Full-repository race validation remains outstanding.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
   tests pass. Rotation/reload remains unsupported and is documented.
-- **8 — Complete.** The load workflow uses authenticated mTLS readiness; live authenticated
-  readiness and workflow validation pass. The full load workload was not run.
+- **8 — Partially verified.** The load workflow uses authenticated mTLS readiness; live authenticated
+  readiness and workflow validation pass. An earlier `ServiceApiSimulation` `complete` profile
+  attempt, before the current headless registration/Basic-credentials flow, failed all 24
+  key-creation requests because the simulation supplied no authorization token
+  (`test-output/review-follow-up/v25-runtime-load-complete-20261016-0401/runtime-load-summary.log`
+  and `load-auth-source.log`). `PublicServerBase` now maps typed application errors to their
+  declared HTTP status, so missing authorization returns 401 instead of 500; this does not make the
+  load workload valid. Headless client registration and Basic-credential exchange now produce a
+  service session, which the current Gatling scenario supplies to each virtual user's
+  cryptographic requests; compilation, Spotless, and Checkstyle pass
+  (`test-output/reviewfollowup/v25-gatling-auth-compile.log`).
+  Remaining evidence: run the complete workload against the isolated runtime and record its result;
+  do not disable authentication to make it pass. The 2026-10-16 live attempt did run against a
+  healthy isolated product runtime but failed all 48 requests before the current headless
+  client-registration/Basic-credentials session flow was implemented. That attempt does not
+  validate the current flow or establish that a current route is absent. Live authenticated load
+  against the current implementation remains unverified; see
+  `test-output/review-follow-up/v25-runtime-current/gatling-complete-retry1.log`.
 - **9 — Complete.** PKI tests were checked against parallelism, fixtures, UUIDs, cleanup, seams,
   and naming conventions; focused shuffled tests and the PostgreSQL continuity test pass.
-- **10 — Complete.** Package-level PKI coverage evidence is recorded in `tasks.md` and
-  `test-output/review-followup/`; this does not claim a full repository test run.
+- **10 — Partially verified.** The final authoritative profile now passes the pinned 352-package
+  inventory gate: 27 no-test packages and two expected no-statement packages match, and all 323
+  threshold-eligible packages pass with no threshold failures. Aggregate coverage is 81.6%
+  (informational). The current scoped results for PKI, framework/shared, fitness, remaining
+  apps-tools, and non-PKI/non-identity apps are retained in `tasks.md` and
+  `test-output/coverage-analysis/`. The historical like-for-like comparison against earlier
+  aggregate and package-specific baselines remains inconclusive. Do not change the pinned
+  inventory or thresholds.
 - **11 — Complete.** The PostgreSQL continuity test cold-starts authority components, stops and
   restarts PostgreSQL, then verifies authority-key restoration and persisted revocation state.
-- **12 — Complete.** Plan 25 is restored as the completed consolidation plan; this separate plan
-  carries review dispositions and links to the evidence tracker.
-- **13 — Complete.** Normal/tagged builds, normal/tagged golangci-lint, the full shuffled suite,
-  and applicable repository validators pass. `tasks.md` records the final logs. An initial
+- **12 — Complete.** Plan 25 is restored as the consolidation plan, with implementation phases
+  1–4 and knowledge propagation complete and Phase 5 acceptance correctly marked in progress.
+  This separate plan carries review dispositions and links to the evidence tracker.
+- **13 — Partially verified.** Current-tree normal/tagged builds and full normal/tagged
+  golangci-lint pass; the 11 relevant repository validators also pass after the tracker updates.
+  Evidence is recorded in
+  `test-output/reviewfollowup/framework-v25-build-after-fixes-20261017.log`,
+  `test-output/reviewfollowup/framework-v25-golangci-after-fixes-20261017.log`, and
+  `test-output/reviewfollowup/framework-v25-cicd-lint-final-doc-updates-20261017.log`. The full
+  shuffled suite exits 0 with no failed tests or packages; the latest run records 84 test-level
+  skips across 325 passing packages and 41 package-level no-test events. The zero-skip criterion
+  remains open. The authoritative pinned coverage gate passes 323 eligible packages, with 27
+  no-test packages, two expected no-statement packages, and zero threshold failures; see
+  `tasks.md`. Linux race, authenticated load, mutation, and supported-Engine teardown/legacy-volume
+  gates remain open. The current focused server-package run passes
+  (`test-output/reviewfollowup/public_server_server_package_shuffle.log`). Keep final validation
+  open until the remaining gates are resolved. An initial
   full-suite run concurrent with repository validators timed out in two RP/RS health tests; the
   isolated tests, shuffled packages, and serial full-suite rerun passed. A later full shuffled run
   had one transient admin-listener shutdown assertion; the isolated test and listener package
-  passed, followed by another successful full shuffled run. No push is authorized by this plan.
+  passed, followed by another successful full shuffled run. The latest full shuffled run and
+  cancellation-path fix are recorded in
+  `test-output/reviewfollowup/framework-v25-go-test-current-20261016.log`; the suite exits 0,
+  while the earlier audited skip total and unresolved gaps keep the zero-skip gate open. No push
+  is authorized by this plan.
 - **14 — Complete.** `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required
   co-author trailer on every task commit from the recorded baseline through the implementation,
   disposition, and post-review fix commits.
@@ -81,10 +127,18 @@ and are independent of the numbered rows in the task evidence table.
   including initialization, runtime identity, file creation, and authenticated readiness.
 - **19 — Partially verified.** All 14 SQLite instances have distinct PS-ID/instance data volumes
   and distinct service/product/suite project scoping. Product and suite Compose configurations
-  parse successfully (`product-compose-config-services.log` and `suite-compose-config-services.log`),
-  but their runtime stacks were not run. Active globally named stacks and the recorded volume
-  incident make unisolated Docker lifecycle operations unsafe; runtime verification remains
-  outstanding in an isolated environment.
+  parse successfully (`product-compose-config-services.log` and `suite-compose-config-services.log`).
+  The isolated suite runtime now has 28 healthy app containers and healthy PostgreSQL leader and
+  follower containers (`test-output/review-follow-up/v25-replication-current/runtime-health-current.log`);
+  the earlier bounded run recorded 56 public health probes returning HTTP 200 in
+  `test-output/review-follow-up/v25-runtime-20261016-0130/runtime-summary.log`, before the follower
+  schema fix. PostgreSQL replication now verifies 7/7 subscriptions, 146/146 ready relations, and
+  sentinel insert/delete propagation (`test-output/review-follow-up/v25-replication-current/validation-results.txt`).
+  The isolated product Compose runtime has since started healthy after that fix
+  (`test-output/review-follow-up/v25-runtime-current/product-runtime-up.log`). The current
+  headless client-registration and Basic-credentials session flow is described under
+  Recommendation 8; live authenticated load against it remains unverified, and the earlier failure
+  predates the current flow. Do not operate on globally named or historical volumes.
 - **20 — Complete.** Load-workflow PostgreSQL readiness uses authenticated mTLS; the matching
   readiness command was exercised against a live PostgreSQL-backed service.
 - **21 — Complete.** Workflow inputs are passed through environment variables and validated
@@ -122,12 +176,60 @@ and are independent of the numbered rows in the task evidence table.
   revocation metadata, as verified by focused storage and handler tests.
 - **37 — Complete.** PostgreSQL continuity tests exercise concurrent multi-connection CRL number
   allocation, persisted revocation, and authority-key restoration across container restart.
+- **38 — Partially verified.** Code review found that an already-enabled logical subscription
+  skipped follower-schema preparation after migration 1006 renamed `client_secret` to
+  `client_secret_hash` on the leader. The canonical and instantiated setup scripts now require the
+  migrated leader schema and reconcile the rename on both follower tables before accepting an
+  existing subscription; Bash syntax, deployment validation, template fitness, and text checks
+  pass (`test-output/reviewfollowup/framework-v25-follower-schema-reconciliation-20261017.log`).
+  A persistent legacy-follower upgrade and replication smoke test remains unverified because the
+  local Docker Engine is below the documented minimum; do not claim the live upgrade path passes.
 
 ## Excluded Recommendation
 
-**28 — Omitted.** Legacy duplicate request-ID remediation is not planned because the project has
-no existing deployments or deployed data. Reconsider this only if persistent databases with
-pre-migration records become part of the supported upgrade path.
+**28 - Pending / fail-closed.** Legacy duplicate request-ID remediation remains unauthorized because
+  the previously deleted historical global volumes have unknown contents and provenance.
+  `test-output/reviewfollowup/legacy-volume-readonly-inventory.log` shows the three known historical
+  global volume names absent from the current Docker inventory, but cannot recover deleted contents
+  or establish the state of other deployments. The user's later Docker Desktop screenshot showed
+  13 Postgres entries and an active `v25runtime20261016productretest` Compose project. The earlier
+  `docker-created-postgres-follow-up-20261016.log` says 12 Testcontainers-labelled Postgres
+  candidates and that project remained present, with no Docker resources changed. The
+  `docker-container-cleanup-20261016-1148.log` records removal of 64 containers from two other
+  named Compose projects and says the original Testcontainers candidates remained. A fresh
+  read-only inventory in `docker-live-inventory-continuation-20261016.log` at 18:48 local found no
+  containers, running stats, or Compose projects in either Docker context and retained the visible
+  named volumes; no Docker resources were changed in that continuation. Earlier event queries for
+  17:45–18:05 local across both contexts returned no matching events, and do not establish whether
+  the events did not occur or had expired from retained history. A later read-only inventory at
+  19:17 local (`docker-live-inventory-current-20261016-191749.log`) again found no containers,
+  running stats, or Compose projects in either context. Both contexts resolved to the same Docker
+  Engine ID and version 29.8.2; the snapshot retained the complete listing of 63 visible volumes
+  per context and changed no Docker resources. The latest read-only inventory at 20:49 local
+  (`docker-live-inventory-current-20261016-204951.log`) again found no containers, running stats,
+  or Compose projects in either context. Both contexts resolve to the same Engine ID and
+  version 29.8.2 and report 64 visible volumes, including all 11 named framework
+  follow-up/product-retest volumes with their Compose project labels; no Docker resources were
+  changed. The count change from 63 to 64 visible volumes is unexplained. As no containers were
+  present, there were no current IDs, mounts, networks, logs, or per-container resource
+  measurements to inspect. The evidence does not identify who or what removed the screenshot's
+  containers. A further read-only inventory at 21:03 local
+  (`docker-live-inventory-current-20261016-210349.log`) again found zero containers and Compose
+  projects in both contexts, 64 visible volumes per context, and all 11 tracked framework
+  follow-up/product-retest volumes present. It made no resource changes and does not establish
+  disappearance provenance. A source audit found a credible destructive
+  teardown path: `ci-load.yml` previously invoked `docker-compose-down` without its `compose-file`
+  input, and the action defaulted to the suite Compose file and ran `docker compose down -v`. The
+  action now requires an explicit Compose file and runs `docker compose down` without volume
+  deletion; `ci-load.yml` passes the same sm-kms Compose file it starts. Static workflow validation
+  passes (`framework-v25-compose-teardown-validation-20261016.log`), but live teardown validation
+  is blocked because Docker Engine 29.8.2 is below the documented 29.9.1 minimum. No evidence
+  attributes historical deletions to the corrected action. Do not claim this session removed the
+  screenshot's Postgres entries or product-retest project, and do not delete preserved volumes. Do
+  not perform destructive deduplication while legacy-volume contents and provenance are unknown.
+  Remaining evidence: resolve the disappearance provenance and perform any eventual teardown test
+  only on a supported engine and isolated task-owned project; use non-destructive inspection for
+  legacy-volume state.
 
 ## Post-Implementation Deep-Review Findings
 
@@ -187,3 +289,22 @@ in `tasks.md`.
   mounts remain rejected. Focused and shuffled deployment-linter tests, normal/tagged builds and
   lint, and repository validators pass; evidence is recorded in
   `test-output/reviewfollowup/post-review-compose-target-interpolation-*.log`.
+- **F-9 — Complete.** `PublicServerBase` now preserves the HTTP status and safe JSON summary
+  declared by typed application errors. Missing session authorization returns HTTP 401 rather than
+  Fiber's default HTTP 500. Regression coverage passes in the focused server tests and the shuffled
+  server subtree (2,216 tests across 17 packages); evidence is recorded in
+  `test-output/reviewfollowup/public-server-server-package-shuffle.log`. Repository-wide final
+  validation remains open under Recommendation 13.
+- **F-10 - Static validation passes; live authenticated load remains unverified.**
+  The current headless service flow registers a client and exchanges HTTP Basic credentials for a
+  service session; the Gatling scenario attaches that session to cryptographic requests.
+  `ServiceApiSimulation` explicitly handles the CI `standard` and `stress` profiles and rejects
+  unsupported profile names instead of silently falling back to `quick`. The CI workflow targets
+  PostgreSQL-1 on port 8002, matching its readiness target. Forced clean Maven compilation,
+  Spotless, and Checkstyle pass in
+  `test-output/reviewfollowup/v25-gatling-auth-compile.log`; workflow and text validation pass in
+  `test-output/reviewfollowup/v25-load-workflow-validation.log`. The retained 48/48 live failure
+  predates the current auth flow and is not evidence that the current routes are absent or that the
+  current workload fails. Run and retain the authenticated `complete` profile against the isolated
+  product runtime; keep F-10 open until the configured success-rate threshold passes. Evidence for
+  the earlier attempt is `test-output/review-follow-up/v25-runtime-current/gatling-complete-retry1.log`.

@@ -18,43 +18,36 @@ func TestParseScopeDescriptions(t *testing.T) {
 	tests := []struct {
 		name           string
 		scopeStr       string
-		expectedCount  int
 		expectedScopes []string
 	}{
 		{
 			name:           "single scope",
 			scopeStr:       cryptoutilSharedMagic.ScopeOpenID,
-			expectedCount:  1,
 			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID},
 		},
 		{
 			name:           testMultipleScopes,
 			scopeStr:       "openid profile email",
-			expectedCount:  3,
 			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		},
 		{
 			name:           "all standard scopes",
 			scopeStr:       "openid profile email address phone offline_access",
-			expectedCount:  cryptoutilSharedMagic.DefaultEmailOTPLength,
 			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ScopePhone, cryptoutilSharedMagic.ScopeOfflineAccess},
 		},
 		{
 			name:           "empty string",
 			scopeStr:       "",
-			expectedCount:  0,
 			expectedScopes: []string{},
 		},
 		{
 			name:           "extra spaces",
 			scopeStr:       "openid  profile",
-			expectedCount:  2,
 			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		},
 		{
 			name:           testCustomScope,
 			scopeStr:       "openid custom_scope",
-			expectedCount:  2,
 			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, testCustomScopeValue2BF082C3},
 		},
 	}
@@ -64,7 +57,7 @@ func TestParseScopeDescriptions(t *testing.T) {
 			t.Parallel()
 
 			descriptions := parseScopeDescriptions(tc.scopeStr)
-			testify.Len(t, descriptions, tc.expectedCount)
+			testify.Len(t, descriptions, len(tc.expectedScopes))
 
 			for i, scope := range tc.expectedScopes {
 				if i < len(descriptions) {

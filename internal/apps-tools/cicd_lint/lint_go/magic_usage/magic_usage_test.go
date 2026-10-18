@@ -4,7 +4,6 @@ package magic_usage
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -276,51 +275,34 @@ func TestCheck_UsesMagicDefaultDir(t *testing.T) {
 func TestCheckMagicUsageInDir_WalkError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	magicDir, rootDir := setupMagicUsageDirs(t)
 	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
 
-	// Create an unreadable subdirectory to trigger walk error accumulation.
-	badSubDir := filepath.Join(rootDir, "locked")
-	require.NoError(t, os.MkdirAll(badSubDir, 0o700))
-	require.NoError(t, os.Chmod(badSubDir, 0o000))
-	t.Cleanup(func() { _ = os.Chmod(badSubDir, 0o700) })
-
+	stubWalkFn := func(root string, walkFn filepath.WalkFunc) error {
+		return walkFn(root, nil, os.ErrPermission)
+	}
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, stubWalkFn)
 	require.Error(t, err, "Walk errors should be returned")
 	require.Contains(t, err.Error(), "walk errors")
 }
 
-// Sequential: uses os.Chdir (global process state).
-func TestCheckMagicUsageInDir_AbsErrorDeletedCWD(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes and deletes CWD.
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("deleting CWD not supported on Windows")
-	}
+func TestCheckMagicUsageInDir_AbsRootDirError(t *testing.T) {
+	t.Parallel()
 
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, os.Chdir(origDir)) }()
-
-	// Create a magic directory with real constants (absolute path for ParseMagicDir).
 	magicDir := t.TempDir()
 	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
 
-	// Create a temporary directory, chdir into it, then delete it to break Getwd().
-	lostDir, err := os.MkdirTemp("", "lost-cwd-*")
-	require.NoError(t, err)
-	require.NoError(t, os.Chdir(lostDir))
-	require.NoError(t, os.RemoveAll(lostDir))
+	callCount := 0
+	stubAbsFn := func(path string) (string, error) {
+		callCount++
+		if callCount == 2 {
+			return "", os.ErrPermission
+		}
 
-	// Now filepath.Abs on any relative path will fail because Getwd() fails.
-	// Pass a relative rootDir to trigger the Abs error path.
+		return filepath.Abs(path)
+	}
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = CheckMagicUsageInDir(logger, magicDir, "relative/root", filepath.Abs, filepath.Walk)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "cannot resolve")
+	err := CheckMagicUsageInDir(logger, magicDir, t.TempDir(), stubAbsFn, filepath.Walk)
+	require.ErrorContains(t, err, "cannot resolve root dir")
 }

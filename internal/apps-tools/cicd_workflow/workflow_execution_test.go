@@ -5,10 +5,11 @@
 package cicd_workflow
 
 import (
+	"context"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -131,26 +132,24 @@ func TestRunWithWorkflowsDir_DryRun_WithActArgs(t *testing.T) {
 	require.Equal(t, 0, result)
 }
 
-// TestRunWithWorkflowsDir_NonDryRun_EchoAct tests non-dry-run mode using echo as a fake act binary.
-func TestRunWithWorkflowsDir_NonDryRun_EchoAct(t *testing.T) {
+// TestRunWithWorkflowsDir_NonDryRun_UsesInjectedCommand exercises execution without external binaries.
+func TestRunWithWorkflowsDir_NonDryRun_UsesInjectedCommand(t *testing.T) {
 	t.Parallel()
-
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("/bin/echo is not available on Windows.")
-	}
 
 	tempDir := t.TempDir()
 	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
 	outputDir := filepath.Join(tempDir, "output")
 
-	// /bin/echo just prints args and exits 0 - no real act needed.
-	result := runWithWorkflowsDir([]string{
-		workflowTestArgWorkflowsMock,
-		"-act-path=/bin/echo",
-		"-output=" + outputDir,
-	}, wfDir)
+	dependencies := newWorkflowDependencies()
+	dependencies.commandContextFn = func(ctx context.Context, _ string, _ ...string) *exec.Cmd {
+		return workflowTestProcess(t, ctx, false)
+	}
 
-	// /bin/echo always exits 0.
+	result := runWithWorkflowsDirAndDependencies([]string{
+		workflowTestArgWorkflowsMock,
+		"-output=" + outputDir,
+	}, wfDir, dependencies)
+
 	require.Equal(t, 0, result)
 }
 
@@ -176,20 +175,19 @@ func TestRunWithWorkflowsDir_NonDryRun_ActNotFound(t *testing.T) {
 func TestRunWithWorkflowsDir_OutputDirCreationFails(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("Unix /root/ path unavailable on Windows.")
-	}
+	tempDir := t.TempDir()
+	blockingFile := filepath.Join(tempDir, workflowTestNameMock)
+	require.NoError(t, os.WriteFile(blockingFile, nil, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead))
 
 	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
 
-	// Use an unwritable path to force MkdirAll failure.
+	// A regular file as the parent path forces directory creation to fail on all platforms.
 	result := runWithWorkflowsDir([]string{
 		workflowTestArgWorkflowsMock,
 		workflowTestArgDryRun,
-		"-output=/root/cannot_write_here_xyz/output",
+		"-output=" + filepath.Join(blockingFile, workflowTestNameQuality),
 	}, wfDir)
 
-	// Should fail since we can't create the output dir.
 	require.Equal(t, 1, result)
 }
 

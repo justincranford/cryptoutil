@@ -123,7 +123,7 @@ func TestLoadPropagationsManifest(t *testing.T) {
 		{
 			name:    testFileNotFound,
 			files:   map[string]string{},
-			wantErr: "failed to read",
+			wantErr: testCatalogReadFailure,
 		},
 		{
 			name:  "empty manifest",
@@ -193,7 +193,7 @@ some content
 		{
 			name:       testFiltersInvalidChunkIDS,
 			files:      map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: grammarFilterContent},
-			wantChunks: []string{"valid-chunk"},
+			wantChunks: []string{testValidChunkID},
 		},
 		{
 			name:  testEmptyFile,
@@ -286,7 +286,7 @@ b
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
 				require.Len(t, result, 1)
-				require.Contains(t, result, "valid-chunk")
+				require.Contains(t, result, testValidChunkID)
 				require.NotContains(t, result, "' CHUNK_ID '")
 			},
 		},
@@ -477,7 +477,7 @@ func TestValidateCoverage_ManifestLoadError(t *testing.T) {
 
 	require.Error(t, err)
 	require.Nil(t, result)
-	require.Contains(t, err.Error(), "failed to read")
+	require.Contains(t, err.Error(), testCatalogReadFailure)
 }
 
 func TestValidateCoverage_ExtractSourceChunksError(t *testing.T) {

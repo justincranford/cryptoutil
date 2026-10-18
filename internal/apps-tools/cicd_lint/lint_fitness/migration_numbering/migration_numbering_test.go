@@ -325,6 +325,25 @@ func TestMigrationNumberingOperations_ErrorPaths(t *testing.T) {
 			wantErr: migrationNumberingWalkAppsDirectoryErrorPrefix,
 		},
 		{
+			name: "walk callback error",
+			run: func(t *testing.T) error {
+				operations := productionMigrationNumberingOperations()
+				operations.walkFn = func(path string, walkFn filepath.WalkFunc) error {
+					info, err := os.Stat(path)
+					require.NoError(t, err)
+
+					return walkFn(path, info, os.ErrPermission)
+				}
+				tmpDir := t.TempDir()
+				mkdirAll(t, filepath.Join(tmpDir, "internal", "apps"))
+
+				_, err := findDomainMigrationDirsWithOperations(tmpDir, filepath.Join(tmpDir, tplRelPath()), operations)
+
+				return err
+			},
+			wantErr: migrationNumberingWalkAppsDirectoryErrorPrefix,
+		},
+		{
 			name: "migration directory absolute path error",
 			run: func(t *testing.T) error {
 				operations := productionMigrationNumberingOperations()
@@ -400,6 +419,18 @@ func TestMigrationNumberingOperations_ErrorPaths(t *testing.T) {
 			require.ErrorContains(t, err, tc.wantErr)
 		})
 	}
+}
+
+func TestFindDomainMigrationDirs_ExcludesTemplateMigrationDirectory(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	templateDir := filepath.Join(rootDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "migrations")
+	mkdirAll(t, templateDir)
+
+	dirs, err := findDomainMigrationDirsWithOperations(rootDir, templateDir, productionMigrationNumberingOperations())
+	require.NoError(t, err)
+	require.Empty(t, dirs)
 }
 
 // Sequential: uses os.Chdir (global process state, cannot run in parallel).

@@ -3,7 +3,6 @@ package lint_deployments
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -113,106 +112,25 @@ func TestValidateSecrets_SecretFiles(t *testing.T) {
 	}
 }
 
-func TestValidateSecrets_UnreadablePaths(t *testing.T) {
+func TestValidateSecrets_UnreadableSecretFile(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
+	secretsDir := filepath.Join(t.TempDir(), validatorNameSecrets)
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "api_key.secret"), []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	tests := []struct {
-		name             string
-		setup            func(t *testing.T) string
-		wantWarnContains string
-	}{
-		{
-			name: "unreadable secret file",
-			setup: func(t *testing.T) string {
-				t.Helper()
-				dir := t.TempDir()
-				secretsDir := filepath.Join(dir, validatorNameSecrets)
-				require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				f := filepath.Join(secretsDir, "api_key.secret")
-				require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
-				require.NoError(t, os.Chmod(f, 0o000))
-				t.Cleanup(func() { _ = os.Chmod(f, cryptoutilSharedMagic.CacheFilePermissions) })
+	var readAttempted bool
 
-				return dir
-			},
-			wantWarnContains: "cannot read secret file",
-		},
-		{
-			name: "unreadable secrets directory",
-			setup: func(t *testing.T) string {
-				t.Helper()
-				dir := t.TempDir()
-				secretsDir := filepath.Join(dir, validatorNameSecrets)
-				require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				require.NoError(t, os.Chmod(secretsDir, 0o000))
-				t.Cleanup(func() {
-					_ = os.Chmod(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-				})
+	result := &SecretValidationResult{}
+	validateSecretFileLengthsWithReadFile(secretsDir, result, func(string) ([]byte, error) {
+		readAttempted = true
 
-				return dir
-			},
-			wantWarnContains: testCannotReadSecretsDirectory,
-		},
-		{
-			name: "unreadable config file",
-			setup: func(t *testing.T) string {
-				t.Helper()
-				dir := t.TempDir()
-				configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
-				require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				f := filepath.Join(configsDir, "unreadable.yml")
-				require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
-				require.NoError(t, os.Chmod(f, 0o000))
-				t.Cleanup(func() { _ = os.Chmod(f, cryptoutilSharedMagic.CacheFilePermissions) })
+		return nil, os.ErrPermission
+	})
 
-				return dir
-			},
-			wantWarnContains: testCannotReadConfigFile,
-		},
-		{
-			name: "unreadable configs directory",
-			setup: func(t *testing.T) string {
-				t.Helper()
-				dir := t.TempDir()
-				configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
-				require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-				require.NoError(t, os.Chmod(configsDir, 0o000))
-				t.Cleanup(func() {
-					_ = os.Chmod(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-				})
-
-				return dir
-			},
-			wantWarnContains: testCannotReadConfigsDirectory,
-		},
-		{
-			name: testUnreadableComposeFile,
-			setup: func(t *testing.T) string {
-				t.Helper()
-				dir := t.TempDir()
-				f := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
-				require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
-				require.NoError(t, os.Chmod(f, 0o000))
-				t.Cleanup(func() { _ = os.Chmod(f, cryptoutilSharedMagic.CacheFilePermissions) })
-
-				return dir
-			},
-			wantWarnContains: testCannotReadComposeFile,
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			result, err := ValidateSecrets(tc.setup(t))
-			require.NoError(t, err)
-			require.NotEmpty(t, result.Warnings)
-			require.Contains(t, result.Warnings[0], tc.wantWarnContains)
-		})
-	}
+	require.True(t, readAttempted)
+	require.Len(t, result.Warnings, 1)
+	require.Contains(t, result.Warnings[0], "cannot read secret file")
 }
 
 func TestValidateSecretHelpers_ReadFailures(t *testing.T) {

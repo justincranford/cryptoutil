@@ -60,9 +60,9 @@ func TestAuthzServer_PublicHealth(t *testing.T) {
 		admin    bool
 		wantCode int
 	}{
-		{"health", testServer.PublicBaseURL(), "/health", false, http.StatusOK},
-		{"livez", testServer.AdminBaseURL(), cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath, true, http.StatusOK},
-		{"readyz", testServer.AdminBaseURL(), cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, true, http.StatusOK},
+		{authzTestHealthRouteName, testServer.PublicBaseURL(), authzTestHealthRoutePath, false, http.StatusOK},
+		{authzTestLivezRouteName, testServer.AdminBaseURL(), cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath, true, http.StatusOK},
+		{authzTestReadyzRouteName, testServer.AdminBaseURL(), cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, true, http.StatusOK},
 	}
 
 	for _, tt := range tests {
@@ -120,7 +120,7 @@ func TestAuthzServer_WellKnownEndpoints(t *testing.T) {
 		wantBody     string
 		untrustedTLS bool
 	}{
-		{name: "OIDC discovery", path: cryptoutilSharedMagic.PathDiscovery, wantStatus: http.StatusOK, wantBody: "issuer"},
+		{name: "OIDC discovery", path: cryptoutilSharedMagic.PathDiscovery, wantStatus: http.StatusOK, wantBody: authzTestOIDCIssuerResponse},
 		{name: "JWKS", path: cryptoutilSharedMagic.PathJWKS, wantStatus: http.StatusOK, wantBody: "keys"},
 		{name: "admin livez is not exposed publicly", path: cryptoutilSharedMagic.DefaultAdminLivezEndpoint, wantStatus: http.StatusNotFound},
 		{name: "untrusted server certificate is rejected", path: cryptoutilSharedMagic.PathJWKS, untrustedTLS: true},

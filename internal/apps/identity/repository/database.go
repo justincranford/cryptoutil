@@ -35,6 +35,19 @@ const (
 
 // initializeDatabase initializes a GORM database connection based on configuration.
 func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.DatabaseConfig) (*gorm.DB, error) {
+	return initializeDatabaseWithDependencies(ctx, cfg, sql.Open, gorm.Open, func(db *gorm.DB) (*sql.DB, error) {
+		return db.DB()
+	})
+}
+
+// initializeDatabaseWithDependencies initializes a database using injected openers.
+func initializeDatabaseWithDependencies(
+	ctx context.Context,
+	cfg *cryptoutilIdentityConfig.DatabaseConfig,
+	openSQL func(string, string) (*sql.DB, error),
+	openGORM func(gorm.Dialector, ...gorm.Option) (*gorm.DB, error),
+	getSQLDB func(*gorm.DB) (*sql.DB, error),
+) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 
 	switch cfg.Type {
@@ -49,7 +62,7 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 		// }
 		dsn := cfg.DSN // Open SQLite database with modernc driver (CGO-free) explicitly.
 
-		sqlDB, err := sql.Open("sqlite", dsn)
+		sqlDB, err := openSQL("sqlite", dsn)
 		if err != nil {
 			return nil, cryptoutilIdentityAppErr.WrapError(
 				cryptoutilIdentityAppErr.ErrDatabaseConnection,
@@ -86,7 +99,7 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	gormLogger := logger.Default.LogMode(logger.Silent)
 
 	// Open database connection.
-	db, err := gorm.Open(dialector, &gorm.Config{
+	db, err := openGORM(dialector, &gorm.Config{
 		Logger:                 gormLogger,
 		SkipDefaultTransaction: true, // Disable automatic transactions for Create/Update/Delete (we manage transactions explicitly)
 	})
@@ -98,7 +111,7 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	}
 
 	// Configure connection pool.
-	sqlDB, err := db.DB()
+	sqlDB, err := getSQLDB(db)
 	if err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrDatabaseConnection,

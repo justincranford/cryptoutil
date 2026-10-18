@@ -18,6 +18,8 @@ import (
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
 )
 
+const testWebAuthnRPDisplayName = "Test Application"
+
 func createWebAuthnTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
@@ -37,7 +39,7 @@ func createWebAuthnTestDB(t *testing.T) *gorm.DB {
 
 func createWebAuthnConfig() cryptoutilIdentityMfa.WebAuthnConfig {
 	return cryptoutilIdentityMfa.WebAuthnConfig{
-		RPDisplayName: "Test Application",
+		RPDisplayName: testWebAuthnRPDisplayName,
 		RPID:          cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
 		RPOrigins:     []string{"https://localhost:8080"},
 	}

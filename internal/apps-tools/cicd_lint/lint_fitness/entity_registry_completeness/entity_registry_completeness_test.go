@@ -65,6 +65,20 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	root := findProjectRoot(t)
+	original, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+	defer func() {
+		require.NoError(t, os.Chdir(original))
+	}()
+
+	require.NoError(t, lintFitnessEntityRegistryCompleteness.Check(cryptoutilCmdCicdCommon.NewLogger("test-check-workspace-root")))
+}
+
 func TestCheckInDir_AllComponentsPresent(t *testing.T) {
 	t.Parallel()
 

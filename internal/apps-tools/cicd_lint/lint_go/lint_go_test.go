@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testFirstLinterName = "first"
+
 func TestLint(t *testing.T) {
 	t.Parallel()
 
@@ -21,6 +23,47 @@ func TestLint(t *testing.T) {
 
 	require.Error(t, err, "Lint fails when go.mod not in current directory")
 	require.Contains(t, err.Error(), "lint-go failed")
+}
+
+func TestLintWithLinters(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewQuietLogger("test-lint")
+
+	tests := []struct {
+		name    string
+		linters []registeredLinter
+		wantErr string
+	}{
+		{
+			name: "all linters pass",
+			linters: []registeredLinter{
+				{name: testFirstLinterName, linter: func(_ *cryptoutilCmdCicdCommon.Logger) error { return nil }},
+			},
+		},
+		{
+			name: "one linter fails",
+			linters: []registeredLinter{
+				{name: testFirstLinterName, linter: func(_ *cryptoutilCmdCicdCommon.Logger) error { return fmt.Errorf("injected failure") }},
+			},
+			wantErr: "lint-go failed with 1 errors",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := lintWithLinters(logger, tc.linters)
+			if tc.wantErr == "" {
+				require.NoError(t, err)
+
+				return
+			}
+
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
 }
 
 // findProjectRoot finds the project root by looking for go.mod.

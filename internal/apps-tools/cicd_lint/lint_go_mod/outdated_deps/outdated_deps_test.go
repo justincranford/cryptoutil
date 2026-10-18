@@ -6,7 +6,6 @@ import (
 	json "encoding/json"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 	"time"
 
@@ -164,18 +163,10 @@ func TestCheckOutdatedDeps_NoOutdatedDeps(t *testing.T) {
 func TestSaveDepCache_WriteError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
-	}
-
-	// Create a read-only directory structure.
 	tmpDir := t.TempDir()
-	readOnlyDir := filepath.Join(tmpDir, "readonly")
-	err := os.Mkdir(readOnlyDir, 0o500)
+	cachePath := filepath.Join(tmpDir, "cache")
+	err := os.Mkdir(cachePath, cryptoutilSharedMagic.DirPermissions)
 	require.NoError(t, err)
-
-	// Try to write to a nested path inside the read-only directory.
-	cacheFile := filepath.Join(readOnlyDir, "nested", "cache.json")
 
 	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
@@ -185,9 +176,9 @@ func TestSaveDepCache_WriteError(t *testing.T) {
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
-	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
+	err = saveDepCache(cachePath, cache, json.MarshalIndent)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to create output directory")
+	require.Contains(t, err.Error(), "failed to write cache file")
 }
 
 // TestLint_WithLinterError tests the Lint function when a linter returns an error.

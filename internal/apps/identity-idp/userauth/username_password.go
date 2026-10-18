@@ -246,6 +246,10 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 		return fmt.Errorf("invalid current password")
 	}
 
+	if subtle.ConstantTimeCompare([]byte(oldPassword), []byte(newPassword)) == 1 {
+		return fmt.Errorf("new password must be different from current password")
+	}
+
 	// Hash new password (always uses PBKDF2).
 	newHashStr, err := cryptoutilSharedCryptoPassword.HashPassword(newPassword)
 	if err != nil {
@@ -255,12 +259,6 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 	newHash := []byte(newHashStr)
 
 	// Note: If old hash was legacy algorithm, new password uses PBKDF2 (automatic upgrade).
-
-	// Ensure new password is different from old password.
-	// Note: This comparison is approximate due to salt randomization.
-	if subtle.ConstantTimeCompare(currentHash, newHash) == 1 {
-		return fmt.Errorf("new password must be different from current password")
-	}
 
 	// Update credential.
 	if err := u.credentialStore.UpdateCredential(ctx, userID, newHash); err != nil {

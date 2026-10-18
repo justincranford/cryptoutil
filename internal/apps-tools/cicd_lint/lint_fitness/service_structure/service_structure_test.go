@@ -75,6 +75,18 @@ func TestCheckInDir_AllValid(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: temporarily adds a package-level service exclusion.
+func TestBuildKnownServices_ExcludesConfiguredService(t *testing.T) {
+	excludedPSID := knownServices[0].PSID
+
+	knownExclusions[excludedPSID] = true
+	defer delete(knownExclusions, excludedPSID)
+
+	for _, service := range buildKnownServices() {
+		require.NotEqual(t, excludedPSID, service.PSID)
+	}
+}
+
 func TestCheckInDir_MissingServiceDir(t *testing.T) {
 	t.Parallel()
 

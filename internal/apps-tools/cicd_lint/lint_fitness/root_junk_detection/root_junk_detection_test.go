@@ -31,6 +31,29 @@ func TestCheckInDir_EmptyDir_Passes(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: changes the process working directory.
+func TestCheck_FromCleanRoot(t *testing.T) {
+	tmp := t.TempDir()
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(tmp))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	require.NoError(t, Check(newTestLogger()))
+}
+
+func TestCheckInDir_MissingRoot_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	err := CheckInDir(newTestLogger(), filepath.Join(t.TempDir(), "missing"))
+
+	require.ErrorContains(t, err, "failed to check root directory for junk entries")
+}
+
 func TestCheckInDir_LegitimateFiles_Passes(t *testing.T) {
 	t.Parallel()
 

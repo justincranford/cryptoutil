@@ -88,6 +88,16 @@ func TestCheckInDir_CipherPrefixInCmd(t *testing.T) {
 	require.Contains(t, err.Error(), "legacy directories")
 }
 
+func TestCheckInDir_ScanDirectoryReadError(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(tmp, "deployments"), []byte("not a directory"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	err := CheckInDir(newTestLogger(), tmp)
+	require.ErrorContains(t, err, "failed to check legacy directories")
+}
+
 func TestCheckInDir_NonCipherPrefixNotDetected(t *testing.T) {
 	t.Parallel()
 
@@ -136,18 +146,9 @@ func TestFindViolationsInDir_MissingScanDir_Passes(t *testing.T) {
 func TestFindViolationsInDir_ReadDirError(t *testing.T) {
 	t.Parallel()
 
-	// If we cannot read a scan dir, FindViolationsInDir should return an error.
-	// On Windows os.Chmod 0o000 does not restrict access, so skip.
-	if isWindows() {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
 	tmp := t.TempDir()
 	scanDir := filepath.Join(tmp, "deployments")
-	err := os.MkdirAll(scanDir, 0o000)
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = os.Chmod(scanDir, 0o700) })
+	require.NoError(t, os.WriteFile(scanDir, []byte("not a directory"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := FindViolationsInDir(tmp)
 	require.Error(t, err)
@@ -192,8 +193,4 @@ func findProjectRoot() (string, error) {
 
 		dir = parent
 	}
-}
-
-func isWindows() bool {
-	return os.PathSeparator == '\\'
 }

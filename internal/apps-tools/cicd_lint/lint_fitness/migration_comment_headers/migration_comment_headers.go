@@ -61,6 +61,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkPS finds all migrations/ directories under the PS's InternalAppsDir and checks them.
 func checkPS(rootDir string, ps lintFitnessRegistry.ProductService) []string {
+	return checkPSWithWalk(rootDir, ps, filepath.Walk)
+}
+
+func checkPSWithWalk(rootDir string, ps lintFitnessRegistry.ProductService, walkFn func(string, filepath.WalkFunc) error) []string {
 	psDir := filepath.Join(rootDir, "internal", "apps", filepath.FromSlash(ps.InternalAppsDir))
 
 	if _, err := os.Stat(psDir); os.IsNotExist(err) {
@@ -69,7 +73,7 @@ func checkPS(rootDir string, ps lintFitnessRegistry.ProductService) []string {
 
 	var migrationDirs []string
 
-	walkErr := filepath.Walk(psDir, func(path string, info os.FileInfo, err error) error {
+	walkErr := walkFn(psDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -107,7 +111,11 @@ func checkPS(rootDir string, ps lintFitnessRegistry.ProductService) []string {
 
 // checkMigrationDir scans all domain migration SQL files (2001+) in a directory.
 func checkMigrationDir(rootDir string, ps lintFitnessRegistry.ProductService, migDir string) []string {
-	entries, err := os.ReadDir(migDir)
+	return checkMigrationDirWithReadDir(rootDir, ps, migDir, os.ReadDir)
+}
+
+func checkMigrationDirWithReadDir(rootDir string, ps lintFitnessRegistry.ProductService, migDir string, readDirFn func(string) ([]os.DirEntry, error)) []string {
+	entries, err := readDirFn(migDir)
 	if err != nil {
 		return []string{fmt.Sprintf("%s: cannot read migrations dir %s: %v", ps.PSID, migDir, err)}
 	}
@@ -142,7 +150,11 @@ func checkMigrationDir(rootDir string, ps lintFitnessRegistry.ProductService, mi
 
 // checkMigrationFile verifies the first non-blank comment line of a migration file.
 func checkMigrationFile(rootDir string, ps lintFitnessRegistry.ProductService, filePath, direction string) []string {
-	f, err := os.Open(filePath) //nolint:gosec // filePath from controlled directory walk
+	return checkMigrationFileWithOpen(rootDir, ps, filePath, direction, os.Open)
+}
+
+func checkMigrationFileWithOpen(rootDir string, ps lintFitnessRegistry.ProductService, filePath, direction string, openFn func(string) (*os.File, error)) []string {
+	f, err := openFn(filePath) //nolint:gosec // filePath from controlled directory walk
 	if err != nil {
 		rel, _ := filepath.Rel(rootDir, filePath)
 

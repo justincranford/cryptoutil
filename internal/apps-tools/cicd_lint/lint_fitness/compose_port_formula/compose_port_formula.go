@@ -141,10 +141,6 @@ func checkTierPorts(rootDir, psID, composeRelPath string, basePort, tierOffset i
 		}
 
 		// Look for port mappings in the current service block.
-		if !portLinePattern.MatchString(trimmed) {
-			continue
-		}
-
 		match := portLinePattern.FindStringSubmatch(trimmed)
 		if match == nil {
 			continue

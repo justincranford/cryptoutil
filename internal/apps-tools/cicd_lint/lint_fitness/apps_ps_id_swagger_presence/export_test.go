@@ -11,3 +11,8 @@ var ExportedCheckPSIDSwaggerFiles = checkPSIDSwaggerFiles
 func ExportedCheckInDirNoExclusions(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	return checkInDirWithExclusions(logger, rootDir, map[string]bool{})
 }
+
+// ExportedCheckInDirWithExclusions calls checkInDirWithExclusions with the supplied exclusion set.
+func ExportedCheckInDirWithExclusions(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, exclusions map[string]bool) error {
+	return checkInDirWithExclusions(logger, rootDir, exclusions)
+}

@@ -26,7 +26,7 @@ func TestHandleEnrollTOTP_InvalidBody(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader([]byte("{invalid json")))
+	req := httptest.NewRequest(testPost, testTOTPEnrollPath, bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -56,7 +56,7 @@ func TestHandleEnrollTOTP_MissingUserID(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, testTOTPEnrollPath, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -86,7 +86,7 @@ func TestHandleEnrollTOTP_InvalidUserIDFormat(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, testTOTPEnrollPath, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -117,7 +117,7 @@ func TestHandleEnrollTOTP_MissingIssuer(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, testTOTPEnrollPath, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -148,7 +148,7 @@ func TestHandleEnrollTOTP_MissingAccountName(t *testing.T) {
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest(testPost, "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
+	req := httptest.NewRequest(testPost, testTOTPEnrollPath, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)

@@ -58,9 +58,17 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 // FindViolationsInDir scans Go source files outside internal/shared/magic/ for
 // const declarations with integer values in the suspicious port range.
 func FindViolationsInDir(rootDir string) ([]string, error) {
+	return findViolationsInDir(rootDir, filepath.Walk, filepath.Rel)
+}
+
+func findViolationsInDir(
+	rootDir string,
+	walkFn func(string, filepath.WalkFunc) error,
+	relFn func(string, string) (string, error),
+) ([]string, error) {
 	var violations []string
 
-	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, walkErr error) error {
+	err := walkFn(rootDir, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -73,7 +81,7 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 			return nil
 		}
 
-		relPath, relErr := filepath.Rel(rootDir, path)
+		relPath, relErr := relFn(rootDir, path)
 		if relErr != nil {
 			return fmt.Errorf("failed to get relative path for %s: %w", path, relErr)
 		}
@@ -98,7 +106,11 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 
 // skipDir returns filepath.SkipDir for directories that should not be scanned.
 func skipDir(rootDir, path string) error {
-	rel, err := filepath.Rel(rootDir, path)
+	return skipDirWithRel(rootDir, path, filepath.Rel)
+}
+
+func skipDirWithRel(rootDir, path string, relFn func(string, string) (string, error)) error {
+	rel, err := relFn(rootDir, path)
 	if err != nil {
 		return fmt.Errorf("failed to compute relative path: %w", err)
 	}

@@ -209,7 +209,7 @@ func (h *Handler) TsaTimestamp(c *fiber.Ctx) error {
 	}
 
 	// Return the timestamp response.
-	c.Set("Content-Type", "application/timestamp-reply")
+	c.Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeTimestampReply)
 
 	if err := c.Send(respDER); err != nil {
 		return fmt.Errorf("failed to send timestamp response: %w", err)
@@ -299,7 +299,7 @@ func (h *Handler) HandleOCSP(c *fiber.Ctx) error {
 	}
 
 	// Set content type for OCSP response.
-	c.Set("Content-Type", "application/ocsp-response")
+	c.Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeOCSPResponse)
 
 	if err := c.Send(responseBytes); err != nil {
 		return fmt.Errorf("failed to send OCSP response: %w", err)

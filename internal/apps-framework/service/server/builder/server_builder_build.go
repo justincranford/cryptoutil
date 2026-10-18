@@ -205,6 +205,9 @@ func (b *ServerBuilder) buildWithOperations(operations serverBuilderOperations) 
 		resources.BarrierService = services.BarrierService
 		resources.SessionManager = services.SessionManager
 		resources.RegistrationService = services.RegistrationService
+		resources.UserRepository = services.UserRepository
+		resources.ClientRepository = services.ClientRepository
+		resources.ClientRegistrationService = services.ClientRegistrationService
 		resources.RealmService = services.RealmService
 		resources.RealmRepository = services.RealmRepository
 	}
@@ -233,6 +236,15 @@ func (b *ServerBuilder) buildWithOperations(operations serverBuilderOperations) 
 		// Register tenant registration routes on PUBLIC server (unauthenticated user registration).
 		// Default rate limit configured via magic constant.
 		cryptoutilAppsFrameworkServiceServerApis.RegisterRegistrationRoutes(publicServerBase.App(), services.RegistrationService, cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin)
+		cryptoutilAppsFrameworkServiceServerApis.RegisterClientAuthenticationRoutes(
+			publicServerBase.App(),
+			services.ClientRegistrationService,
+			services.ClientRepository,
+			services.TenantRepository,
+			services.SessionManager,
+			services.RealmService,
+			cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin,
+		)
 
 		// Register join request management routes on ADMIN server (authenticated admin operations).
 		// SessionManager implements SessionValidator interface for session validation.

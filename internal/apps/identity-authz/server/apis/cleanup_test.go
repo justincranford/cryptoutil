@@ -238,6 +238,7 @@ func TestCleanupService_ErrorHandling(t *testing.T) {
 	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 
 	cleanupService := cryptoutilIdentityAuthz.NewCleanupService(service)
+	cleanupService.WithInterval(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 	ctx := context.Background()
 

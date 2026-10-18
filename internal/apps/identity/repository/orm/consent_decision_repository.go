@@ -61,24 +61,26 @@ func (r *ConsentDecisionRepository) GetByID(ctx context.Context, id googleUuid.U
 
 // GetByUserClientScope retrieves a consent decision by user, client, and scope.
 func (r *ConsentDecisionRepository) GetByUserClientScope(ctx context.Context, userID googleUuid.UUID, clientID, scope string) (*cryptoutilIdentityDomain.ConsentDecision, error) {
-	var consent cryptoutilIdentityDomain.ConsentDecision
+	var consents []cryptoutilIdentityDomain.ConsentDecision
 
 	now := time.Now().UTC()
 
 	if err := getDB(ctx, r.db).WithContext(ctx).
-		Where("user_id = ? AND client_id = ? AND scope = ? AND revoked_at IS NULL AND expires_at > ?", userID, clientID, scope, now).
-		First(&consent).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, cryptoutilIdentityAppErr.ErrConsentNotFound
-		}
-
+		Where("user_id = ? AND client_id = ? AND scope = ? AND revoked_at IS NULL", userID, clientID, scope).
+		Find(&consents).Error; err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrDatabaseQuery,
 			fmt.Errorf("failed to get consent decision by user/client/scope: %w", err),
 		)
 	}
 
-	return &consent, nil
+	for i := range consents {
+		if consents[i].ExpiresAt.After(now) {
+			return &consents[i], nil
+		}
+	}
+
+	return nil, cryptoutilIdentityAppErr.ErrConsentNotFound
 }
 
 // Update updates an existing consent decision.

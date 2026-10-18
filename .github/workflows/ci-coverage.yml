@@ -209,7 +209,7 @@ jobs:
             category_expected[3] = 44
             expected_total_count = 352
             expected_root_pkg_count = 0
-            expected_no_test_count = 30
+            expected_no_test_count = 27
             expected_no_statement_count = 2
             no_statement_package[1] = module "/internal/apps/identity-authz/e2e"
             no_statement_package[2] = module "/internal/apps/sm-kms/server/pki/domain"

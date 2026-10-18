@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"sync"
 	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -85,6 +86,8 @@ type BehavioralRiskEngine struct {
 	deviceDB     DeviceFingerprintDB
 
 	// Weights loaded from policy (cached after first load).
+	weightsMu      sync.RWMutex
+	weightsLoaded  bool
 	locationWeight float64
 	deviceWeight   float64
 	timeWeight     float64
@@ -110,8 +113,11 @@ func NewBehavioralRiskEngine(
 
 // loadWeights loads risk factor weights from policy if not already loaded.
 func (e *BehavioralRiskEngine) loadWeights(ctx context.Context) error {
+	e.weightsMu.Lock()
+	defer e.weightsMu.Unlock()
+
 	// Check if weights already loaded.
-	if e.locationWeight > 0 {
+	if e.weightsLoaded {
 		return nil
 	}
 
@@ -145,6 +151,8 @@ func (e *BehavioralRiskEngine) loadWeights(ctx context.Context) error {
 	if velocity, ok := policy.RiskFactors["velocity"]; ok {
 		e.velocityWeight = velocity.Weight
 	}
+
+	e.weightsLoaded = true
 
 	return nil
 }
@@ -195,6 +203,15 @@ func (e *BehavioralRiskEngine) AssessRisk(ctx context.Context, userID string, au
 
 // CalculateRiskFactors computes individual risk factors.
 func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, baseline *UserBaseline) []RiskFactor {
+	e.weightsMu.RLock()
+	locationWeight := e.locationWeight
+	deviceWeight := e.deviceWeight
+	timeWeight := e.timeWeight
+	behaviorWeight := e.behaviorWeight
+	networkWeight := e.networkWeight
+	velocityWeight := e.velocityWeight
+	e.weightsMu.RUnlock()
+
 	factors := make([]RiskFactor, 0)
 
 	// Location risk.
@@ -203,7 +220,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 		factors = append(factors, RiskFactor{
 			Type:   RiskFactorLocation,
 			Score:  locationRisk,
-			Weight: e.locationWeight,
+			Weight: locationWeight,
 			Reason: "Location-based risk assessment",
 			Metadata: map[string]any{
 				cryptoutilSharedMagic.AddressCountry: authContext.Location.Country,
@@ -218,7 +235,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 		factors = append(factors, RiskFactor{
 			Type:   RiskFactorDevice,
 			Score:  deviceRisk,
-			Weight: e.deviceWeight,
+			Weight: deviceWeight,
 			Reason: "Device fingerprint risk assessment",
 			Metadata: map[string]any{
 				valueDeviceID: authContext.Device.ID,
@@ -231,7 +248,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 	factors = append(factors, RiskFactor{
 		Type:   RiskFactorTime,
 		Score:  timeRisk,
-		Weight: e.timeWeight,
+		Weight: timeWeight,
 		Reason: "Time-based risk assessment",
 		Metadata: map[string]any{
 			valueHour: authContext.Time.Hour(),
@@ -244,7 +261,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 		factors = append(factors, RiskFactor{
 			Type:   RiskFactorBehavior,
 			Score:  behaviorRisk,
-			Weight: e.behaviorWeight,
+			Weight: behaviorWeight,
 			Reason: "Behavioral pattern risk assessment",
 		})
 	}
@@ -255,7 +272,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 		factors = append(factors, RiskFactor{
 			Type:   RiskFactorNetwork,
 			Score:  networkRisk,
-			Weight: e.networkWeight,
+			Weight: networkWeight,
 			Reason: "Network-based risk assessment",
 			Metadata: map[string]any{
 				"ip": authContext.Network.IPAddress,
@@ -268,7 +285,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 	factors = append(factors, RiskFactor{
 		Type:   RiskFactorVelocity,
 		Score:  velocityRisk,
-		Weight: e.velocityWeight,
+		Weight: velocityWeight,
 		Reason: "Authentication velocity risk assessment",
 	})
 

@@ -2,12 +2,11 @@
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
 name: 'docker-compose-down'
-description: 'Stop Docker Compose services and clean up volumes'
+description: 'Stop Docker Compose services and remove containers and networks while preserving volumes'
 inputs:
   compose-file:
     description: 'Path to the Docker Compose file'
-    required: false
-    default: './deployments/cryptoutil/compose.yml'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -22,7 +21,7 @@ runs:
         COMPOSE_DIR="$(dirname "$COMPOSE_INPUT_PATH")"
         COMPOSE_FILE="$(basename "$COMPOSE_INPUT_PATH")"
         cd "$COMPOSE_DIR"
-        docker compose -f "$COMPOSE_FILE" down -v
+        docker compose -f "$COMPOSE_FILE" down
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

@@ -19,6 +19,22 @@ import (
 
 // SignBytes signs bytes using the provided JWKs and returns a JWS message.
 func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte, error) {
+	return signBytes(jwks, clearBytes, setJWSHeader, joseJws.Sign, joseJws.Parse)
+}
+
+type jwsHeaderSetter func(string, any) error
+
+func setJWSHeader(setter jwsHeaderSetter, name string, value any) error {
+	return setter(name, value)
+}
+
+func signBytes(
+	jwks []joseJwk.Key,
+	clearBytes []byte,
+	setHeader func(jwsHeaderSetter, string, any) error,
+	sign func([]byte, ...joseJws.SignOption) ([]byte, error),
+	parse func([]byte, ...joseJws.ParseOption) (*joseJws.Message, error),
+) (*joseJws.Message, []byte, error) {
 	if jwks == nil {
 		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
@@ -64,27 +80,29 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		}
 
 		jwsProtectedHeaders := joseJws.NewHeaders()
-		if err := jwsProtectedHeaders.Set(`iat`, iat); err != nil {
+
+		protectedHeaderSetter := jwsProtectedHeaders.Set
+		if err := setHeader(protectedHeaderSetter, `iat`, iat); err != nil {
 			return nil, nil, fmt.Errorf("failed to set iat header: %w", err)
 		}
 
-		if err := jwsProtectedHeaders.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
+		if err := setHeader(protectedHeaderSetter, joseJwk.KeyIDKey, kid.String()); err != nil {
 			return nil, nil, fmt.Errorf("failed to set kid header: %w", err)
 		}
 
-		if err := jwsProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg); err != nil {
+		if err := setHeader(protectedHeaderSetter, joseJwk.AlgorithmKey, *alg); err != nil {
 			return nil, nil, fmt.Errorf("failed to set alg header: %w", err)
 		}
 
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithKey(*alg, jwk, joseJws.WithProtectedHeaders(jwsProtectedHeaders)))
 	}
 
-	jwsMessageBytes, err := joseJws.Sign(clearBytes, jwsSignOptions...)
+	jwsMessageBytes, err := sign(clearBytes, jwsSignOptions...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to sign clearBytes: %w", err)
 	}
 
-	jwsMessage, err := joseJws.Parse(jwsMessageBytes)
+	jwsMessage, err := parse(jwsMessageBytes)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse JWS message bytes: %w", err)
 	}

@@ -16,7 +16,8 @@ import (
 // DatabaseConnection provides unified access to GORM database connections.
 // All services MUST use GORM - there are no optional modes.
 type DatabaseConnection struct {
-	gormDB *gorm.DB
+	gormDB       *gorm.DB
+	closeSQLDBFn func(*sql.DB) error
 }
 
 // NewDatabaseConnection creates a GORM database connection.
@@ -27,6 +28,9 @@ func NewDatabaseConnection(db *gorm.DB) (*DatabaseConnection, error) {
 
 	return &DatabaseConnection{
 		gormDB: db,
+		closeSQLDBFn: func(sqlDB *sql.DB) error {
+			return sqlDB.Close()
+		},
 	}, nil
 }
 
@@ -61,7 +65,7 @@ func (d *DatabaseConnection) Close() error {
 		return fmt.Errorf("failed to get sql.DB from gorm.DB: %w", err)
 	}
 
-	if err := sqlDB.Close(); err != nil {
+	if err := d.closeSQLDBFn(sqlDB); err != nil {
 		return fmt.Errorf("failed to close database: %w", err)
 	}
 

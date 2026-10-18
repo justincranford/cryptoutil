@@ -141,6 +141,16 @@ func TestSkeleton_TemplateService_InvalidSubcommand(t *testing.T) {
 	)
 }
 
+func TestSkeleton_PKIInitRequiresArguments(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := Skeleton([]string{cryptoutilSharedMagic.PSIDPKIInit}, nil, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
+	require.Contains(t, stderr.String(), "usage: pki-init")
+}
+
 func TestSkeleton_EntryPoint(t *testing.T) {
 	t.Parallel()
 

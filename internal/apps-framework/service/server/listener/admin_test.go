@@ -24,6 +24,44 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func waitForAdminHTTPSResponse(t *testing.T, client *http.Client, endpointURL string) (int, []byte) {
+	t.Helper()
+
+	var (
+		statusCode int
+		body       []byte
+	)
+
+	require.Eventually(t, func() bool {
+		requestCtx, requestCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+		defer requestCancel()
+
+		request, err := http.NewRequestWithContext(requestCtx, http.MethodGet, endpointURL, nil)
+		if err != nil {
+			return false
+		}
+
+		response, err := client.Do(request)
+		if err != nil {
+			return false
+		}
+
+		responseBody, readErr := io.ReadAll(response.Body)
+
+		closeErr := response.Body.Close()
+		if readErr != nil || closeErr != nil {
+			return false
+		}
+
+		statusCode = response.StatusCode
+		body = responseBody
+
+		return statusCode == http.StatusOK
+	}, cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, "admin HTTPS endpoint should return HTTP 200")
+
+	return statusCode, body
+}
+
 // TestNewAdminHTTPServer_HappyPath tests successful admin server creation.
 func TestNewAdminHTTPServer_HappyPath(t *testing.T) {
 	t.Parallel()
@@ -257,24 +295,10 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
-	defer reqCancel()
-
 	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 
-	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
-	require.NoError(t, err)
-
-	resp, err := client.Do(req)
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, resp.Body.Close()) }()
-
-	// Verify response.
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
+	statusCode, body := waitForAdminHTTPSResponse(t, client, url)
+	assert.Equal(t, http.StatusOK, statusCode)
 
 	var response map[string]any
 
@@ -326,7 +350,6 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	// Mark server as ready (application's responsibility after dependencies initialized).
 	server.SetReady(true)
 
-	// Query readyz endpoint.
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -338,24 +361,11 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
-	defer reqCancel()
+	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) +
+		cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath
 
-	url := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/readyz"
-
-	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
-	require.NoError(t, err)
-
-	resp, err := client.Do(req)
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, resp.Body.Close()) }()
-
-	// Verify response.
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
+	statusCode, body := waitForAdminHTTPSResponse(t, client, url)
+	assert.Equal(t, http.StatusOK, statusCode)
 
 	var response map[string]any
 

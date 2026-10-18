@@ -6,6 +6,7 @@ import (
 	json "encoding/json"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -13,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
+	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )
 
@@ -51,7 +54,7 @@ func TestHandleJWKS_EmptySet(t *testing.T) {
 
 	// Verify response.
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Expected 200 OK")
-	require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	require.Equal(t, testJSONContentType, resp.Header.Get("Content-Type"))
 	require.Equal(t, "public, max-age=3600", resp.Header.Get("Cache-Control"))
 
 	// Parse JWKS response.
@@ -135,4 +138,80 @@ func TestHandleJWKS_ErrorScenarios(t *testing.T) {
 			require.Empty(t, keys)
 		})
 	}
+}
+
+func TestHandleJWKS_ActivePublicSigningKeys(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	config := cryptoutilIdentityConfig.DefaultConfig()
+	config.Database.DSN = cryptoutilSharedMagic.SQLiteMemoryPlaceholder
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, repoFactory.Close())
+	})
+
+	require.NoError(t, repoFactory.DB().AutoMigrate(&cryptoutilIdentityDomain.Key{}))
+
+	keyRotationManager, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		cryptoutilIdentityIssuer.NewProductionKeyGenerator(),
+		nil,
+	)
+	require.NoError(t, err)
+	require.NoError(t, keyRotationManager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm))
+
+	publicKeys := keyRotationManager.GetPublicKeys()
+	require.Len(t, publicKeys, 1)
+	publicKeyJSON, err := json.Marshal(publicKeys[0])
+	require.NoError(t, err)
+
+	keys := []*cryptoutilIdentityDomain.Key{
+		{
+			Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+			Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			PrivateKey: testEmptyPrivateKeyJSON,
+			PublicKey:  string(publicKeyJSON),
+			Active:     true,
+			ExpiresAt:  time.Now().UTC().Add(time.Hour),
+		},
+		{
+			Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+			Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			PrivateKey: testEmptyPrivateKeyJSON,
+			PublicKey:  "not-json",
+			Active:     true,
+			ExpiresAt:  time.Now().UTC().Add(time.Hour),
+		},
+		{
+			Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+			Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			PrivateKey: testEmptyPrivateKeyJSON,
+			Active:     true,
+			ExpiresAt:  time.Now().UTC().Add(time.Hour),
+		},
+	}
+	for _, key := range keys {
+		require.NoError(t, repoFactory.KeyRepository().Create(ctx, key))
+	}
+
+	service := NewService(config, repoFactory, nil)
+	app := fiber.New()
+	app.Get(cryptoutilSharedMagic.PathJWKS, service.handleJWKS)
+
+	response, err := app.Test(httptest.NewRequest("GET", cryptoutilSharedMagic.PathJWKS, nil), -1)
+	require.NoError(t, err)
+
+	defer func() { _ = response.Body.Close() }() //nolint:errcheck // Test cleanup.
+
+	require.Equal(t, fiber.StatusOK, response.StatusCode)
+	require.Equal(t, testJSONContentType, response.Header.Get("Content-Type"))
+	require.Equal(t, "public, max-age=3600", response.Header.Get("Cache-Control"))
+
+	var jwks map[string][]map[string]any
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&jwks))
+	require.Len(t, jwks["keys"], 1)
+	require.Equal(t, publicKeys[0]["kid"], jwks["keys"][0]["kid"])
 }

@@ -8,6 +8,7 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -85,6 +86,18 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, goVersion strin
 
 // fixCopyLoopVarInFile removes unnecessary loop variable copies from a single file.
 func FixInFile(_ *cryptoutilCmdCicdCommon.Logger, filePath string) (bool, int, error) {
+	createFile := func(path string) (io.WriteCloser, error) {
+		return os.Create(path)
+	}
+
+	return fixInFile(filePath, createFile, printer.Fprint)
+}
+
+func fixInFile(
+	filePath string,
+	createFile func(string) (io.WriteCloser, error),
+	printNode func(io.Writer, *token.FileSet, any) error,
+) (bool, int, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -123,13 +136,13 @@ func FixInFile(_ *cryptoutilCmdCicdCommon.Logger, filePath string) (bool, int, e
 
 	if fixCount > 0 {
 		// Write the modified AST back to the file.
-		file, err := os.Create(filePath)
+		file, err := createFile(filePath)
 		if err != nil {
 			return false, fixCount, fmt.Errorf("failed to create file: %w", err)
 		}
 		defer file.Close() //nolint:errcheck // Defer close is best-effort.
 
-		if err := printer.Fprint(file, fset, node); err != nil {
+		if err := printNode(file, fset, node); err != nil {
 			return false, fixCount, fmt.Errorf("failed to write file: %w", err)
 		}
 

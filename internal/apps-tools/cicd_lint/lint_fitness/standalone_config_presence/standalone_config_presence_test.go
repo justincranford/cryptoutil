@@ -78,6 +78,12 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheck_FromPackageDirectory(t *testing.T) {
+	t.Parallel()
+
+	require.ErrorContains(t, lintFitnessStandaloneConfigPresence.Check(newTestLogger()), "standalone config presence violations")
+}
+
 func TestCheckInDir_AllPresent(t *testing.T) {
 	t.Parallel()
 

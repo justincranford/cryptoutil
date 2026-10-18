@@ -7,6 +7,7 @@ package listener
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -75,6 +76,13 @@ func TestApplyPublicMTLS(t *testing.T) {
 			wantErr: requiresCAFileError,
 		},
 		{
+			name: testInvalidClientPolicyCase,
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+				PublicTLSClientPolicy: testInvalidTLSClientPolicy,
+			},
+			wantErr: "invalid public TLS client policy",
+		},
+		{
 			name: certReadErrorName,
 			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				PublicTLSCertFile: testCertPath,
@@ -121,6 +129,38 @@ func TestApplyPublicMTLS(t *testing.T) {
 			},
 			stubFiles: stubReadFile{
 				testCAPath: []byte("not-a-valid-cert-pem-but-decoded-ok"),
+			},
+			wantClientCA:   true,
+			wantClientAuth: tls.NoClientCert,
+		},
+		{
+			name: testCABundleNonCertificatePEM,
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+				PublicTLSCAFile: testCAPath,
+			},
+			stubFiles: stubReadFile{
+				testCAPath: pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: []byte("ignored")}),
+			},
+			wantClientCA:   true,
+			wantClientAuth: tls.NoClientCert,
+		},
+		{
+			name: testCABundleMalformedCertificateDER,
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+				PublicTLSCAFile: testCAPath,
+			},
+			stubFiles: stubReadFile{
+				testCAPath: pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: []byte(cryptoutilSharedMagic.DevSetupTestInvalidName)}),
+			},
+			wantErr: testFailedToParseCACertificate,
+		},
+		{
+			name: testCABundleWithCertificate,
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
+				PublicTLSCAFile: testCAPath,
+			},
+			stubFiles: stubReadFile{
+				testCAPath: certPEM,
 			},
 			wantClientCA:   true,
 			wantClientAuth: tls.NoClientCert,

@@ -7,6 +7,7 @@ package mfa
 import (
 	"context"
 	json "encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
+	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -133,13 +135,19 @@ func (s *WebAuthnService) BeginRegistration(ctx context.Context, user *WebAuthnU
 func (s *WebAuthnService) FinishRegistration(ctx context.Context, user *WebAuthnUser, sessionID googleUuid.UUID, response *protocol.ParsedCredentialCreationData, displayName string) (*WebAuthnCredential, error) {
 	var session WebAuthnSession
 	if err := s.db.WithContext(ctx).Where("id = ? AND user_id = ? AND ceremony_type = ?", sessionID, user.ID, WebAuthnCeremonyRegistration).First(&session).Error; err != nil {
-		return nil, fmt.Errorf("session not found: %w", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("session not found: %w", cryptoutilIdentityAppErr.ErrWebAuthnSessionNotFound)
+		}
+
+		return nil, fmt.Errorf("failed to get registration session: %w", err)
 	}
 
 	if session.IsExpired() {
-		_ = s.db.WithContext(ctx).Delete(&session)
+		if err := s.db.WithContext(ctx).Delete(&session).Error; err != nil {
+			return nil, fmt.Errorf("failed to delete expired registration session: %w", errors.Join(cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired, err))
+		}
 
-		return nil, fmt.Errorf("session expired")
+		return nil, fmt.Errorf("session expired: %w", cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired)
 	}
 
 	var webauthnSession webauthn.SessionData
@@ -149,7 +157,7 @@ func (s *WebAuthnService) FinishRegistration(ctx context.Context, user *WebAuthn
 
 	credential, err := s.webauthn.CreateCredential(user, webauthnSession, response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create credential: %w", err)
+		return nil, fmt.Errorf("failed to create credential: %w", errors.Join(cryptoutilIdentityAppErr.ErrWebAuthnVerificationFailed, err))
 	}
 
 	transportsJSON, _ := json.Marshal(credential.Transport)
@@ -205,13 +213,19 @@ func (s *WebAuthnService) BeginAuthentication(ctx context.Context, user *WebAuth
 func (s *WebAuthnService) FinishAuthentication(ctx context.Context, user *WebAuthnUser, sessionID googleUuid.UUID, response *protocol.ParsedCredentialAssertionData) (*WebAuthnCredential, error) {
 	var session WebAuthnSession
 	if err := s.db.WithContext(ctx).Where("id = ? AND user_id = ? AND ceremony_type = ?", sessionID, user.ID, WebAuthnCeremonyAuthentication).First(&session).Error; err != nil {
-		return nil, fmt.Errorf("session not found: %w", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("session not found: %w", cryptoutilIdentityAppErr.ErrWebAuthnSessionNotFound)
+		}
+
+		return nil, fmt.Errorf("failed to get authentication session: %w", err)
 	}
 
 	if session.IsExpired() {
-		_ = s.db.WithContext(ctx).Delete(&session)
+		if err := s.db.WithContext(ctx).Delete(&session).Error; err != nil {
+			return nil, fmt.Errorf("failed to delete expired authentication session: %w", errors.Join(cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired, err))
+		}
 
-		return nil, fmt.Errorf("session expired")
+		return nil, fmt.Errorf("session expired: %w", cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired)
 	}
 
 	var webauthnSession webauthn.SessionData
@@ -221,12 +235,16 @@ func (s *WebAuthnService) FinishAuthentication(ctx context.Context, user *WebAut
 
 	credential, err := s.webauthn.ValidateLogin(user, webauthnSession, response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to validate login: %w", err)
+		return nil, fmt.Errorf("failed to validate login: %w", errors.Join(cryptoutilIdentityAppErr.ErrWebAuthnVerificationFailed, err))
 	}
 
 	var storedCred WebAuthnCredential
 	if err := s.db.WithContext(ctx).Where("credential_id = ? AND user_id = ?", credential.ID, user.ID).First(&storedCred).Error; err != nil {
-		return nil, fmt.Errorf("credential not found: %w", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("credential not found: %w", cryptoutilIdentityAppErr.ErrWebAuthnCredentialNotFound)
+		}
+
+		return nil, fmt.Errorf("failed to get credential: %w", err)
 	}
 
 	now := time.Now().UTC()
@@ -261,7 +279,7 @@ func (s *WebAuthnService) DeleteCredential(ctx context.Context, userID, credenti
 	}
 
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("credential not found")
+		return cryptoutilIdentityAppErr.ErrWebAuthnCredentialNotFound
 	}
 
 	return nil

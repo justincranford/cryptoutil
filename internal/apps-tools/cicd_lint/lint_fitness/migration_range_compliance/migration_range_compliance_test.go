@@ -99,7 +99,7 @@ func TestCheckInDir_DomainMigrations(t *testing.T) {
 		{name: "sm-kms below min fails", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 1}, wantErr: true, errContains: testMigrationRangeCompliance},
 		{name: "sm-kms above max fails", migRelDir: smKmsMigRelDir, fileNumbers: []int{2001, 3001}, wantErr: true, errContains: testMigrationRangeCompliance},
 		{name: "sm-kms PKI migration range passes", migRelDir: smKmsMigRelDir, fileNumbers: []int{2009}},
-		{name: "identity skipped", migRelDir: identityMigRelDir, fileNumbers: []int{1, 2, 3, 11}},
+		{name: "identity skipped", migRelDir: identityMigRelDir, fileNumbers: []int{1, 2, testThirdSequenceNumber, 11}},
 		{name: "empty dir passes", migRelDir: "", fileNumbers: nil},
 		{name: "unknown psid valid loose bound", migRelDir: unknownSvcMigDir, fileNumbers: []int{2001, 9999}},
 		{name: "unknown psid below loose lower fails", migRelDir: unknownSvcMigDir, fileNumbers: []int{999}, wantErr: true, errContains: testMigrationRangeCompliance},

@@ -10,7 +10,7 @@ import (
 	"crypto/elliptic"
 	crand "crypto/rand"
 	"crypto/x509"
-	"encoding/pem"
+	stdasn1 "encoding/asn1"
 	"fmt"
 	"testing"
 
@@ -23,10 +23,10 @@ var ecdhTestCurves = []struct {
 	Name  string
 	Curve ecdh.Curve
 }{
-	{"ECDH X25519", ecdh.X25519()}, // PASS
-	{"ECDH P256", ecdh.P256()},     // FAIL => encode+decode returns ECDSA instead of ECDH
-	{"ECDH P384", ecdh.P384()},     // FAIL => encode+decode returns ECDSA instead of ECDH
-	{"ECDH P521", ecdh.P521()},     // FAIL => encode+decode returns ECDSA instead of ECDH
+	{"ECDH X25519", ecdh.X25519()},
+	{"ECDH P256", ecdh.P256()},
+	{"ECDH P384", ecdh.P384()},
+	{"ECDH P521", ecdh.P521()},
 }
 
 var ecdsaTestCurves = []struct {
@@ -41,19 +41,55 @@ var ecdsaTestCurves = []struct {
 
 func TestEncodeDecodeECDH(t *testing.T) {
 	t.Parallel()
-	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
 
 	for _, curve := range ecdhTestCurves {
 		t.Run(curve.Name, func(t *testing.T) {
+			t.Parallel()
+
 			original, err := curve.Curve.GenerateKey(crand.Reader)
 			require.NoError(t, err)
 
 			require.IsType(t, &ecdh.PrivateKey{}, original)
 
-			decoded, err := pkcs8EncodeDecode(t, original)
+			encoded, _, err := DEREncode(original)
+			require.NoError(t, err)
+
+			if curve.Curve != ecdh.X25519() {
+				var privateKeyInfo pkcs8PrivateKeyInfo
+
+				rest, err := stdasn1.Unmarshal(encoded, &privateKeyInfo)
+				require.NoError(t, err)
+				require.Empty(t, rest)
+				require.Equal(t, cryptoutilSharedMagic.StringOIDPublicKeyECDH, privateKeyInfo.Algorithm.Algorithm.String())
+			}
+
+			decoded, _, err := DERDecodes(encoded)
 			require.NoError(t, err)
 
 			require.IsType(t, &ecdh.PrivateKey{}, decoded)
+			decodedPrivateKey, ok := decoded.(*ecdh.PrivateKey)
+			require.True(t, ok)
+			require.Equal(t, original.Bytes(), decodedPrivateKey.Bytes())
+
+			publicEncoded, publicPEMType, err := DEREncode(original.PublicKey())
+			require.NoError(t, err)
+
+			if curve.Curve != ecdh.X25519() {
+				var publicKeyInfo pkixPublicKeyInfo
+
+				rest, err := stdasn1.Unmarshal(publicEncoded, &publicKeyInfo)
+				require.NoError(t, err)
+				require.Empty(t, rest)
+				require.Equal(t, cryptoutilSharedMagic.StringOIDPublicKeyECDH, publicKeyInfo.Algorithm.Algorithm.String())
+			}
+
+			decoded, err = DERDecode(publicEncoded, publicPEMType)
+			require.NoError(t, err)
+
+			require.IsType(t, &ecdh.PublicKey{}, decoded)
+			decodedPublicKey, ok := decoded.(*ecdh.PublicKey)
+			require.True(t, ok)
+			require.Equal(t, original.PublicKey().Bytes(), decodedPublicKey.Bytes())
 		})
 	}
 }
@@ -63,6 +99,8 @@ func TestEncodeDecodeECDSA(t *testing.T) {
 
 	for _, curve := range ecdsaTestCurves {
 		t.Run(curve.Name, func(t *testing.T) {
+			t.Parallel()
+
 			original, err := ecdsa.GenerateKey(curve.Curve, crand.Reader)
 			require.NoError(t, err)
 
@@ -83,9 +121,6 @@ func pkcs8EncodeDecode(t *testing.T, key any) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("encode failed: %w", err)
 	}
-
-	pemBytes := pem.EncodeToMemory(&pem.Block{Bytes: encodedBytes, Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey})
-	t.Logf("PKCS#8 PEM of private Key :\n%s", string(pemBytes))
 
 	decodedKey, err := x509.ParsePKCS8PrivateKey(encodedBytes)
 	if err != nil {

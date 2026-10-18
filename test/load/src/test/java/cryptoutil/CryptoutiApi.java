@@ -1,6 +1,7 @@
 package cryptoutil;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
+import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.bodyString;
 import static io.gatling.javaapi.core.CoreDsl.doIf;
 import static io.gatling.javaapi.core.CoreDsl.exec;
@@ -10,10 +11,14 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
 import io.gatling.javaapi.core.ChainBuilder;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.ScenarioBuilder;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -21,12 +26,69 @@ public class CryptoutiApi {
   public static final String CLEARTEXT = "Hello World Load Test";
 
   public static final String DEFAULT_PROVIDER = "Internal";
+  private static final AtomicReference<String> SERVICE_TOKEN = new AtomicReference<>();
 
   // Feeder for generating unique UUIDs
   private static final Iterator<Map<String, Object>> uuidFeeder =
       Stream.generate(
               (Supplier<Map<String, Object>>) () -> Map.of("uuid", UUID.randomUUID().toString()))
           .iterator();
+
+  public static ChainBuilder bootstrapServiceClient() {
+    return exec(session -> {
+          String tenantSuffix = UUID.randomUUID().toString();
+          return session.set("clientTenantName", "load-client-" + tenantSuffix);
+        })
+        .exec(
+            http("Register Load Test Service Client")
+                .post("/auth/register-client")
+                .body(StringBody("{\"tenant_name\":\"#{clientTenantName}\"}"))
+                .header("Content-Type", "application/json")
+                .check(status().is(201))
+                .check(jsonPath("$.client_id").saveAs("clientId"))
+                .check(jsonPath("$.client_secret").saveAs("clientSecret")))
+        .exec(
+            session -> {
+              String credentials =
+                  session.getString("clientId") + ":" + session.getString("clientSecret");
+              String basicCredentials =
+                  Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+              return session.set("clientAuthorization", "Basic " + basicCredentials);
+            })
+        .exec(
+            http("Exchange Load Test Service Client Credentials")
+                .post("/auth/token")
+                .header("Authorization", "#{clientAuthorization}")
+                .check(status().is(200))
+                .check(jsonPath("$.token").saveAs("serviceToken")))
+        .exec(
+            session -> {
+              String token = session.getString("serviceToken");
+              if (token == null || token.isBlank()) {
+                throw new IllegalStateException("Service client token exchange returned no token");
+              }
+              SERVICE_TOKEN.set(token);
+              return session;
+            });
+  }
+
+  public static ChainBuilder authenticateServiceClient() {
+    return exec(
+        session -> {
+          String token = SERVICE_TOKEN.get();
+          if (token == null || token.isBlank()) {
+            throw new IllegalStateException("Service client bootstrap has not completed");
+          }
+
+          return session.set("serviceToken", token);
+        });
+  }
+
+  public static PopulationBuilder serviceClientBootstrapPopulation() {
+    return scenario("Service Client Credential Bootstrap")
+        .exec(bootstrapServiceClient())
+        .injectOpen(atOnceUsers(1));
+  }
 
   static final String[] ELASTIC_KEY_ENCRYPTION_ALGORITHMS = {
     // GCM with A256KW
@@ -122,6 +184,7 @@ public class CryptoutiApi {
     return exec(
         http("Create Elastic Key: " + algorithm)
             .post("/elastickey")
+            .header("Authorization", "Bearer #{serviceToken}")
             .body(
                 StringBody(
                     String.format(
@@ -148,6 +211,7 @@ public class CryptoutiApi {
     return exec(
         http("Get Elastic Key")
             .get("/elastickey/#{" + elasticKeyIdSessionVar + "}")
+            .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200))
             .check(jsonPath("$.elastic_key_id").exists()));
   }
@@ -163,6 +227,7 @@ public class CryptoutiApi {
     return exec(
         http("Find Elastic Keys")
             .get("/elastickeys?page=" + page + "&size=" + size)
+            .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200)));
   }
 
@@ -184,6 +249,7 @@ public class CryptoutiApi {
         exec(
             http("Generate Material Key")
                 .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/materialkey")
+                .header("Authorization", "Bearer #{serviceToken}")
                 .body(StringBody("{}"))
                 .check(status().is(200))
                 .check(jsonPath("$.elastic_key_id").exists())
@@ -220,6 +286,7 @@ public class CryptoutiApi {
                     + "}/materialkey/#{"
                     + materialKeyIdSessionVar
                     + "}")
+            .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200))
             .check(jsonPath("$.elastic_key_id").exists())
             .check(jsonPath("$.material_key_id").exists()));
@@ -243,6 +310,7 @@ public class CryptoutiApi {
                     + page
                     + "&size="
                     + size)
+            .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200)));
   }
 
@@ -257,6 +325,7 @@ public class CryptoutiApi {
     return exec(
         http("Find All Material Keys")
             .get("/materialkeys?page=" + page + "&size=" + size)
+            .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200)));
   }
 
@@ -287,6 +356,7 @@ public class CryptoutiApi {
     return exec(
         http("Generate Data Key: " + algorithm)
             .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/generate" + queryParams)
+            .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200))
             .check(bodyString().saveAs(saveJweAs))
             .check(
@@ -311,6 +381,7 @@ public class CryptoutiApi {
     return exec(
         http("Encrypt")
             .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/encrypt" + queryParams)
+            .header("Authorization", "Bearer #{serviceToken}")
             .body(StringBody(cleartext))
             .header("Content-Type", "text/plain")
             .check(status().is(200))
@@ -335,6 +406,7 @@ public class CryptoutiApi {
     return exec(
         http("Decrypt")
             .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/decrypt")
+            .header("Authorization", "Bearer #{serviceToken}")
             .body(StringBody("#{" + ciphertextSessionVar + "}"))
             .header("Content-Type", "text/plain")
             .check(status().is(200))
@@ -357,6 +429,7 @@ public class CryptoutiApi {
     return exec(
         http("Sign")
             .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/sign" + queryParams)
+            .header("Authorization", "Bearer #{serviceToken}")
             .body(StringBody(cleartext))
             .header("Content-Type", "text/plain")
             .check(status().is(200))
@@ -379,6 +452,7 @@ public class CryptoutiApi {
     return exec(
         http("Verify")
             .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/verify")
+            .header("Authorization", "Bearer #{serviceToken}")
             .body(StringBody("#{" + signatureSessionVar + "}"))
             .header("Content-Type", "text/plain")
             .check(status().is(204)));
@@ -402,6 +476,7 @@ public class CryptoutiApi {
     String elasticKeyDesc = "Load test for " + algorithm;
 
     return scenario(scenarioName)
+        .exec(authenticateServiceClient())
         .feed(uuidFeeder)
         .exec(
             createElasticKey(
@@ -444,6 +519,7 @@ public class CryptoutiApi {
     String elasticKeyDesc = "Load test for " + algorithm;
 
     return scenario(scenarioName)
+        .exec(authenticateServiceClient())
         .feed(uuidFeeder)
         .exec(
             createElasticKey(
@@ -477,6 +553,7 @@ public class CryptoutiApi {
 
     ScenarioBuilder scenario =
         scenario(scenarioName)
+            .exec(authenticateServiceClient())
             .feed(uuidFeeder)
             .exec(
                 createElasticKey(
@@ -533,6 +610,7 @@ public class CryptoutiApi {
 
     ScenarioBuilder scenario =
         scenario(scenarioName)
+            .exec(authenticateServiceClient())
             .feed(uuidFeeder)
             .exec(
                 createElasticKey(

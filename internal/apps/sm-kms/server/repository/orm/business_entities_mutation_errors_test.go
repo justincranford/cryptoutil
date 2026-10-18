@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 // Copyright (c) 2025-2026 Justin Cranford.
 package orm
 
@@ -15,10 +12,8 @@ import (
 )
 
 // TestUpdateElasticKey_InvalidUUID tests error path when updating with invalid UUID.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create elastic key with zero UUID (invalid).
@@ -48,10 +43,8 @@ func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
 }
 
 // TestUpdateElasticKey_NonExistentRecord tests error path when updating non-existent record.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create elastic key with non-existent UUID.
@@ -82,10 +75,8 @@ func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
 }
 
 // TestUpdateElasticKeyStatus_InvalidUUID tests error path when updating status with invalid UUID.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestUpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Attempt update with zero UUID (invalid).
@@ -99,10 +90,8 @@ func TestUpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 }
 
 // TestUpdateElasticKeyStatus_NonExistentRecord tests error path when updating status of non-existent record.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestUpdateElasticKeyStatus_NonExistentRecord(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Attempt update on non-existent UUID.
@@ -118,10 +107,8 @@ func TestUpdateElasticKeyStatus_NonExistentRecord(t *testing.T) {
 
 // TestGetElasticKeys_QueryError tests error path in GetElasticKeys.
 // Note: This is difficult to trigger without database errors.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestGetElasticKeys_EmptyResult(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Query with filters that match nothing.
@@ -145,10 +132,8 @@ func TestGetElasticKeys_EmptyResult(t *testing.T) {
 }
 
 // TestUpdateElasticKey_DatabaseConstraintViolation tests error path when violating database constraints.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// First create a valid elastic key.
@@ -200,10 +185,8 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 }
 
 // TestUpdateElasticKeyStatus_DatabaseConstraintViolation tests error path when violating constraints.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestUpdateElasticKeyStatus_DatabaseConstraintViolation(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// First create a valid elastic key.

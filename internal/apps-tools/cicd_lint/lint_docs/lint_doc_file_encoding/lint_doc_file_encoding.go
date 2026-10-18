@@ -36,7 +36,14 @@ var policyDirectories = []string{
 // tooling policy artifacts (handbook, instructions, agents, skills, and root
 // control files).
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	rootDir, err := findProjectRoot()
+	return checkWithRootFinder(logger, findProjectRoot)
+}
+
+func checkWithRootFinder(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	findRoot func() (string, error),
+) error {
+	rootDir, err := findRoot()
 	if err != nil {
 		return fmt.Errorf("find project root: %w", err)
 	}
@@ -47,9 +54,13 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 // CheckInDir enforces UTF-8 without BOM and LF-only line endings for all agent
 // tooling policy artifacts in rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDirWithOperations(logger, rootDir, productionFileOperations())
+}
+
+func checkInDirWithOperations(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, operations fileOperations) error {
 	logger.Log("Checking agent-tooling policy file encoding and line endings...")
 
-	files, err := collectPolicyFiles(rootDir)
+	files, err := collectPolicyFilesWithOperations(rootDir, operations)
 	if err != nil {
 		return fmt.Errorf("collect policy files: %w", err)
 	}
@@ -57,7 +68,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var violations []string
 
 	for _, filePath := range files {
-		issues, err := checkFile(filePath)
+		issues, err := checkFileWithReadFile(filePath, operations.readFile)
 		if err != nil {
 			violations = append(violations, fmt.Sprintf("%s: %v", filePath, err))
 
@@ -81,6 +92,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 }
 
 func collectPolicyFiles(rootDir string) ([]string, error) {
+	return collectPolicyFilesWithOperations(rootDir, productionFileOperations())
+}
+
+func collectPolicyFilesWithOperations(rootDir string, operations fileOperations) ([]string, error) {
 	files := []string{
 		filepath.Join(rootDir, cryptoutilSharedMagic.CICDDocsHandbookPath),
 		filepath.Join(rootDir, cryptoutilSharedMagic.CICDCopilotInstructionsFile),
@@ -92,7 +107,7 @@ func collectPolicyFiles(rootDir string) ([]string, error) {
 	for _, relativeDir := range policyDirectories {
 		dirPath := filepath.Join(rootDir, relativeDir)
 
-		if _, err := os.Stat(dirPath); err != nil {
+		if _, err := operations.stat(dirPath); err != nil {
 			if errors.Is(err, fs.ErrNotExist) {
 				continue
 			}
@@ -100,7 +115,7 @@ func collectPolicyFiles(rootDir string) ([]string, error) {
 			return nil, fmt.Errorf("stat %q: %w", relativeDir, err)
 		}
 
-		walkErr := filepath.WalkDir(dirPath, func(path string, entry fs.DirEntry, walkErr error) error {
+		walkErr := operations.walkDir(dirPath, func(path string, entry fs.DirEntry, walkErr error) error {
 			if walkErr != nil {
 				return walkErr
 			}
@@ -137,7 +152,11 @@ func collectPolicyFiles(rootDir string) ([]string, error) {
 }
 
 func checkFile(filePath string) ([]string, error) {
-	data, err := os.ReadFile(filePath)
+	return checkFileWithReadFile(filePath, os.ReadFile)
+}
+
+func checkFileWithReadFile(filePath string, readFile func(string) ([]byte, error)) ([]string, error) {
+	data, err := readFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("read file: %w", err)
 	}
@@ -178,13 +197,24 @@ func checkFile(filePath string) ([]string, error) {
 }
 
 func findProjectRoot() (string, error) {
-	dir, err := os.Getwd()
+	return findProjectRootWithGetwd(os.Getwd)
+}
+
+func findProjectRootWithGetwd(getwd func() (string, error)) (string, error) {
+	return findProjectRootWithOperations(getwd, os.Stat)
+}
+
+func findProjectRootWithOperations(
+	getwd func() (string, error),
+	stat func(string) (os.FileInfo, error),
+) (string, error) {
+	dir, err := getwd()
 	if err != nil {
 		return "", fmt.Errorf("failed to get working directory: %w", err)
 	}
 
 	for {
-		if _, statErr := os.Stat(filepath.Join(dir, "go.mod")); statErr == nil {
+		if _, statErr := stat(filepath.Join(dir, "go.mod")); statErr == nil {
 			return dir, nil
 		}
 
@@ -194,5 +224,19 @@ func findProjectRoot() (string, error) {
 		}
 
 		dir = parent
+	}
+}
+
+type fileOperations struct {
+	stat     func(string) (os.FileInfo, error)
+	walkDir  func(string, fs.WalkDirFunc) error
+	readFile func(string) ([]byte, error)
+}
+
+func productionFileOperations() fileOperations {
+	return fileOperations{
+		stat:     os.Stat,
+		walkDir:  filepath.WalkDir,
+		readFile: os.ReadFile,
 	}
 }

@@ -101,7 +101,7 @@ func (h *Handler) lookupCertificateStatusBySerial(
 
 // ocspErrorResponse sends an OCSP error response with appropriate content type.
 func (h *Handler) ocspErrorResponse(c *fiber.Ctx, statusCode int) error {
-	c.Set("Content-Type", "application/ocsp-response")
+	c.Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeOCSPResponse)
 
 	if err := c.SendStatus(statusCode); err != nil {
 		return fmt.Errorf("failed to send OCSP error response: %w", err)

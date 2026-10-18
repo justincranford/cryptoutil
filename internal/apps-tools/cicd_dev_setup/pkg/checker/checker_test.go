@@ -137,7 +137,7 @@ func TestCheck_Sad(t *testing.T) {
 			name: "Invalid check command",
 			dep: &cryptoutilAppsToolsDevSetupConfig.Dependency{
 				Name:     cryptoutilSharedMagic.DevSetupTestInvalidName,
-				CheckCmd: "",
+				CheckCmd: "   ",
 			},
 			expectErr: true,
 		},

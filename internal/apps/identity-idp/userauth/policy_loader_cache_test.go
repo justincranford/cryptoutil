@@ -128,6 +128,55 @@ tuning:
 	require.Same(t, adaptivePolicy1, adaptivePolicy2)
 }
 
+func TestYAMLPolicyLoader_FileReadErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		errorContains string
+		load          func(*YAMLPolicyLoader) error
+	}{
+		{
+			name:          "risk scoring policy",
+			errorContains: "failed to read risk scoring policy",
+			load: func(loader *YAMLPolicyLoader) error {
+				_, err := loader.LoadRiskScoringPolicy(context.Background())
+
+				return err
+			},
+		},
+		{
+			name:          "step-up policies",
+			errorContains: "failed to read step-up policies",
+			load: func(loader *YAMLPolicyLoader) error {
+				_, err := loader.LoadStepUpPolicies(context.Background())
+
+				return err
+			},
+		},
+		{
+			name:          "adaptive authentication policy",
+			errorContains: "failed to read adaptive auth policy",
+			load: func(loader *YAMLPolicyLoader) error {
+				_, err := loader.LoadAdaptiveAuthPolicy(context.Background())
+
+				return err
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			missingPath := filepath.Join(t.TempDir(), "missing.yml")
+			loader := NewYAMLPolicyLoader(missingPath, missingPath, missingPath)
+
+			require.ErrorContains(t, tc.load(loader), tc.errorContains)
+		})
+	}
+}
+
 func TestYAMLPolicyLoader_HotReload(t *testing.T) {
 	t.Parallel()
 
@@ -169,4 +218,16 @@ func TestYAMLPolicyLoader_HotReload(t *testing.T) {
 	policy3, err := loader.LoadRiskScoringPolicy(ctx)
 	require.NoError(t, err)
 	require.Equal(t, policy2.Version, policy3.Version) // Same version = same content.
+}
+
+func TestYAMLPolicyLoader_HotReloadState(t *testing.T) {
+	t.Parallel()
+
+	loader := NewYAMLPolicyLoader("", "", "")
+	loader.DisableHotReload()
+
+	require.NoError(t, loader.EnableHotReload(context.Background(), time.Hour))
+	t.Cleanup(loader.DisableHotReload)
+
+	require.ErrorContains(t, loader.EnableHotReload(context.Background(), time.Hour), "hot-reload already enabled")
 }

@@ -216,11 +216,22 @@ const (
 	DefaultPublicBrowserAPIIPRateLimit uint16 = 100
 	// DefaultPublicBrowserAPIContextPath - Default public browser API context path.
 	DefaultPublicBrowserAPIContextPath = "/browser/api/v1"
+	// DefaultPublicBrowserAuthRegisterPath - Unauthenticated browser user registration endpoint.
+	DefaultPublicBrowserAuthRegisterPath = DefaultPublicBrowserAPIContextPath + "/auth/register"
 
 	// DefaultPublicServiceAPIIPRateLimit - Default service IP rate limit (25 requests/second).
 	DefaultPublicServiceAPIIPRateLimit uint16 = 25
 	// DefaultPublicServiceAPIContextPath - Default public service API context path.
 	DefaultPublicServiceAPIContextPath = "/service/api/v1"
+	// DefaultPublicServiceAuthRegisterPath - Unauthenticated service user registration endpoint.
+	DefaultPublicServiceAuthRegisterPath = DefaultPublicServiceAPIContextPath + "/auth/register"
+	// DefaultPublicServiceAuthLoginPath is an unsupported headless username/password login path.
+	// Password login is browser-only; this path must not be registered or bypass service auth.
+	DefaultPublicServiceAuthLoginPath = DefaultPublicServiceAPIContextPath + "/auth/login"
+	// DefaultPublicServiceAuthClientRegisterPath - Unauthenticated service-client registration endpoint.
+	DefaultPublicServiceAuthClientRegisterPath = DefaultPublicServiceAPIContextPath + "/auth/register-client"
+	// DefaultPublicServiceAuthTokenPath - HTTP Basic client-credential exchange endpoint.
+	DefaultPublicServiceAuthTokenPath = DefaultPublicServiceAPIContextPath + "/auth/token"
 
 	// DefaultPrivateAdminAPIContextPath - Default private admin API context path.
 	DefaultPrivateAdminAPIContextPath = "/admin/api/v1"

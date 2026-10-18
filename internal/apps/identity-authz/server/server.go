@@ -59,9 +59,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityAuthzServerCo
 			publicServer := NewPublicServer(base, cfg)
 
 			// Register all routes (standard + authz-specific).
-			if err := publicServer.registerRoutes(); err != nil {
-				return fmt.Errorf("failed to register public routes: %w", err)
-			}
+			publicServer.registerRoutes()
 
 			return nil
 		},

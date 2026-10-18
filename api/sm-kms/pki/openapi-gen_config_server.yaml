@@ -4,6 +4,7 @@ package: server
 output: server/server.gen.go
 generate:
   fiber-server: true
+  strict-server: true
   models: true
   embedded-spec: true
 output-options:

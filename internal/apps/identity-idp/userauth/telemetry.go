@@ -46,8 +46,10 @@ type TelemetryRecorder struct {
 
 // NewTelemetryRecorder creates new telemetry recorder for adaptive auth.
 func NewTelemetryRecorder(_ context.Context) (*TelemetryRecorder, error) {
-	meter := otel.Meter(meterName)
+	return newTelemetryRecorder(otel.Meter(meterName))
+}
 
+func newTelemetryRecorder(meter metric.Meter) (*TelemetryRecorder, error) {
 	// Risk scoring metrics.
 	riskScoreHistogram, err := meter.Float64Histogram(
 		"identity.risk.score",

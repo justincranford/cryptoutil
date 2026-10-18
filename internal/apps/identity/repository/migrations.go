@@ -23,21 +23,11 @@ import (
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
 
-// Migration state tracking for parallel test safety.
-var (
-	migrationMutex sync.Mutex
-	migratedDBs    = make(map[string]bool)
-)
+var migrationMutex sync.Mutex
 
-// ResetMigrationStateForTesting clears the migration state cache.
-// ONLY for use in test setup to ensure clean migration state per test.
-// NOT safe for production use - only call from test initialization code.
-func ResetMigrationStateForTesting() {
-	migrationMutex.Lock()
-	defer migrationMutex.Unlock()
-
-	migratedDBs = make(map[string]bool)
-}
+// ResetMigrationStateForTesting is retained for compatibility with existing tests.
+// Migrate no longer stores process-global migration state, so there is nothing to reset.
+func ResetMigrationStateForTesting() {}
 
 // Migrate applies SQL migrations from embedded files.
 // Thread-safe for concurrent test execution via mutex protection.
@@ -45,34 +35,8 @@ func Migrate(ctx context.Context, db *sql.DB, dbType string) error {
 	migrationMutex.Lock()
 	defer migrationMutex.Unlock()
 
-	// For in-memory databases, skip the cache entirely and always run migrations.
-	// This handles parallel tests where each test should have its own database.
-	// For persistent databases (file-based or postgres), use pointer caching.
-	isMemoryDB := false
-
-	if dbType == "sqlite" {
-		// Check if this is an in-memory database by querying the database path.
-		var dbPath string
-
-		row := db.QueryRowContext(ctx, "PRAGMA database_list")
-
-		var (
-			seq  int
-			name string
-		)
-
-		if err := row.Scan(&seq, &name, &dbPath); err == nil && (dbPath == "" || dbPath == cryptoutilSharedMagic.SQLiteMemoryPlaceholder) {
-			isMemoryDB = true
-		}
-	}
-
-	var dbKey string
-	if !isMemoryDB {
-		// For persistent databases, use pointer-based caching.
-		dbKey = fmt.Sprintf("%p", db)
-		if migratedDBs[dbKey] {
-			return nil // Already migrated this DB instance
-		}
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("migration context: %w", err)
 	}
 
 	// Enable SQLite pragmas for proper foreign key handling (SQLite only).
@@ -134,11 +98,6 @@ func Migrate(ctx context.Context, db *sql.DB, dbType string) error {
 	// Apply migrations.
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to apply migrations: %w", err)
-	}
-
-	// Only cache persistent databases (not in-memory).
-	if dbKey != "" {
-		migratedDBs[dbKey] = true
 	}
 
 	return nil

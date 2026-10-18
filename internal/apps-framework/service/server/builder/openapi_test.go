@@ -304,6 +304,25 @@ func TestFiberHandlerOpenAPISpec_GetSwaggerError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to get OpenAPI spec")
 }
 
+func TestFiberHandlerOpenAPISpec_MarshalError(t *testing.T) {
+	t.Parallel()
+
+	handler, err := FiberHandlerOpenAPISpec(func() (*openapi3.T, error) {
+		return &openapi3.T{
+			OpenAPI: test300,
+			Info: &openapi3.Info{
+				Title:   testTestAPI,
+				Version: cryptoutilSharedMagic.ServiceVersion,
+			},
+			Paths:      &openapi3.Paths{},
+			Extensions: map[string]any{"unsupported": make(chan struct{})},
+		}, nil
+	})
+
+	require.Nil(t, handler)
+	require.ErrorContains(t, err, "failed to marshal OpenAPI spec")
+}
+
 // TestFiberHandlerOpenAPISpec_MultipleInvocations validates handler can be called multiple times.
 func TestFiberHandlerOpenAPISpec_MultipleInvocations(t *testing.T) {
 	t.Parallel()

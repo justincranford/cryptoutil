@@ -17,6 +17,7 @@ import (
 
 const (
 	testMissingOverlayFileMessage = "missing overlay file"
+	testDatabaseURLKey            = "database-url"
 	testSQLiteDatabaseURL         = "database-url: \"sqlite://file::memory:?cache=shared\"\n"
 	testPostgresDatabaseURL       = "database-url: \"postgres://localhost/db\"\n"
 	testDatabaseURLPatternError   = "does not match pattern"
@@ -122,6 +123,57 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	if err != nil {
 		require.FailNowf(t, cryptoutilSharedMagic.CICDTestFatalfFailureMessage, "unexpected violation in real workspace: %v", err)
 	}
+}
+
+func TestCheckInDir_MissingConfigDirectory(t *testing.T) {
+	t.Parallel()
+
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), t.TempDir(), os.ReadFile)
+
+	require.ErrorContains(t, err, "config/ directory does not exist")
+}
+
+func TestCheckOverlayFile_EmptyYAMLReportsRequiredKeys(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "overlay.yml")
+	require.NoError(t, os.WriteFile(path, nil, cryptoutilSharedMagic.FilePermissionsDefault))
+
+	violations := checkOverlayFile(path, cryptoutilSharedMagic.OTLPServiceSMKMS, filepath.Base(path), &variantTemplate{
+		RequiredKeys: []string{testDatabaseURLKey},
+	}, os.ReadFile)
+
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], "missing required key")
+}
+
+func TestCheckOverlayFile_InvalidRequiredPattern(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "overlay.yml")
+	require.NoError(t, os.WriteFile(path, []byte("database-url: value\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	violations := checkOverlayFile(path, cryptoutilSharedMagic.OTLPServiceSMKMS, filepath.Base(path), &variantTemplate{
+		RequiredPatterns: []requiredPattern{{Key: testDatabaseURLKey, Pattern: "["}},
+	}, os.ReadFile)
+
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], "invalid pattern")
+}
+
+// Sequential: changes the process working directory.
+func TestCheck_FromWorkspaceRoot(t *testing.T) {
+	rootDir := filepath.Join("..", "..", "..", "..", "..")
+
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(rootDir))
+
+	defer func() {
+		require.NoError(t, os.Chdir(originalDir))
+	}()
+
+	require.NoError(t, Check(cryptoutilCmdCicdCommon.NewLogger("test")))
 }
 
 func TestCheckInDir_ValidOverlays(t *testing.T) {

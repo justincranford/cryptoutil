@@ -10,10 +10,88 @@ import (
 	"strings"
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+func TestAssertJSONEncodingFailure(t *testing.T) {
+	t.Parallel()
+
+	AssertJSONEncodingFailure(
+		t,
+		"/response",
+		httptest.NewRequest(http.MethodGet, "/response", nil),
+		func(ctx *fiber.Ctx) error {
+			return ctx.JSON(map[string]string{cryptoutilSharedMagic.StringStatus: "ok"})
+		},
+	)
+}
+
+func TestAssertJSONEncodingFailureWith_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		appTest    func(*http.Request, ...int) (*http.Response, error)
+		wantFatal  []string
+		wantErrors []string
+	}{
+		{
+			name: "request failure",
+			appTest: func(*http.Request, ...int) (*http.Response, error) {
+				return nil, fmt.Errorf("injected request failure")
+			},
+			wantFatal: []string{"request failed: injected request failure"},
+		},
+		{
+			name: "response body close failure",
+			appTest: func(*http.Request, ...int) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: http.StatusInternalServerError,
+					Body:       &errCloseReader{reader: strings.NewReader("body")},
+				}, nil
+			},
+			wantErrors: []string{"failed to close response body: close failure"},
+		},
+		{
+			name: "unexpected status",
+			appTest: func(*http.Request, ...int) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       io.NopCloser(strings.NewReader("body")),
+				}, nil
+			},
+			wantErrors: []string{"unexpected status: got 200, want 500"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var (
+				fatalMessages []string
+				errorMessages []string
+			)
+
+			assertJSONEncodingFailureWith(
+				httptest.NewRequest(http.MethodGet, "/response", nil),
+				tc.appTest,
+				func(format string, args ...any) {
+					fatalMessages = append(fatalMessages, fmt.Sprintf(format, args...))
+				},
+				func(format string, args ...any) {
+					errorMessages = append(errorMessages, fmt.Sprintf(format, args...))
+				},
+			)
+
+			require.Equal(t, tc.wantFatal, fatalMessages)
+			require.Equal(t, tc.wantErrors, errorMessages)
+		})
+	}
+}
 
 type errCloseReader struct {
 	reader io.Reader

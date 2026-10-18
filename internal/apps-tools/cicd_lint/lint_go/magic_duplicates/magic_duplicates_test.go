@@ -201,6 +201,17 @@ func TestCheckCrossFileDuplicatesInDir(t *testing.T) {
 				return magicDir, tmpDir
 			},
 		},
+		{
+			name: "underscore-prefixed Go file is skipped",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				rootDir := t.TempDir()
+				writeGoFile(t, rootDir, "pkg", "_ignored.go", "package pkg\n\nconst Ignored = \"same\"\n")
+				writeGoFile(t, rootDir, "pkg", "visible.go", "package pkg\n\nconst Visible = \"same\"\n")
+
+				return t.TempDir(), rootDir
+			},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

@@ -79,7 +79,7 @@ func TestHandleOCSPWithService(t *testing.T) {
 		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
-		require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
+		require.Equal(t, cryptoutilSharedMagic.PKIContentTypeOCSPResponse, resp.Header.Get("Content-Type"))
 
 		require.NoError(t, resp.Body.Close())
 	})
@@ -92,7 +92,7 @@ func TestHandleOCSPWithService(t *testing.T) {
 		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		// Invalid request returns error status with OCSP content type.
-		require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
+		require.Equal(t, cryptoutilSharedMagic.PKIContentTypeOCSPResponse, resp.Header.Get("Content-Type"))
 
 		require.NoError(t, resp.Body.Close())
 	})

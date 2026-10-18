@@ -5,19 +5,22 @@ package apis
 import (
 	"context"
 	"errors"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // mockSessionManager implements SessionManagerService interface for unit testing.
 type mockSessionManager struct {
 	// Configurable function fields for different test scenarios
-	issueBrowserFunc    func(ctx context.Context, userID string, tenantID, realmID googleUuid.UUID) (string, error)
-	issueServiceFunc    func(ctx context.Context, clientID string, tenantID, realmID googleUuid.UUID) (string, error)
-	validateBrowserFunc func(ctx context.Context, token string) (*cryptoutilAppsFrameworkServiceServerRepository.BrowserSession, error)
-	validateServiceFunc func(ctx context.Context, token string) (*cryptoutilAppsFrameworkServiceServerRepository.ServiceSession, error)
+	issueBrowserFunc         func(ctx context.Context, userID string, tenantID, realmID googleUuid.UUID) (string, error)
+	issueServiceFunc         func(ctx context.Context, clientID string, tenantID, realmID googleUuid.UUID) (string, error)
+	validateBrowserFunc      func(ctx context.Context, token string) (*cryptoutilAppsFrameworkServiceServerRepository.BrowserSession, error)
+	validateServiceFunc      func(ctx context.Context, token string) (*cryptoutilAppsFrameworkServiceServerRepository.ServiceSession, error)
+	serviceSessionExpiration time.Duration
 }
 
 // IssueBrowserSessionWithTenant issues a browser session token.
@@ -72,16 +75,24 @@ func (m *mockSessionManager) ValidateServiceSession(ctx context.Context, token s
 	}, nil
 }
 
+// ServiceSessionExpiration returns the configured service session lifetime.
+func (m *mockSessionManager) ServiceSessionExpiration() time.Duration {
+	return m.serviceSessionExpiration
+}
+
 // Helper constructors for common test scenarios.
 
 // newMockSessionManagerSuccess creates a mock that returns successful responses.
 func newMockSessionManagerSuccess() *mockSessionManager {
-	return &mockSessionManager{} // Uses default success behavior
+	return &mockSessionManager{
+		serviceSessionExpiration: cryptoutilSharedMagic.DefaultServiceSessionExpiration,
+	} // Uses default success behavior
 }
 
 // newMockSessionManagerError creates a mock that returns errors for all operations.
 func newMockSessionManagerError(err error) *mockSessionManager {
 	return &mockSessionManager{
+		serviceSessionExpiration: cryptoutilSharedMagic.DefaultServiceSessionExpiration,
 		issueBrowserFunc: func(context.Context, string, googleUuid.UUID, googleUuid.UUID) (string, error) {
 			return "", err
 		},

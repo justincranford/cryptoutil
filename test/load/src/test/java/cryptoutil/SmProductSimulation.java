@@ -5,6 +5,7 @@ import static cryptoutil.CryptoutiApi.DATA_KEY_ALGORITHMS;
 import static cryptoutil.CryptoutiApi.DEFAULT_PROVIDER;
 import static cryptoutil.CryptoutiApi.ELASTIC_KEY_ENCRYPTION_ALGORITHMS;
 import static cryptoutil.CryptoutiApi.ELASTIC_KEY_SIGNATURE_ALGORITHMS;
+import static cryptoutil.CryptoutiApi.authenticateServiceClient;
 import static cryptoutil.CryptoutiApi.buildCompleteWorkflowScenario;
 import static cryptoutil.CryptoutiApi.buildEncryptDecryptScenario;
 import static cryptoutil.CryptoutiApi.buildSignVerifyScenario;
@@ -12,6 +13,7 @@ import static cryptoutil.CryptoutiApi.createElasticKey;
 import static cryptoutil.CryptoutiApi.decrypt;
 import static cryptoutil.CryptoutiApi.encrypt;
 import static cryptoutil.CryptoutiApi.generateMaterialKey;
+import static cryptoutil.CryptoutiApi.serviceClientBootstrapPopulation;
 import static cryptoutil.GatlingHttpUtil.createServiceApiProtocol;
 import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.rampUsers;
@@ -121,6 +123,7 @@ public class SmProductSimulation extends Simulation {
         // Quick validation: health checks for both services
         populations.add(
             scenario("SM-KMS Quick Validation")
+                .exec(authenticateServiceClient())
                 .feed(UUID_FEEDER)
                 .exec(
                     createElasticKey(
@@ -145,7 +148,10 @@ public class SmProductSimulation extends Simulation {
         break;
     }
 
-    setUp(populations.toArray(new PopulationBuilder[0]))
+    setUp(
+            serviceClientBootstrapPopulation()
+                .protocols(kmsProtocol)
+                .andThen(populations.toArray(new PopulationBuilder[0])))
         .assertions(
             global().responseTime().max().lt(5000),
             global().successfulRequests().percent().gte(95.0));

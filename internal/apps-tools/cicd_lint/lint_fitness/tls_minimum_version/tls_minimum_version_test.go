@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -107,6 +108,17 @@ func c2() *tls.Config { return &tls.Config{MinVersion: tls.VersionTLS12} }
 	require.Error(t, err)
 }
 
+func TestScanFileForTLSVersion_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	path := writeGoFile(t, tmp, "long.go", "package foo\n"+longLine)
+
+	_, err := scanFileForTLSVersion(path, tmp, os.Open)
+	require.ErrorContains(t, err, "scanning file")
+}
+
 func TestCheckInDir_NonGoFile_Ignored(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
@@ -164,6 +176,20 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "filesystem walk failed")
+}
+
+func TestCheckInDir_AbsolutePathError(t *testing.T) {
+	t.Parallel()
+
+	err := checkInDirWithAbs(
+		newTestLogger(),
+		".",
+		func(string) (string, error) { return "", fmt.Errorf("injected absolute path error") },
+		filepath.Walk,
+		os.Open,
+	)
+	require.ErrorContains(t, err, "failed to resolve root dir")
+	require.ErrorContains(t, err, "injected absolute path error")
 }
 
 func TestCheckInDir_WalkCallbackError(t *testing.T) {

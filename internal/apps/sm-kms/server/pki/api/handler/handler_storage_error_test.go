@@ -22,11 +22,12 @@ import (
 
 // errorStore is a Store that returns errors for specific operations.
 type errorStore struct {
-	inner     cryptoutilCAStorage.Store
-	listErr   error
-	getErr    error
-	revokeErr error
-	storeErr  error
+	inner      cryptoutilCAStorage.Store
+	listErr    error
+	getErr     error
+	revokeErr  error
+	storeErr   error
+	revokedErr error
 }
 
 func (s *errorStore) Store(ctx context.Context, cert *cryptoutilCAStorage.StoredCertificate) error {
@@ -102,6 +103,10 @@ func (s *errorStore) GetRevoked(ctx context.Context, issuerDN string) ([]*crypto
 }
 
 func (s *errorStore) GetRevokedByIssuerKeyID(ctx context.Context, issuerKeyID string) ([]*cryptoutilCAStorage.StoredCertificate, error) {
+	if s.revokedErr != nil {
+		return nil, s.revokedErr
+	}
+
 	return s.inner.GetRevokedByIssuerKeyID(ctx, issuerKeyID)
 }
 

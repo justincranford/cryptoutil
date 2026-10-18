@@ -22,9 +22,19 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir verifies admin bind address under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error, openFn func(string) (*os.File, error)) error {
+	return checkInDir(logger, rootDir, filepath.Abs, walkFn, openFn)
+}
+
+func checkInDir(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	rootDir string,
+	absFn func(string) (string, error),
+	walkFn func(string, filepath.WalkFunc) error,
+	openFn func(string) (*os.File, error),
+) error {
 	logger.Log("Checking admin bind address (must be 127.0.0.1, not 0.0.0.0)...")
 
-	projectRoot, err := filepath.Abs(rootDir)
+	projectRoot, err := absFn(rootDir)
 	if err != nil {
 		return fmt.Errorf("failed to resolve root dir: %w", err)
 	}

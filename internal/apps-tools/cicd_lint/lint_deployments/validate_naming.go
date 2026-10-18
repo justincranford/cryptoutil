@@ -50,9 +50,18 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 		return result, nil
 	}
 
-	// Walk directory tree and validate names. Callback always returns nil to continue
-	// walking, so Walk itself will not return an error (root was verified above).
-	_ = filepath.Walk(rootPath, func(path string, fInfo os.FileInfo, walkErr error) error {
+	validateNamingWithWalk(rootPath, result, filepath.Walk)
+
+	return result, nil
+}
+
+func validateNamingWithWalk(
+	rootPath string,
+	result *NamingValidationResult,
+	walkFn func(string, filepath.WalkFunc) error,
+) {
+	// Callback always returns nil to continue walking after reporting inaccessible paths.
+	_ = walkFn(rootPath, func(path string, fInfo os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			result.Errors = append(result.Errors, fmt.Sprintf("[ValidateNaming] error accessing path %s: %v", path, walkErr))
 			result.Valid = false
@@ -104,8 +113,6 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 
 		return nil
 	})
-
-	return result, nil
 }
 
 // isKebabCase checks if a string follows kebab-case convention.

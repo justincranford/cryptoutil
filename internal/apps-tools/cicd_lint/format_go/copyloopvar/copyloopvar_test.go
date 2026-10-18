@@ -2,12 +2,13 @@
 package copyloopvar
 
 import (
+	"errors"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -196,6 +197,110 @@ func TestFixCopyLoopVar_SupportedVersion(t *testing.T) {
 	require.Equal(t, 1, processed, "Should process 1 file")
 	require.Equal(t, 1, modified, "Should modify 1 file")
 	require.Equal(t, 1, issuesFixed, "Should fix 1 issue")
+}
+
+func TestFixCopyLoopVar_WalkError(t *testing.T) {
+	t.Parallel()
+
+	rootDir := filepath.Join(t.TempDir(), "missing")
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	processed, modified, issuesFixed, err := Fix(logger, rootDir, testGoVersion122)
+
+	require.ErrorContains(t, err, "failed to walk directory")
+	require.Zero(t, processed)
+	require.Zero(t, modified)
+	require.Zero(t, issuesFixed)
+}
+
+func TestFixCopyLoopVar_ParseError(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	testFile := filepath.Join(rootDir, "invalid.go")
+	err := os.WriteFile(testFile, []byte(testGoContentInvalid), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	processed, modified, issuesFixed, err := Fix(logger, rootDir, testGoVersion122)
+
+	require.ErrorContains(t, err, "failed to process")
+	require.Zero(t, processed)
+	require.Zero(t, modified)
+	require.Zero(t, issuesFixed)
+}
+
+func TestFixInFile_WriteErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		createFn  func(string) (io.WriteCloser, error)
+		printFn   func(io.Writer, *token.FileSet, any) error
+		wantError string
+	}{
+		{
+			name: "create error",
+			createFn: func(string) (io.WriteCloser, error) {
+				return nil, errors.New("injected create failure")
+			},
+			printFn:   func(io.Writer, *token.FileSet, any) error { return nil },
+			wantError: "failed to create file",
+		},
+		{
+			name: "write error",
+			createFn: func(string) (io.WriteCloser, error) {
+				return &discardWriteCloser{}, nil
+			},
+			printFn: func(io.Writer, *token.FileSet, any) error {
+				return errors.New("injected write failure")
+			},
+			wantError: "failed to write file",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			testFile := filepath.Join(t.TempDir(), "source.go")
+			err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), cryptoutilSharedMagic.CacheFilePermissions)
+			require.NoError(t, err)
+
+			changed, fixes, err := fixInFile(testFile, tc.createFn, tc.printFn)
+
+			require.ErrorContains(t, err, tc.wantError)
+			require.False(t, changed)
+			require.Equal(t, 1, fixes)
+		})
+	}
+}
+
+type discardWriteCloser struct{}
+
+func (*discardWriteCloser) Write(p []byte) (int, error) {
+	return len(p), nil
+}
+
+func (*discardWriteCloser) Close() error {
+	return nil
+}
+
+func TestFixCopyLoopVar_SkipsGeneratedFileNames(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	generatedFile := filepath.Join(rootDir, "openapi_gen_ignored.go")
+	err := os.WriteFile(generatedFile, []byte(testGoContentInvalid), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	processed, modified, issuesFixed, err := Fix(logger, rootDir, testGoVersion122)
+
+	require.NoError(t, err)
+	require.Zero(t, processed)
+	require.Zero(t, modified)
+	require.Zero(t, issuesFixed)
 }
 
 func TestFixCopyLoopVar_SkipsExcludedDirectories(t *testing.T) {
@@ -446,21 +551,11 @@ func TestFixCopyLoopVarInFile_ReadOnlyFile(t *testing.T) {
 func TestFix_WalkDirError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
-
-	// Non-parallel: modifies directory permissions.
-	tmpDir := t.TempDir()
-	// Create an unreadable subdirectory - Walk will call callback with OS error.
-	badSubDir := filepath.Join(tmpDir, "locked")
-	require.NoError(t, os.MkdirAll(badSubDir, 0o700))
-	require.NoError(t, os.Chmod(badSubDir, 0o000))
-	t.Cleanup(func() { _ = os.Chmod(badSubDir, 0o700) })
+	rootDir := filepath.Join(t.TempDir(), "missing-root")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	_, _, _, err := Fix(logger, tmpDir, "1.22")
-	require.Error(t, err, "Should fail when subdirectory is unreadable")
+	_, _, _, err := Fix(logger, rootDir, "1.22")
+	require.Error(t, err, "Should fail when root directory is missing")
 	require.Contains(t, err.Error(), "failed to walk directory")
 }
 

@@ -72,6 +72,20 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	root := findProjectRoot(t)
+	original, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+	defer func() {
+		require.NoError(t, os.Chdir(original))
+	}()
+
+	require.NoError(t, lintFitnessComposeHeaderFormat.Check(newTestLogger()))
+}
+
 func TestCheckInDir_AllCorrect(t *testing.T) {
 	t.Parallel()
 
@@ -150,4 +164,18 @@ func TestCheckInDir_TooFewLines(t *testing.T) {
 	err := lintFitnessComposeHeaderFormat.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
+}
+
+func TestCheckInDir_OversizedHeaderLine(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	setupAllComposeFiles(t, root)
+
+	path := filepath.Join(root, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.COMPOSE_YML)
+	content := strings.Repeat("x", 100_000) + "\n"
+	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.FilePermissions))
+
+	err := lintFitnessComposeHeaderFormat.CheckInDir(newTestLogger(), root)
+	require.ErrorContains(t, err, "token too long")
 }

@@ -111,6 +111,10 @@ const (
 	Days7 = 7 * Days1
 	// ECDSAP256KeySizeBits is the bit size of the NIST P-256 curve.
 	ECDSAP256KeySizeBits = 256
+	// StringOIDPublicKeyEC is the id-ecPublicKey algorithm identifier.
+	StringOIDPublicKeyEC = "1.2.840.10045.2.1"
+	// StringOIDPublicKeyECDH is the id-ecDH algorithm identifier.
+	StringOIDPublicKeyECDH = "1.3.132.1.12"
 	// OIDArcNIST is the second arc of NIST object identifiers.
 	OIDArcNIST = 16
 	// OIDArcNISTHashAlgorithm is the hash-algorithm arc under NIST algorithm identifiers.

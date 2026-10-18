@@ -249,6 +249,19 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	require.Contains(t, err.Error(), "directory walk failed")
 }
 
+func TestCheckInDir_WalkCallbackError(t *testing.T) {
+	t.Parallel()
+
+	stubWalkFn := func(_ string, walkFn filepath.WalkFunc) error {
+		return walkFn("injected.go", nil, fmt.Errorf("injected callback error"))
+	}
+
+	err := lintGoFunctionVarRedeclaration.CheckInDir(newLogger(t), ".", stubWalkFn)
+
+	require.ErrorContains(t, err, "directory walk failed")
+	require.ErrorContains(t, err, "injected callback error")
+}
+
 func TestCheck_NoViolationsOnCurrentCodebase(t *testing.T) {
 	t.Parallel()
 

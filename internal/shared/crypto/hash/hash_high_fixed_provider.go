@@ -78,6 +78,10 @@ func hashSecretHKDFFixedHighInternal(secret string, fixedInfo []byte, hkdfFn fun
 //
 // Returns: true if the secret matches the stored hash, false otherwise, or error if inputs are invalid.
 func VerifySecretHKDFFixedHigh(storedHash, providedSecret string) (bool, error) {
+	return verifySecretHKDFFixedHighWithHashFn(storedHash, providedSecret, HashSecretHKDFFixedHigh)
+}
+
+func verifySecretHKDFFixedHighWithHashFn(storedHash, providedSecret string, hashFn func(string, []byte) (string, error)) (bool, error) {
 	if storedHash == "" {
 		return false, errors.New("stored hash cannot be empty")
 	}
@@ -107,7 +111,7 @@ func VerifySecretHKDFFixedHigh(storedHash, providedSecret string) (bool, error) 
 	}
 
 	// Re-derive the key using the same fixed info parameter.
-	providedHash, err := HashSecretHKDFFixedHigh(providedSecret, cryptoutilSharedMagic.HKDFFixedInfoHighEntropy)
+	providedHash, err := hashFn(providedSecret, cryptoutilSharedMagic.HKDFFixedInfoHighEntropy)
 	if err != nil {
 		return false, fmt.Errorf("failed to hash provided secret: %w", err)
 	}

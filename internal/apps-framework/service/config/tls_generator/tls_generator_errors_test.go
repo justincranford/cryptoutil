@@ -92,6 +92,15 @@ func TestGenerateAutoTLSGeneratedSettings_Operations(t *testing.T) {
 			wantErr: errorFailedToBuildTLSCertificate,
 		},
 		{
+			name: testCertificateChainPEMEncodingError,
+			configure: func(operations *tlsGenerationOperations) {
+				operations.pemEncodeCertChain = func([]*x509.Certificate) ([]byte, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToPEMEncodeCertChain,
+		},
+		{
 			name: testPrivateKeyEncodingError,
 			configure: func(operations *tlsGenerationOperations) {
 				operations.pemEncodeKey = func(any) ([]byte, error) { return nil, errInjectTLSGen }
@@ -156,6 +165,15 @@ func TestGenerateTestCA_Operations(t *testing.T) {
 			wantErr: errorFailedToCreateCASubjects,
 		},
 		{
+			name: "certificate PEM encoding error",
+			configure: func(operations *tlsGenerationOperations) {
+				operations.pemEncodeCert = func(any) ([]byte, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToPEMEncodeCACertificate,
+		},
+		{
 			name: testPrivateKeyEncodingError,
 			configure: func(operations *tlsGenerationOperations) {
 				operations.pemEncodeKey = func(any) ([]byte, error) { return nil, errInjectTLSGen }
@@ -213,6 +231,15 @@ func TestGenerateServerCertFromCA_Operations(t *testing.T) {
 				}
 			},
 			wantErr: errorFailedToBuildTLSCertificate,
+		},
+		{
+			name: "certificate chain PEM encoding error",
+			configure: func(operations *tlsGenerationOperations) {
+				operations.pemEncodeCertChain = func([]*x509.Certificate) ([]byte, error) {
+					return nil, errInjectTLSGen
+				}
+			},
+			wantErr: errorFailedToPEMEncodeCertChain,
 		},
 		{
 			name: testPrivateKeyEncodingError,

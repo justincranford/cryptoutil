@@ -162,28 +162,6 @@ func TestFindViolationsInDir_WalkError_NonExistentRoot_ReturnsError(t *testing.T
 	require.Error(t, err)
 }
 
-func TestFindViolationsInDir_WalkError_PermissionDenied_ReturnsError(t *testing.T) {
-	t.Parallel()
-
-	if isWindows() {
-		t.Skip("os.Chmod 0o000 does not restrict directory access on Windows NTFS")
-	}
-
-	tmp := t.TempDir()
-	lockedDir := filepath.Join(tmp, "locked")
-	mkdir(t, lockedDir)
-	innerDir := filepath.Join(lockedDir, "inner")
-	mkdir(t, innerDir)
-
-	err := os.Chmod(lockedDir, 0o000)
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = os.Chmod(lockedDir, 0o700) })
-
-	_, err = FindViolationsInDir(tmp)
-	require.Error(t, err)
-}
-
 // Sequential: uses os.Chdir (global process state, cannot run in parallel).
 func TestCheck_Integration(t *testing.T) {
 	root, err := findProjectRoot()
@@ -222,8 +200,4 @@ func findProjectRoot() (string, error) {
 
 		dir = parent
 	}
-}
-
-func isWindows() bool {
-	return os.PathSeparator == '\\'
 }

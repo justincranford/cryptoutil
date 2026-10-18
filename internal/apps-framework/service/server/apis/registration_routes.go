@@ -25,13 +25,18 @@ func RegisterRegistrationRoutes(
 	// Create registration handlers.
 	handlers := NewRegistrationHandlers(registrationService)
 
-	// Create rate limiter (10 requests/min per IP, burst 5).
+	rateLimitMiddleware := newAuthenticationRateLimitMiddleware(requestsPerMin)
+
+	// User registration endpoints (no authentication required - these create accounts).
+	app.Post(cryptoutilSharedMagic.DefaultPublicBrowserAuthRegisterPath, rateLimitMiddleware, handlers.HandleRegisterUser)
+	app.Post(cryptoutilSharedMagic.DefaultPublicServiceAuthRegisterPath, rateLimitMiddleware, handlers.HandleRegisterUser)
+}
+
+func newAuthenticationRateLimitMiddleware(requestsPerMin int) fiber.Handler {
 	rateLimiter := NewRateLimiter(requestsPerMin, cryptoutilSharedMagic.RateLimitDefaultBurstSize)
 
-	// Rate limit middleware.
-	rateLimitMiddleware := func(c *fiber.Ctx) error {
-		ipAddress := c.IP()
-		if !rateLimiter.Allow(ipAddress) {
+	return func(c *fiber.Ctx) error {
+		if !rateLimiter.Allow(c.IP()) {
 			return c.Status(http.StatusTooManyRequests).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: "Rate limit exceeded. Please try again later.",
 			})
@@ -39,10 +44,6 @@ func RegisterRegistrationRoutes(
 
 		return c.Next()
 	}
-
-	// User registration endpoints (no authentication required - these create accounts).
-	app.Post("/browser/api/v1/auth/register", rateLimitMiddleware, handlers.HandleRegisterUser)
-	app.Post("/service/api/v1/auth/register", rateLimitMiddleware, handlers.HandleRegisterUser)
 }
 
 // RegisterJoinRequestManagementRoutes registers admin join request management endpoints on ADMIN server.

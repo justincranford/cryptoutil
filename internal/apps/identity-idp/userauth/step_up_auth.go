@@ -7,6 +7,7 @@ package userauth
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	googleUuid "github.com/google/uuid"
@@ -67,7 +68,8 @@ type StepUpAuthenticator struct {
 	authenticators  map[string]UserAuthenticator
 
 	// Policies loaded from YAML (cached after first load).
-	policies map[string]*StepUpPolicy
+	policiesMu sync.Mutex
+	policies   map[string]*StepUpPolicy
 }
 
 // NewStepUpAuthenticator creates a new step-up authenticator with policy-driven configuration.
@@ -89,6 +91,9 @@ func NewStepUpAuthenticator(
 
 // loadPolicies loads step-up policies from YAML if not already loaded.
 func (s *StepUpAuthenticator) loadPolicies(ctx context.Context) error {
+	s.policiesMu.Lock()
+	defer s.policiesMu.Unlock()
+
 	// Check if policies already loaded.
 	if s.policies != nil {
 		return nil
@@ -101,7 +106,7 @@ func (s *StepUpAuthenticator) loadPolicies(ctx context.Context) error {
 	}
 
 	// Convert YAML policies to internal policy structure.
-	s.policies = make(map[string]*StepUpPolicy)
+	policies := make(map[string]*StepUpPolicy)
 
 	for op, policyYAML := range policyConfig.Policies {
 		maxAge, err := time.ParseDuration(policyYAML.MaxAge)
@@ -111,7 +116,7 @@ func (s *StepUpAuthenticator) loadPolicies(ctx context.Context) error {
 
 		requiredLevel := s.parseAuthLevel(policyYAML.RequiredLevel)
 
-		s.policies[op] = &StepUpPolicy{
+		policies[op] = &StepUpPolicy{
 			OperationPattern: policyYAML.OperationPattern,
 			RequiredLevel:    requiredLevel,
 			AllowedMethods:   policyYAML.AllowedMethods,
@@ -128,13 +133,15 @@ func (s *StepUpAuthenticator) loadPolicies(ctx context.Context) error {
 
 		defaultLevel := s.parseAuthLevel(policyConfig.DefaultPolicy.RequiredLevel)
 
-		s.policies["default"] = &StepUpPolicy{
+		policies["default"] = &StepUpPolicy{
 			OperationPattern: "*",
 			RequiredLevel:    defaultLevel,
 			AllowedMethods:   policyConfig.DefaultPolicy.AllowedMethods,
 			MaxAge:           defaultMaxAge,
 		}
 	}
+
+	s.policies = policies
 
 	return nil
 }

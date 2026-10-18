@@ -27,20 +27,23 @@ import (
 // ServiceResources contains all initialized service resources available to domain-specific code.
 type ServiceResources struct {
 	// Infrastructure.
-	DB                  *gorm.DB
-	DatabaseConnection  *DatabaseConnection // Multi-mode database access (GORM, raw SQL, or both).
-	TelemetryService    *cryptoutilSharedTelemetry.TelemetryService
-	JWKGenService       *cryptoutilSharedCryptoJose.JWKGenService
-	UnsealKeysService   cryptoutilUnsealKeysService.UnsealKeysService
-	BarrierService      *cryptoutilAppsFrameworkServiceServerBarrier.Service
-	SessionManager      *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
-	RegistrationService *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService
-	RealmService        cryptoutilAppsFrameworkServiceServerService.RealmService
-	RealmRepository     cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository
-	JWTAuthConfig       *JWTAuthConfig      // JWT authentication config (nil = session-based auth).
-	StrictServerConfig  *StrictServerConfig // OpenAPI strict server config (nil = not registered).
-	BarrierConfig       *BarrierConfig      // Barrier config (nil = default template barrier).
-	MigrationConfig     *MigrationConfig    // Migration config (nil = default template+domain).
+	DB                        *gorm.DB
+	DatabaseConnection        *DatabaseConnection // Multi-mode database access (GORM, raw SQL, or both).
+	TelemetryService          *cryptoutilSharedTelemetry.TelemetryService
+	JWKGenService             *cryptoutilSharedCryptoJose.JWKGenService
+	UnsealKeysService         cryptoutilUnsealKeysService.UnsealKeysService
+	BarrierService            *cryptoutilAppsFrameworkServiceServerBarrier.Service
+	SessionManager            *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	RegistrationService       *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService
+	UserRepository            cryptoutilAppsFrameworkServiceServerRepository.UserRepository
+	ClientRepository          cryptoutilAppsFrameworkServiceServerRepository.ClientRepository
+	ClientRegistrationService cryptoutilAppsFrameworkServiceServerService.RegistrationService
+	RealmService              cryptoutilAppsFrameworkServiceServerService.RealmService
+	RealmRepository           cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository
+	JWTAuthConfig             *JWTAuthConfig      // JWT authentication config (nil = session-based auth).
+	StrictServerConfig        *StrictServerConfig // OpenAPI strict server config (nil = not registered).
+	BarrierConfig             *BarrierConfig      // Barrier config (nil = default template barrier).
+	MigrationConfig           *MigrationConfig    // Migration config (nil = default template+domain).
 
 	// Application wrapper.
 	Application *cryptoutilAppsFrameworkServiceServer.Application

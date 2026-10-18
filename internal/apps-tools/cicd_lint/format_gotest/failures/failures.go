@@ -56,7 +56,29 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) (int, int, int,
 }
 
 func fixFile(filePath string) (bool, int, error) {
-	content, err := os.ReadFile(filePath)
+	return fixFileWithOperations(filePath, failureFileOperations{
+		readFile:         os.ReadFile,
+		stat:             os.Stat,
+		writeFile:        os.WriteFile,
+		ensureImport:     ensureImport,
+		ensureImportAs:   ensureImportAs,
+		formatSource:     format.Source,
+		collectCallEdits: collectCallEdits,
+	})
+}
+
+type failureFileOperations struct {
+	readFile         func(string) ([]byte, error)
+	stat             func(string) (os.FileInfo, error)
+	writeFile        func(string, []byte, os.FileMode) error
+	ensureImport     func([]byte, string) ([]byte, error)
+	ensureImportAs   func([]byte, string, string) ([]byte, error)
+	formatSource     func([]byte) ([]byte, error)
+	collectCallEdits func(*token.FileSet, *ast.File, []byte, map[string]string) []callEdit
+}
+
+func fixFileWithOperations(filePath string, fileOperations failureFileOperations) (bool, int, error) {
+	content, err := fileOperations.readFile(filePath)
 	if err != nil {
 		return false, 0, fmt.Errorf("failed to read file: %w", err)
 	}
@@ -74,21 +96,21 @@ func fixFile(filePath string) (bool, int, error) {
 	}
 
 	if hasErrorf {
-		content, err = ensureImport(content, "github.com/stretchr/testify/assert")
+		content, err = fileOperations.ensureImport(content, "github.com/stretchr/testify/assert")
 		if err != nil {
 			return false, 0, err
 		}
 	}
 
 	if hasFatalf {
-		content, err = ensureImport(content, "github.com/stretchr/testify/require")
+		content, err = fileOperations.ensureImport(content, "github.com/stretchr/testify/require")
 		if err != nil {
 			return false, 0, err
 		}
 	}
 
 	if hasErrorf || hasFatalf {
-		content, err = ensureImportAs(content, "cryptoutil/internal/shared/magic", "cryptoutilSharedMagic")
+		content, err = fileOperations.ensureImportAs(content, "cryptoutil/internal/shared/magic", "cryptoutilSharedMagic")
 		if err != nil {
 			return false, 0, err
 		}
@@ -103,7 +125,7 @@ func fixFile(filePath string) (bool, int, error) {
 
 	aliases := packageAliases(file)
 
-	edits := collectCallEdits(fileSet, file, content, aliases)
+	edits := fileOperations.collectCallEdits(fileSet, file, content, aliases)
 	if len(edits) == 0 {
 		return false, 0, nil
 	}
@@ -120,17 +142,17 @@ func fixFile(filePath string) (bool, int, error) {
 		content = updated
 	}
 
-	content, err = format.Source(content)
+	content, err = fileOperations.formatSource(content)
 	if err != nil {
 		return false, len(edits), fmt.Errorf("failed to format file: %w", err)
 	}
 
-	fileInfo, err := os.Stat(filePath)
+	fileInfo, err := fileOperations.stat(filePath)
 	if err != nil {
 		return false, len(edits), fmt.Errorf("failed to stat file: %w", err)
 	}
 
-	if err := os.WriteFile(filePath, content, fileInfo.Mode().Perm()); err != nil {
+	if err := fileOperations.writeFile(filePath, content, fileInfo.Mode().Perm()); err != nil {
 		return false, len(edits), fmt.Errorf("failed to write file: %w", err)
 	}
 
@@ -331,10 +353,7 @@ func ensureImportAs(content []byte, importPath, preferredAlias string) ([]byte, 
 	alias := preferredAlias
 
 	for _, spec := range file.Imports {
-		foundPath, unquoteErr := strconv.Unquote(spec.Path.Value)
-		if unquoteErr != nil {
-			continue
-		}
+		foundPath, _ := strconv.Unquote(spec.Path.Value)
 
 		importedName := path.Base(foundPath)
 		if spec.Name != nil {
@@ -362,7 +381,7 @@ func ensureImportAs(content []byte, importPath, preferredAlias string) ([]byte, 
 
 			insertion := "\t" + importSpec + "\n"
 			if offset > 0 && content[offset-1] != '\n' {
-				insertion = ", " + importSpec
+				insertion = "\n\t" + importSpec + "\n"
 			}
 
 			updated := make([]byte, 0, len(content)+len(insertion))

@@ -119,22 +119,28 @@ func TestSkipByProbability_HappyPaths(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			if tc.production {
+				SkipByProbability(t, tc.prob)
+
+				return
+			}
+
 			didSkip := false
-			ok := t.Run("decision", func(t *testing.T) {
-				defer func() { didSkip = t.Skipped() }()
 
-				if tc.production {
-					SkipByProbability(t, tc.prob)
+			var gotSkipMessage []any
 
-					return
-				}
-
-				skipByProbability(t, tc.prob, func() (float64, error) {
-					return tc.randomValue, nil
-				})
+			skipByProbability(t, tc.prob, func() (float64, error) {
+				return tc.randomValue, nil
+			}, func(args ...any) {
+				didSkip = true
+				gotSkipMessage = args
 			})
-			require.True(t, ok, "decision subtest did not complete successfully")
+
 			require.Equal(t, tc.wantSkip, didSkip)
+
+			if tc.wantSkip {
+				require.Equal(t, []any{SkipMessage}, gotSkipMessage)
+			}
 		})
 	}
 }

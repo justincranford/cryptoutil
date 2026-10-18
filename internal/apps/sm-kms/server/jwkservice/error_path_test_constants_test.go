@@ -1,0 +1,43 @@
+// Copyright (c) 2025-2026 Justin Cranford.
+//
+
+package jwkservice
+
+const (
+	testErrorCaseActiveMaterial         = "active material error"
+	testErrorCaseDecode                 = "decode error"
+	testErrorCaseDecrypt                = "decrypt error"
+	testErrorCaseElasticLookup          = "elastic lookup error"
+	testErrorCaseElasticRepo            = "elastic repository error"
+	testErrorCaseMaxMaterials           = "max materials reached"
+	testErrorCaseMaterialLookup         = "material lookup error"
+	testErrorCaseForeignMaterial        = "foreign material"
+	testErrorCaseParse                  = "parse error"
+	testErrorCasePublicJWKBase64        = "public JWK base64 error"
+	testErrorCasePublicJWKDecrypt       = "public JWK decrypt error"
+	testErrorCasePublicJWKParse         = "public JWK parse error"
+	testErrorCaseTenantMismatch         = "tenant mismatch"
+	testErrorCaseUnsupportedAlg         = "unsupported algorithm"
+	testErrorCaseWrongKeyUse            = "wrong key use"
+	testErrorInvalidJWKEnvelope         = "!"
+	testErrorMaterialNotBelong          = "does not belong"
+	testErrorElasticJWKNotFound         = "elastic JWK not found"
+	testErrorFailedGetActive            = "failed to get active material"
+	testErrorFailedGetElastic           = "failed to get elastic JWK"
+	testErrorFailedCreateEncrypter      = "failed to create encrypter"
+	testErrorFailedCreateSigner         = "failed to create signer"
+	testErrorFailedDecryptPublic        = "failed to decrypt public JWK"
+	testErrorFailedDecryptPrivate       = "failed to decrypt private JWK"
+	testErrorFailedDecodePublic         = "failed to decode public JWK JWE"
+	testErrorFailedDecodePrivate        = "failed to decode private JWK JWE"
+	testErrorFailedGetMaterialKID       = "failed to get material by KID"
+	testErrorFailedParsePublic          = "failed to parse public JWK"
+	testErrorFailedParsePrivate         = "failed to parse private JWK"
+	testErrorNotConfiguredEncrypt       = "not configured for encryption"
+	testErrorNotConfiguredSign          = "not configured for signing"
+	testErrorNotFound                   = "not found"
+	testErrorUnsupportedAlgorithmForJWE = "unsupported algorithm for JWE"
+	testErrorUnsupported                = "unsupported"
+	testJWTSubject                      = "subject"
+	testJWTAudience                     = "audience"
+)

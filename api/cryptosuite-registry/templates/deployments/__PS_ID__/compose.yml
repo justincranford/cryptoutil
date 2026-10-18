@@ -415,6 +415,21 @@ services:
     volumes:
       - __PS_ID__-certs:/mnt/ps-certs-src:ro
 
+  postgres-follower:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+      __PS_ID__-app-postgresql-1:
+        condition: service_healthy
+      __PS_ID__-app-postgresql-2:
+        condition: service_healthy
+    environment:
+      POSTGRES_CERT_SCOPE: __PS_ID__
+      POSTGRES_REPLICATION_TIER: service
+      POSTGRES_REPLICATION_PSIDS: __PS_ID__
+    volumes:
+      - __PS_ID__-certs:/mnt/ps-certs-src:ro
+
 volumes:
   __PS_ID__-certs:
   __PS_ID__-otel-certs:

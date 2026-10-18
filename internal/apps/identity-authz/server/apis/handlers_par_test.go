@@ -16,8 +16,43 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz/server/apis"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+func TestHandlePAR_PersistenceFailure(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory := createPARTestDependencies(t)
+	client := createTestClientForPAR(context.Background(), t, repoFactory)
+	require.NoError(t, repoFactory.DB().Migrator().DropTable(&cryptoutilIdentityDomain.PushedAuthorizationRequest{}))
+
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	service.RegisterRoutes(app)
+
+	form := url.Values{
+		cryptoutilSharedMagic.ParamClientID:            []string{client.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{cryptoutilSharedMagic.TEST_CODE_CHALLENGE},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
+	}
+	request := httptest.NewRequest(testPost, "/oauth2/v1/par", strings.NewReader(form.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err := app.Test(request, -1)
+
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, response.Body.Close())
+	}()
+
+	var result map[string]string
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&result))
+	require.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.ErrorServerError, result[cryptoutilSharedMagic.StringError])
+}
 
 // TestHandlePAR_HappyPath validates successful PAR request.
 func TestHandlePAR_HappyPath(t *testing.T) {

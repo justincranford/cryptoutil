@@ -6,7 +6,6 @@ package sysinfo
 
 import (
 	"fmt"
-	"runtime"
 	"testing"
 	"time"
 
@@ -15,9 +14,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Operating system constants for platform-specific test skipping.
+var testSysInfoProviders = []SysInfoProvider{mockSysInfoProvider, newPortableDefaultSysInfoProvider()}
 
-var testSysInfoProviders = []SysInfoProvider{mockSysInfoProvider, defaultSysInfoProvider}
+func newPortableDefaultSysInfoProvider() *DefaultSysInfoProvider {
+	return &DefaultSysInfoProvider{
+		cpuInfoFn: mockSysInfoProvider.CPUInfo,
+	}
+}
 
 func TestSysInfo(t *testing.T) {
 	t.Parallel()
@@ -63,15 +66,6 @@ func TestSysInfo(t *testing.T) {
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
 
-				// Skip real provider on Windows - CPU info collection can take 10+ seconds
-				// which exceeds the 10-second timeout set in cpuInfoTimeout.
-				// The mock provider covers the code paths without the timeout risk.
-				if _, isMock := provider.(*MockSysInfoProvider); !isMock {
-					if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-						t.Skip("Skipping real CPU info test on Windows due to slow gopsutil collection")
-					}
-				}
-
 				start := time.Now().UTC()
 				vendorID, family, physicalID, modelName, err := provider.CPUInfo()
 				fmt.Printf("Time: %.3f msec >>> CPUInfo: VendorID=%s, Family=%s, PhysicalID=%s, ModelName=%s\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, vendorID, family, physicalID, modelName)
@@ -96,18 +90,6 @@ func TestSysInfo(t *testing.T) {
 			},
 		},
 		{
-			name: "ram_size_error_handling",
-			testFn: func(t *testing.T, provider SysInfoProvider) {
-				t.Helper()
-				// Real provider returns error only on context timeout or API failure
-				// Mock provider always returns success
-				// Just verify error returns zero value
-				if _, ok := provider.(*MockSysInfoProvider); ok {
-					t.Skip("Mock provider cannot simulate errors")
-				}
-			},
-		},
-		{
 			name: "os_hostname",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
@@ -120,18 +102,6 @@ func TestSysInfo(t *testing.T) {
 			},
 		},
 		{
-			name: "os_hostname_error_handling",
-			testFn: func(t *testing.T, provider SysInfoProvider) {
-				t.Helper()
-				// Real provider returns error only on os.Hostname() failure
-				// Mock provider always returns success
-				// Just verify error returns empty string
-				if _, ok := provider.(*MockSysInfoProvider); ok {
-					t.Skip("Mock provider cannot simulate errors")
-				}
-			},
-		},
-		{
 			name: "host_id",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
@@ -141,18 +111,6 @@ func TestSysInfo(t *testing.T) {
 				fmt.Printf("Time: %.3f msec >>> HostID: %s\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, hostID)
 				require.NoError(t, err)
 				require.NotEmpty(t, hostID)
-			},
-		},
-		{
-			name: "host_id_error_handling",
-			testFn: func(t *testing.T, provider SysInfoProvider) {
-				t.Helper()
-				// Real provider returns error only on context timeout or API failure
-				// Mock provider always returns success
-				// Just verify error returns empty string
-				if _, ok := provider.(*MockSysInfoProvider); ok {
-					t.Skip("Mock provider cannot simulate errors")
-				}
 			},
 		},
 		{
@@ -169,25 +127,17 @@ func TestSysInfo(t *testing.T) {
 				require.NotEmpty(t, username)
 			},
 		},
-		{
-			name: "user_info_error_handling",
-			testFn: func(t *testing.T, provider SysInfoProvider) {
-				t.Helper()
-				// Real provider returns error only on user.Current() failure
-				// Mock provider always returns success
-				// Just verify error returns empty strings
-				if _, ok := provider.(*MockSysInfoProvider); ok {
-					t.Skip("Mock provider cannot simulate errors")
-				}
-			},
-		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			for _, provider := range testSysInfoProviders {
 				tc.testFn(t, provider)
 			}
 		})
 	}
+
+	runSysInfoErrorTests(t)
 }

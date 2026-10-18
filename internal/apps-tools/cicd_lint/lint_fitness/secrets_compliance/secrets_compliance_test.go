@@ -26,6 +26,13 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheck_FromPackageDirectory(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-secrets-compliance")
+	require.ErrorContains(t, Check(logger), "secrets-compliance violations")
+}
+
 func TestCheckInDir_Success(t *testing.T) {
 	t.Parallel()
 
@@ -134,11 +141,24 @@ func TestCheckSecretsDir_NonSecretFileAllowed(t *testing.T) {
 	for _, f := range expectedPSIDSecrets {
 		require.NoError(t, os.WriteFile(filepath.Join(secretsDir, f), []byte("test-content"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
+
+	require.NoError(t, os.Mkdir(filepath.Join(secretsDir, "nested"), cryptoutilSharedMagic.CICDTempDirPermissions))
 	// Add a non-secret file (should be allowed).
 	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "README.md"), []byte("# docs"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := checkSecretsDir(secretsDir, cryptoutilSharedMagic.OTLPServiceSMKMS, expectedPSIDSecrets)
 	require.Empty(t, violations)
+}
+
+func TestCheckSecretsDir_NonDirectoryPath(t *testing.T) {
+	t.Parallel()
+
+	secretsPath := filepath.Join(t.TempDir(), "not-a-directory")
+	require.NoError(t, os.WriteFile(secretsPath, []byte("file"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	violations := checkSecretsDir(secretsPath, cryptoutilSharedMagic.OTLPServiceSMKMS, nil)
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], "failed to read directory")
 }
 
 func TestCheckSecretsDir_MissingDirectory(t *testing.T) {

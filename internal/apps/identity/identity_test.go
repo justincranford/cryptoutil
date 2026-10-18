@@ -158,3 +158,13 @@ func TestIdentity_EntryPoint(t *testing.T) {
 	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Usage: identity")
 }
+
+func TestIdentityPKIInitRequiresArguments(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := Identity([]string{cryptoutilSharedMagic.PSIDPKIInit}, nil, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
+	require.Contains(t, stderr.String(), "usage: pki-init")
+}

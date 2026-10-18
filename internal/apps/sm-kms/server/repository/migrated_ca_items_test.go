@@ -96,6 +96,16 @@ CREATE INDEX %s ON %s (tenant_id, request_id);`,
 	).Scan(&indexCount)
 	require.NoError(t, err)
 	require.Equal(t, 1, indexCount)
+
+	var recordCount int
+
+	err = db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM pki_certificates WHERE tenant_id = ? AND request_id = ?",
+		tenantID.String(),
+		requestID.String(),
+	).Scan(&recordCount)
+	require.NoError(t, err)
+	require.Equal(t, 2, recordCount)
 }
 
 func TestPKIMigrations_Rollback(t *testing.T) {

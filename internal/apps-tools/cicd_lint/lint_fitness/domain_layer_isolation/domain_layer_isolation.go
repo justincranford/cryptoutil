@@ -27,9 +27,13 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkInDir is the internal implementation that accepts a walkFn for testing.
 func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error) error {
+	return checkInDirWithAbs(logger, rootDir, filepath.Abs, walkFn)
+}
+
+func checkInDirWithAbs(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, absFn func(string) (string, error), walkFn func(string, filepath.WalkFunc) error) error {
 	logger.Log("Checking domain layer isolation...")
 
-	projectRoot, err := filepath.Abs(rootDir)
+	projectRoot, err := absFn(rootDir)
 	if err != nil {
 		return fmt.Errorf("failed to resolve root dir: %w", err)
 	}

@@ -1043,9 +1043,9 @@ PostgreSQL uses a **single shared leader/follower pair** (`deployments/shared-po
 
 - **No host port exposure**: PostgreSQL containers have no `ports:` mapping at any tier.
 - **Developer access**: `docker exec postgres-leader psql` (container-internal, no host port needed).
-- **Per-PS-ID isolation**: Each service connects with a unique username, password, and logical database name.
-- **Replication**: Follower replicates all logical databases from leader via init scripts.
-- **Init scripts**: `init-leader-databases.sql`, `init-follower-databases.sql`, `setup-logical-replication.sh`; create 21 logical databases in the leader (7 PS-IDs x 3 tiers) with corresponding 21 x 2 separate users (DDL vs DML), create 21 logical schemas across 11 grouped follower databases (1 suite + 3 products + 7 services) with 21 x 2 separate users (DDL vs DML).
+- **Per-PS-ID isolation**: Each PS-ID and deployment tier has a matching logical database on both leader and follower.
+- **Replication**: The follower has one matching subscriber database per leader database (7 PS-IDs x 3 tiers = 21 on each node).
+- **Init scripts**: `init-leader-databases.sql`, `init-follower-databases.sql`, and `setup-logical-replication.sh` create the databases/publications, wait for active PostgreSQL app instances to become healthy after migrations, copy each migrated schema to a new subscriber database, then create subscriptions. On subsequent starts, the setup script reconciles the `client_secret` to `client_secret_hash` rename on retained subscriber databases before accepting existing subscriptions. Logical replication does not replicate DDL.
 
 | Component | Container Address | Container Port | Host Port |
 |-----------|-------------------|----------------|-----------|
@@ -5374,7 +5374,9 @@ FROM alpine:latest AS runtime
 - Healthcheck fields use underscores in Docker Compose YAML: `start_period` (NOT `start-period`); the Dockerfile `HEALTHCHECK` instruction uses `--start-period` (hyphen) — these are different syntaxes
 - **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
 - **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
-- **Stack volume isolation**: Named volumes (e.g. `cryptoutil_postgres_leader_volume`) are shared across PS-ID stacks. Always run `docker compose down -v` before switching stacks to ensure fresh PostgreSQL initdb
+- **Stack volume isolation**: Explicitly named volumes can be shared across Compose projects, so project names alone do not guarantee isolation.
+  Use distinct volume names for isolated stacks. Do not run `docker compose down -v` on shared or unknown deployments; use `docker compose down` to preserve data.
+  Remove volumes only after confirming they belong exclusively to a disposable stack and any required data is backed up.
 - **Canonical template sync**: When modifying ANY file in `deployments/*/` that has a counterpart in `api/cryptosuite-registry/templates/`, update the canonical template in the SAME commit
 <!-- @/to-appendix -->
 

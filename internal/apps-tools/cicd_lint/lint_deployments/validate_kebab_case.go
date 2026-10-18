@@ -49,8 +49,17 @@ func ValidateKebabCase(rootPath string) (*KebabCaseValidationResult, error) {
 		return result, nil
 	}
 
-	// Walk directory tree and validate YAML config field values.
-	_ = filepath.Walk(rootPath, func(path string, fInfo os.FileInfo, walkErr error) error {
+	validateKebabCaseWithWalk(rootPath, result, filepath.Walk)
+
+	return result, nil
+}
+
+func validateKebabCaseWithWalk(
+	rootPath string,
+	result *KebabCaseValidationResult,
+	walkFn func(string, filepath.WalkFunc) error,
+) {
+	_ = walkFn(rootPath, func(path string, fInfo os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			result.Warnings = append(result.Warnings, fmt.Sprintf("error accessing path %s: %v", path, walkErr))
 
@@ -73,8 +82,6 @@ func ValidateKebabCase(rootPath string) (*KebabCaseValidationResult, error) {
 
 		return nil
 	})
-
-	return result, nil
 }
 
 // validateConfigFieldKebabCase reads a YAML config file and checks that specified fields follow kebab-case.

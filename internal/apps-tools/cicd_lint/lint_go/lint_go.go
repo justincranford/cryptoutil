@@ -20,11 +20,13 @@ import (
 // Each linter receives a logger, returning an error if issues are found.
 type LinterFunc func(logger *cryptoutilCmdCicdCommon.Logger) error
 
-// registeredLinters holds all linters to run as part of lint-go.
-var registeredLinters = []struct {
+type registeredLinter struct {
 	name   string
 	linter LinterFunc
-}{
+}
+
+// registeredLinters holds all linters to run as part of lint-go.
+var registeredLinters = []registeredLinter{
 	{"function-var-redeclaration", lintGoFunctionVarRedeclaration.Check},
 	{"leftover-coverage", lintGoLeftoverCoverage.Check},
 	{"magic-aliases", lintGoMagicAliases.Check},
@@ -38,11 +40,15 @@ var registeredLinters = []struct {
 // Lint runs all registered Go linters.
 // Returns an error if any linter finds issues.
 func Lint(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return lintWithLinters(logger, registeredLinters)
+}
+
+func lintWithLinters(logger *cryptoutilCmdCicdCommon.Logger, linters []registeredLinter) error {
 	logger.Log("Running Go linters...")
 
 	var errors []error
 
-	for _, l := range registeredLinters {
+	for _, l := range linters {
 		logger.Log(fmt.Sprintf("Running linter: %s", l.name))
 
 		if err := l.linter(logger); err != nil {

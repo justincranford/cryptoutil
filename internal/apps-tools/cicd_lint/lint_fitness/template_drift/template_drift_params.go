@@ -194,6 +194,25 @@ func buildProductServiceOverrides(productID string, psIDs []string) string {
 		}
 	}
 
+	fmt.Fprintf(&sb, "  postgres-follower:\n")
+	sb.WriteString("    depends_on:\n")
+	sb.WriteString("      pki-init:\n")
+	sb.WriteString("        condition: service_completed_successfully\n")
+
+	for _, psID := range psIDs {
+		for _, instance := range []string{"1", "2"} {
+			fmt.Fprintf(&sb, "      %s-app-postgresql-%s:\n", psID, instance)
+			sb.WriteString("        condition: service_healthy\n")
+		}
+	}
+
+	sb.WriteString("    environment:\n")
+	fmt.Fprintf(&sb, "      POSTGRES_CERT_SCOPE: %s\n", productID)
+	sb.WriteString("      POSTGRES_REPLICATION_TIER: product\n")
+	fmt.Fprintf(&sb, "      POSTGRES_REPLICATION_PSIDS: %s\n", strings.Join(psIDs, ","))
+	sb.WriteString("    volumes:\n")
+	fmt.Fprintf(&sb, "      - %s-certs:/mnt/ps-certs-src:ro\n", productID)
+
 	return strings.TrimRight(sb.String(), "\n")
 }
 
@@ -268,6 +287,31 @@ func buildSuiteServiceOverrides(suiteID string) string {
 				ps.PSID, v.suffix, port, cryptoutilSharedMagic.DockerContainerPublicHTTPSPort, suiteID)
 		}
 	}
+
+	psIDs := make([]string, len(allPS))
+	for i, ps := range allPS {
+		psIDs[i] = ps.PSID
+	}
+
+	sb.WriteString("\n")
+	fmt.Fprintf(&sb, "  postgres-follower:\n")
+	sb.WriteString("    depends_on:\n")
+	sb.WriteString("      pki-init:\n")
+	sb.WriteString("        condition: service_completed_successfully\n")
+
+	for _, ps := range allPS {
+		for _, instance := range []string{"1", "2"} {
+			fmt.Fprintf(&sb, "      %s-app-postgresql-%s:\n", ps.PSID, instance)
+			sb.WriteString("        condition: service_healthy\n")
+		}
+	}
+
+	sb.WriteString("    environment:\n")
+	fmt.Fprintf(&sb, "      POSTGRES_CERT_SCOPE: %s\n", suiteID)
+	sb.WriteString("      POSTGRES_REPLICATION_TIER: suite\n")
+	fmt.Fprintf(&sb, "      POSTGRES_REPLICATION_PSIDS: %s\n", strings.Join(psIDs, ","))
+	sb.WriteString("    volumes:\n")
+	fmt.Fprintf(&sb, "      - %s-certs:/mnt/ps-certs-src:ro\n", suiteID)
 
 	return strings.TrimRight(sb.String(), "\n")
 }

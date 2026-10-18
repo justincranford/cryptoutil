@@ -98,6 +98,23 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	require.Contains(t, err.Error(), "directory walk failed")
 }
 
+func TestCheckInDir_WalkCallbackError(t *testing.T) {
+	t.Parallel()
+
+	errWalk := func(_ string, walkFn filepath.WalkFunc) error {
+		return walkFn("injected_test.go", nil, os.ErrPermission)
+	}
+
+	err := leftoverCoverage.CheckInDir(
+		cryptoutilCmdCicdCommon.NewLogger(t.Name()),
+		".",
+		errWalk,
+	)
+
+	require.ErrorContains(t, err, "directory walk failed")
+	require.ErrorIs(t, err, os.ErrPermission)
+}
+
 // writeFile creates a file with given name and content in dir.
 func writeFile(t *testing.T, dir, name, content string) {
 	t.Helper()

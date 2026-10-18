@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps-framework/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestProductionNewTelemetryService_Success verifies that productionNewTelemetryService
@@ -25,6 +26,18 @@ func TestProductionNewTelemetryService_Success(t *testing.T) {
 	require.NotNil(t, ts)
 
 	t.Cleanup(ts.Shutdown)
+}
+
+func TestProductionNewTelemetryService_NilContext(t *testing.T) {
+	t.Parallel()
+
+	var nilContext context.Context
+
+	ts, err := cryptoutilAppsFrameworkTls.ExportedProductionNewTelemetryService(nilContext)
+
+	require.Nil(t, ts)
+	require.ErrorContains(t, err, "failed to create telemetry service")
+	require.ErrorContains(t, err, "context must be non-nil")
 }
 
 // TestProductionNewGenerator_Success verifies that productionNewGenerator creates a
@@ -76,4 +89,20 @@ func TestProductionGenerator_WriteClosures(t *testing.T) {
 
 	// ExportedWriteTruststore calls encodeTrustPKCS12Fn — exercising that closure body.
 	require.NoError(t, gen.ExportedWriteTruststore(tmpDir, "test-ts", subject))
+}
+
+func TestProductionGenerator_GenerateSkeletonTemplate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	ts, err := cryptoutilAppsFrameworkTls.ExportedProductionNewTelemetryService(ctx)
+	require.NoError(t, err)
+	t.Cleanup(ts.Shutdown)
+
+	gen, err := cryptoutilAppsFrameworkTls.ExportedProductionNewGenerator(ctx, ts)
+	require.NoError(t, err)
+	t.Cleanup(gen.Shutdown)
+
+	require.NoError(t, gen.Generate(cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, t.TempDir()))
 }

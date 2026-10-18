@@ -10,7 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testInvalidLogLevel = "INVALID_LEVEL"
+const (
+	testInvalidLogLevel        = "INVALID_LEVEL"
+	testTelemetryProtocolHTTPS = "HTTPS"
+	testTelemetryProtocolGRPCS = "gRPCS"
+)
 
 func TestParseProtocolAndEndpoint_AllProtocols(t *testing.T) {
 	t.Parallel()
@@ -26,9 +30,9 @@ func TestParseProtocolAndEndpoint_AllProtocols(t *testing.T) {
 		wantErr   bool
 	}{
 		{"HTTP", testHTTPEndpoint, true, false, false, false, testLocalhost4318, false},
-		{"HTTPS", testHTTPSEndpoint, false, true, false, false, testLocalhost4318, false},
+		{testTelemetryProtocolHTTPS, testHTTPSEndpoint, false, true, false, false, testLocalhost4318, false},
 		{"gRPC", testGRPCEndpoint, false, false, true, false, testLocalhost4317, false},
-		{"gRPCS", testGRPCSEndpoint, false, false, false, true, testLocalhost4317, false},
+		{testTelemetryProtocolGRPCS, testGRPCSEndpoint, false, false, false, true, testLocalhost4317, false},
 		{"Invalid", "ftp://localhost:4318", false, false, false, false, "", true},
 		{"NoProtocol", testLocalhost4318, false, false, false, false, "", true},
 	}

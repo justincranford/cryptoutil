@@ -47,9 +47,13 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 // FindViolationsInDir scans deployments/skeleton-template/secrets/ under rootDir
 // and returns relative paths of secret files whose base name contains underscores.
 func FindViolationsInDir(rootDir string) ([]string, error) {
+	return findViolationsInDir(rootDir, os.ReadDir)
+}
+
+func findViolationsInDir(rootDir string, readDirFn func(string) ([]os.DirEntry, error)) ([]string, error) {
 	secretsDirPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDTemplateSecretsPath))
 
-	entries, err := os.ReadDir(secretsDirPath)
+	entries, err := readDirFn(secretsDirPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("skeleton-template secrets directory not found: %s", secretsDirPath)

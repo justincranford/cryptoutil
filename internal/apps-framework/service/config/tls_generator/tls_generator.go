@@ -23,6 +23,8 @@ const (
 	errorFailedToCreateCASubjects          = "failed to create CA subjects"
 	errorFailedToGenerateServerKeyPair     = "failed to generate server key pair"
 	errorFailedToBuildTLSCertificate       = "failed to build TLS certificate"
+	errorFailedToPEMEncodeCertChain        = "failed to PEM-encode certificate chain"
+	errorFailedToPEMEncodeCACertificate    = "failed to PEM-encode CA certificate"
 	errorFailedToPEMEncodeServerPrivateKey = "failed to PEM-encode server private key"
 )
 
@@ -31,6 +33,8 @@ type tlsGenerationOperations struct {
 	createCASubjects     func([]*cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error)
 	createEndEntity      func(*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration, []string, []net.IP, []string, []*url.URL, x509.KeyUsage, []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error)
 	buildTLSCertificate  func(*cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error)
+	pemEncodeCertChain   func([]*x509.Certificate) ([]byte, error)
+	pemEncodeCert        func(any) ([]byte, error)
 	pemEncodeKey         func(any) ([]byte, error)
 }
 
@@ -40,6 +44,8 @@ func defaultTLSGenerationOperations() tlsGenerationOperations {
 		createCASubjects:     cryptoutilSharedCryptoCertificate.CreateCASubjects,
 		createEndEntity:      cryptoutilSharedCryptoCertificate.CreateEndEntitySubject,
 		buildTLSCertificate:  cryptoutilSharedCryptoCertificate.BuildTLSCertificate,
+		pemEncodeCertChain:   cryptoutilSharedCryptoAsn1.PEMEncodeCertChain,
+		pemEncodeCert:        cryptoutilSharedCryptoAsn1.PEMEncode,
 		pemEncodeKey:         cryptoutilSharedCryptoAsn1.PEMEncode,
 	}
 }
@@ -223,9 +229,9 @@ func generateServerCertFromCAWithOperations(caCertPEM, caKeyPEM []byte, dns []st
 	}
 
 	// Compose PEM chain: server cert first, then issuer certs.
-	pemChain, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(serverSubject.KeyMaterial.CertificateChain)
+	pemChain, err := operations.pemEncodeCertChain(serverSubject.KeyMaterial.CertificateChain)
 	if err != nil {
-		return nil, fmt.Errorf("failed to PEM-encode certificate chain: %w", err)
+		return nil, fmt.Errorf("%s: %w", errorFailedToPEMEncodeCertChain, err)
 	}
 
 	// PEM-encode server private key.
@@ -323,9 +329,9 @@ func generateAutoTLSGeneratedSettingsWithOperations(dns []string, ips []string, 
 	}
 
 	// Compose PEM chain from server certificate chain.
-	pemChain, err := cryptoutilSharedCryptoAsn1.PEMEncodeCertChain(serverSubject.KeyMaterial.CertificateChain)
+	pemChain, err := operations.pemEncodeCertChain(serverSubject.KeyMaterial.CertificateChain)
 	if err != nil {
-		return nil, fmt.Errorf("failed to PEM-encode certificate chain: %w", err)
+		return nil, fmt.Errorf("%s: %w", errorFailedToPEMEncodeCertChain, err)
 	}
 
 	// PEM-encode server private key.
@@ -366,9 +372,9 @@ func generateTestCAWithOperations(operations tlsGenerationOperations) (caCertPEM
 	caCert := ca.KeyMaterial.CertificateChain[0]
 
 	// Encode CA certificate to PEM.
-	caCertPEM, err = cryptoutilSharedCryptoAsn1.PEMEncode(caCert)
+	caCertPEM, err = operations.pemEncodeCert(caCert)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to PEM-encode CA certificate: %w", err)
+		return nil, nil, fmt.Errorf("%s: %w", errorFailedToPEMEncodeCACertificate, err)
 	}
 
 	// Encode CA private key to PEM.

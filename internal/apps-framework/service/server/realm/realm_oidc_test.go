@@ -15,7 +15,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -355,22 +354,11 @@ func TestGetJWKSURL_DiscoverError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to discover JWKS URL")
 }
 
-// TestLoadConfig_PermissionError covers the non-ENOENT file read error path.
-func TestLoadConfig_PermissionError(t *testing.T) {
+func TestLoadConfig_ReadDirectoryError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod permission enforcement is not reliable on Windows.")
-	}
-
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "realms.yml")
-
-	// Create the file then make it unreadable.
-	err := os.WriteFile(configPath, []byte("test"), cryptoutilSharedMagic.CacheFilePermissions)
-	require.NoError(t, err)
-
-	err = os.Chmod(configPath, 0o000)
+	err := os.Mkdir(filepath.Join(tmpDir, "realms.yml"), cryptoutilSharedMagic.DirPermissions)
 	require.NoError(t, err)
 
 	config, err := LoadConfig(tmpDir)

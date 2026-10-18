@@ -32,7 +32,7 @@ func NewPublicServer(
 
 // registerRoutes sets up the OAuth 2.1 authorization server endpoints.
 // Called by ServerBuilder after NewPublicServer returns.
-func (s *PublicServer) registerRoutes() error {
+func (s *PublicServer) registerRoutes() {
 	// Get underlying Fiber app from base for route registration.
 	app := s.base.App()
 
@@ -57,8 +57,6 @@ func (s *PublicServer) registerRoutes() error {
 
 	// Browser authorization endpoint - returns HTML consent form (placeholder for E2E test).
 	app.Get("/browser/api/v1/authorize", s.handleBrowserAuthorize)
-
-	return nil
 }
 
 // handleHealth returns server health status.
@@ -112,7 +110,7 @@ func (s *PublicServer) handleBrowserAuthorize(c *fiber.Ctx) error {
 </html>`
 
 	if err := c.SendString(authorizeHTML); err != nil {
-		return fmt.Errorf("failed to send authorize page: %w", err)
+		return fmt.Errorf("failed to send authorization page: %w", err)
 	}
 
 	return nil

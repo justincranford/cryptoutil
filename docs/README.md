@@ -255,9 +255,6 @@ Before running nuclei scans, ensure the cryptoutil services are running:
 # Navigate to suite deployment directory
 cd deployments/cryptoutil
 
-# Clean shutdown with volume removal
-docker compose down -v
-
 # Start all services
 docker compose up -d
 
@@ -405,12 +402,12 @@ docker compose -f ./deployments/cryptoutil/compose.yml ps
 docker compose -f ./deployments/cryptoutil/compose.yml logs sm-kms
 ```
 
-**Clean restart:**
+**Restart while preserving data volumes:**
 
 ```sh
-# Complete cleanup and restart
+# Stop containers without deleting persisted data
 cd deployments/cryptoutil
-docker compose down -v
+docker compose down
 docker compose up -d
 
 # Wait for services to be ready

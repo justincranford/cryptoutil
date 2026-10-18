@@ -16,13 +16,24 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 )
 
+const (
+	cleanupSubcommandRuns      = "github-cleanup-runs"
+	cleanupSubcommandArtifacts = "github-cleanup-artifacts"
+	cleanupSubcommandCaches    = "github-cleanup-caches"
+	cleanupSubcommandAll       = "github-cleanup-all"
+	unknownFlagPrefix          = "unknown flag"
+)
+
 // Main is the entry point for github-cleanup-* commands.
 // It parses subCommand to dispatch to the appropriate cleanup function.
 // Returns exit code: 0 for success, 1 for failure.
 func Main(subCommand string, args []string, stderr io.Writer) int {
 	logger := cryptoutilCmdCicdCommon.NewLogger("github-cleanup")
-	cfg := NewDefaultConfig(logger)
 
+	return mainWithConfig(subCommand, args, stderr, NewDefaultConfig(logger))
+}
+
+func mainWithConfig(subCommand string, args []string, stderr io.Writer, cfg *CleanupConfig) int {
 	if err := ParseArgs(args, cfg); err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
 
@@ -32,13 +43,13 @@ func Main(subCommand string, args []string, stderr io.Writer) int {
 	var cleanupFn func(*CleanupConfig) error
 
 	switch subCommand {
-	case "github-cleanup-runs":
+	case cleanupSubcommandRuns:
 		cleanupFn = CleanupRuns
-	case "github-cleanup-artifacts":
+	case cleanupSubcommandArtifacts:
 		cleanupFn = CleanupArtifacts
-	case "github-cleanup-caches":
+	case cleanupSubcommandCaches:
 		cleanupFn = CleanupCaches
-	case "github-cleanup-all":
+	case cleanupSubcommandAll:
 		cleanupFn = CleanupAll
 	default:
 		_, _ = fmt.Fprintf(stderr, "Unknown github-cleanup subcommand: %s\n", subCommand)
@@ -99,6 +110,8 @@ type CleanupConfig struct {
 
 	// Logger is the CICD logger for structured output.
 	Logger *cryptoutilCmdCicdCommon.Logger
+
+	ghExecFn func(...string) ([]byte, error)
 }
 
 // NewDefaultConfig creates a CleanupConfig with default values.
@@ -109,7 +122,16 @@ func NewDefaultConfig(logger *cryptoutilCmdCicdCommon.Logger) *CleanupConfig {
 		KeepMinRuns: defaultKeepMinRuns,
 		Confirm:     false,
 		Logger:      logger,
+		ghExecFn:    ghExec,
 	}
+}
+
+func (cfg *CleanupConfig) executeGH(args ...string) ([]byte, error) {
+	if cfg.ghExecFn != nil {
+		return cfg.ghExecFn(args...)
+	}
+
+	return ghExec(args...)
 }
 
 // workflowRun represents a GitHub Actions workflow run.
@@ -210,7 +232,7 @@ func ParseArgs(args []string, cfg *CleanupConfig) error {
 		case strings.HasPrefix(arg, "--repo="):
 			cfg.Repo = strings.TrimPrefix(arg, "--repo=")
 		default:
-			return fmt.Errorf("unknown flag: %s", arg)
+			return fmt.Errorf("%s: %s", unknownFlagPrefix, arg)
 		}
 	}
 

@@ -1,5 +1,5 @@
 // Copyright (c) 2025-2026 Justin Cranford.
-// Package testmain_e2e_policy enforces canonical E2E TestMain imports.
+// Package testmain_e2e_policy enforces canonical service-level E2E TestMain imports.
 package testmain_e2e_policy
 
 import (
@@ -97,6 +97,12 @@ func findViolationsWithDeps(rootDir string, readFileFn readFileFunc, walkDirFn w
 		}
 
 		if d.Name() != e2eTestMainFileName || filepath.Base(filepath.Dir(path)) != "e2e" {
+			return nil
+		}
+
+		// Nested E2E packages may use a specialized harness instead of Compose orchestration.
+		productServiceDir := filepath.Dir(filepath.Dir(path))
+		if filepath.Clean(filepath.Dir(productServiceDir)) != filepath.Clean(appsDir) {
 			return nil
 		}
 

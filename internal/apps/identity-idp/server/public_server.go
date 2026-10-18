@@ -32,7 +32,7 @@ func NewPublicServer(
 
 // registerRoutes sets up the IdP authentication endpoints.
 // Called by ServerBuilder after NewPublicServer returns.
-func (s *PublicServer) registerRoutes() error {
+func (s *PublicServer) registerRoutes() {
 	// Get underlying Fiber app from base for route registration.
 	app := s.base.App()
 
@@ -59,8 +59,6 @@ func (s *PublicServer) registerRoutes() error {
 	// - /service/api/v1/auth/logout - Logout endpoint.
 	// - /service/api/v1/mfa/enroll - MFA enrollment endpoint.
 	// - /service/api/v1/mfa/verify - MFA verification endpoint.
-
-	return nil
 }
 
 // handleLoginPage serves a simple HTML login form.

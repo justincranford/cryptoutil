@@ -152,6 +152,36 @@ func TestCountLines_NonexistentFile_Error(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestCountLines_OversizedLine_Error(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "oversized.go")
+	content := strings.Repeat("x", 100_000) + "\n"
+	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+	_, err := countLines(path)
+	require.ErrorContains(t, err, "scanning file")
+}
+
+func TestCheckInDir_CountLinesError(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	infoPath := filepath.Join(root, "info.txt")
+	require.NoError(t, os.WriteFile(infoPath, []byte("file info"), cryptoutilSharedMagic.CacheFilePermissions))
+	info, err := os.Stat(infoPath)
+	require.NoError(t, err)
+
+	missingGoFile := filepath.Join(root, "missing.go")
+	stubWalkFn := func(_ string, callback filepath.WalkFunc) error {
+		return callback(missingGoFile, info, nil)
+	}
+
+	err = checkInDir(newTestLogger(), root, stubWalkFn)
+	require.ErrorContains(t, err, "filesystem walk failed")
+	require.ErrorContains(t, err, "open")
+}
+
 func TestCheckInDir_WalkError(t *testing.T) {
 	t.Parallel()
 

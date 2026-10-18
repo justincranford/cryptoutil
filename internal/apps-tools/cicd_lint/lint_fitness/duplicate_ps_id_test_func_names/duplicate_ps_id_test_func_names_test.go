@@ -110,6 +110,22 @@ func TestFindDuplicates_RankedWorstFirst(t *testing.T) {
 	require.GreaterOrEqual(t, len(results[0].PSIDs), len(results[1].PSIDs))
 }
 
+func TestFindDuplicates_AlphabeticalTieBreak(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP} {
+		writeTestFile(t, dir, psID, "server_test.go", []string{"TestZebra", "TestAlpha"})
+	}
+
+	results, err := lintFitnessDuplicatePSIDTestFuncNames.FindDuplicates(dir)
+
+	require.NoError(t, err)
+	require.Len(t, results, 2)
+	require.Equal(t, "TestAlpha", results[0].FuncName)
+	require.Equal(t, "TestZebra", results[1].FuncName)
+}
+
 func TestFindDuplicates_IntegrationTestsExcluded(t *testing.T) {
 	t.Parallel()
 

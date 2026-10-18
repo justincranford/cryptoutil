@@ -12,17 +12,24 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityEmail "cryptoutil/internal/apps/identity/email"
-	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilIdentityRotation "cryptoutil/internal/apps/identity/rotation"
 )
 
+// TokenService defines the token operations required by the authorization API.
+type TokenService interface {
+	IssueAccessToken(ctx context.Context, claims map[string]any) (string, error)
+	IssueRefreshToken(ctx context.Context) (string, error)
+	ValidateAccessToken(ctx context.Context, token string) (map[string]any, error)
+	GetPublicKeys() []map[string]any
+}
+
 // Service provides OAuth 2.1 authorization server functionality.
 type Service struct {
 	config          *cryptoutilIdentityConfig.Config
 	repoFactory     *cryptoutilIdentityRepository.RepositoryFactory
-	tokenSvc        *cryptoutilIdentityIssuer.TokenService
+	tokenSvc        TokenService
 	clientAuth      *cryptoutilIdentityClientAuth.Registry
 	authReqStore    AuthorizationRequestStore
 	emailOTPService *cryptoutilIdentityMfa.EmailOTPService
@@ -33,7 +40,7 @@ type Service struct {
 func NewService(
 	config *cryptoutilIdentityConfig.Config,
 	repoFactory *cryptoutilIdentityRepository.RepositoryFactory,
-	tokenSvc *cryptoutilIdentityIssuer.TokenService,
+	tokenSvc TokenService,
 ) *Service {
 	// Create rotation service for multi-secret authentication
 	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(repoFactory.DB())

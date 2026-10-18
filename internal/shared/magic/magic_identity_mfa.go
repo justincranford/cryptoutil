@@ -63,3 +63,9 @@ const (
 	// DefaultWebAuthnSessionExpiry is the default session expiry for WebAuthn ceremonies.
 	DefaultWebAuthnSessionExpiry = 5 * time.Minute
 )
+
+// WebAuthn Attestation constants.
+const (
+	// WebAuthnAttestationTypeNone indicates that authenticator attestation is not provided.
+	WebAuthnAttestationTypeNone = "none"
+)

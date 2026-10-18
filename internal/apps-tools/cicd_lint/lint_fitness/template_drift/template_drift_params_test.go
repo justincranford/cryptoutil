@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -49,6 +50,7 @@ func TestBuildProductParams(t *testing.T) {
 	require.NotEmpty(t, params["__PRODUCT_SERVICE_OVERRIDES__"])
 	require.NotEmpty(t, params["__PRODUCT_INIT_PS_ID__"])
 	require.Contains(t, params["__PRODUCT_SERVICE_OVERRIDES__"], "sm-certs:/certs:ro")
+	require.Contains(t, params["__PRODUCT_SERVICE_OVERRIDES__"], "POSTGRES_REPLICATION_PSIDS: sm-kms")
 }
 
 func TestBuildSuiteParams(t *testing.T) {
@@ -59,6 +61,7 @@ func TestBuildSuiteParams(t *testing.T) {
 	require.NotEmpty(t, params["__SUITE_INCLUDE_LIST__"])
 	require.NotEmpty(t, params["__SUITE_SERVICE_OVERRIDES__"])
 	require.NotEmpty(t, params["__SUITE_INIT_PS_ID__"])
+	require.Contains(t, params["__SUITE_SERVICE_OVERRIDES__"], "POSTGRES_REPLICATION_TIER: suite")
 }
 
 func TestBuildStaticParams(t *testing.T) {
@@ -128,6 +131,8 @@ func TestBuildProductServiceOverrides(t *testing.T) {
 	overrides := buildProductServiceOverrides(cryptoutilSharedMagic.SMProductName, []string{cryptoutilSharedMagic.OTLPServiceSMKMS})
 	require.Contains(t, overrides, "sm-kms-app-sqlite-1:")
 	require.Contains(t, overrides, "ports: !override")
+	require.Contains(t, overrides, "sm-kms-app-postgresql-2:")
+	require.Contains(t, overrides, "POSTGRES_REPLICATION_PSIDS: sm-kms")
 }
 
 func TestBuildSuiteIncludeList(t *testing.T) {
@@ -151,6 +156,15 @@ func TestBuildSuiteServiceOverrides(t *testing.T) {
 	require.Contains(t, overrides, "sm-kms-app-sqlite-1:")
 	require.Contains(t, overrides, "cryptoutil-certs:/certs:ro")
 	require.Contains(t, overrides, "!override")
+	require.Contains(t, overrides, "skeleton-template-app-postgresql-2:")
+	require.Contains(t, overrides, "POSTGRES_REPLICATION_TIER: suite")
+
+	psIDs := make([]string, 0, len(cryptoutilRegistry.AllProductServices()))
+	for _, ps := range cryptoutilRegistry.AllProductServices() {
+		psIDs = append(psIDs, ps.PSID)
+	}
+
+	require.Contains(t, overrides, "POSTGRES_REPLICATION_PSIDS: "+strings.Join(psIDs, ","))
 }
 
 func TestBuildProductPSIDListDisplay(t *testing.T) {

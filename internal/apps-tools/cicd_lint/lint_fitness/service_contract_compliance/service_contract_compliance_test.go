@@ -183,6 +183,38 @@ func TestDiscoverServices_ReadDirSeamError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to discover services")
 }
 
+func TestCheckInDir_AbsolutePathError(t *testing.T) {
+	t.Parallel()
+
+	err := checkInDirWithAbs(newTestLogger(), t.TempDir(), func(_ string) (string, error) {
+		return "", fmt.Errorf("injected absolute path error")
+	}, os.ReadDir, os.ReadFile)
+
+	require.ErrorContains(t, err, "failed to resolve root dir")
+	require.ErrorContains(t, err, "injected absolute path error")
+}
+
+func TestDiscoverServices_ProductReadDirError(t *testing.T) {
+	t.Parallel()
+
+	appsDir := filepath.Join(t.TempDir(), "apps")
+	productDir := filepath.Join(appsDir, "sm")
+	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
+
+	readDirFn := func(path string) ([]os.DirEntry, error) {
+		if path == appsDir {
+			return os.ReadDir(path)
+		}
+
+		return nil, fmt.Errorf("injected product directory read error")
+	}
+
+	_, err := discoverServices(appsDir, readDirFn)
+
+	require.ErrorContains(t, err, "read product dir")
+	require.ErrorContains(t, err, "injected product directory read error")
+}
+
 func TestCheckServerFile_ReadFileError(t *testing.T) {
 	t.Parallel()
 
@@ -246,7 +278,7 @@ func TestDiscoverServices_ArchivedDirSkipped(t *testing.T) {
 	tmp := t.TempDir()
 	appsDir := filepath.Join(tmp, "apps")
 
-	productDir := filepath.Join(appsDir, cryptoutilSharedMagic.SkeletonProductName)
+	productDir := filepath.Join(appsDir, "sm")
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
 
 	// Create a dir prefixed with _ (archived).

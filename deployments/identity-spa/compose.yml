@@ -415,6 +415,21 @@ services:
     volumes:
       - identity-spa-certs:/mnt/ps-certs-src:ro
 
+  postgres-follower:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+      identity-spa-app-postgresql-1:
+        condition: service_healthy
+      identity-spa-app-postgresql-2:
+        condition: service_healthy
+    environment:
+      POSTGRES_CERT_SCOPE: identity-spa
+      POSTGRES_REPLICATION_TIER: service
+      POSTGRES_REPLICATION_PSIDS: identity-spa
+    volumes:
+      - identity-spa-certs:/mnt/ps-certs-src:ro
+
 volumes:
   identity-spa-certs:
   identity-spa-otel-certs:

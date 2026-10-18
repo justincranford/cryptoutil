@@ -3,7 +3,6 @@ package lint_deployments
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -314,19 +313,25 @@ func TestValidatePorts_InvalidComposeYAML(t *testing.T) {
 func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
-	}
+	configDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(configDir, testConfigYml), []byte("bind-public-port: 8000\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	dir := createDeploymentWithCompose(t, testComposeServicePort)
+	var readAttempted bool
 
-	configDir := filepath.Join(dir, fileTypeConfig)
-	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.Symlink("/nonexistent/file.yml", filepath.Join(configDir, "broken.yml")))
+	result := &PortValidationResult{Valid: true}
+	validateConfigPortRangesWithReadFile(
+		configDir,
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
+		DeploymentTypeProductService,
+		result,
+		func(string) ([]byte, error) {
+			readAttempted = true
 
-	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMKMS, DeploymentTypeProductService)
-	require.NoError(t, err)
-	require.NotNil(t, result)
+			return nil, os.ErrPermission
+		},
+	)
+
+	require.True(t, readAttempted)
 	require.True(t, result.Valid)
 }
 

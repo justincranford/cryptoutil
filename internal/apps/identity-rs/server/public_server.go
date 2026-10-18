@@ -14,8 +14,9 @@ import (
 
 // PublicServer implements the identity-rs public server by embedding PublicServerBase.
 type PublicServer struct {
-	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase // Reusable server infrastructure.
-	cfg  *cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings
+	base         *cryptoutilAppsFrameworkServiceServer.PublicServerBase // Reusable server infrastructure.
+	cfg          *cryptoutilAppsIdentityRsServerConfig.IdentityRSServerSettings
+	sendStringFn func(*fiber.Ctx, string) error
 }
 
 // NewPublicServer creates a new identity-rs public server using builder-provided infrastructure.
@@ -103,7 +104,7 @@ func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 
 // handleLivez returns liveness status.
 func (s *PublicServer) handleLivez(c *fiber.Ctx) error {
-	if err := c.SendString("OK"); err != nil {
+	if err := s.sendString(c, "OK"); err != nil {
 		return fmt.Errorf("failed to send liveness response: %w", err)
 	}
 
@@ -112,8 +113,20 @@ func (s *PublicServer) handleLivez(c *fiber.Ctx) error {
 
 // handleReadyz returns readiness status.
 func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
-	if err := c.SendString("OK"); err != nil {
+	if err := s.sendString(c, "OK"); err != nil {
 		return fmt.Errorf("failed to send readiness response: %w", err)
+	}
+
+	return nil
+}
+
+func (s *PublicServer) sendString(c *fiber.Ctx, value string) error {
+	if s.sendStringFn != nil {
+		return s.sendStringFn(c, value)
+	}
+
+	if err := c.SendString(value); err != nil {
+		return fmt.Errorf("failed to send response body: %w", err)
 	}
 
 	return nil

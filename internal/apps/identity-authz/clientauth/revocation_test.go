@@ -127,7 +127,7 @@ func TestCRLCache_GetCRL(t *testing.T) {
 
 	// Create test HTTP server serving CRL.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/pkix-crl")
+		w.Header().Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeCRLDER)
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.
 		_, _ = w.Write(crlBytes)
@@ -212,7 +212,7 @@ func TestCRLCache_GetCRL_InvalidCRL(t *testing.T) {
 
 	// Create test HTTP server returning invalid CRL data.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/pkix-crl")
+		w.Header().Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeCRLDER)
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.
 		_, _ = w.Write([]byte("invalid CRL data"))
@@ -295,7 +295,7 @@ func TestCRLRevocationChecker_CheckRevocation(t *testing.T) {
 
 	// Create test HTTP server serving CRL.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/pkix-crl")
+		w.Header().Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeCRLDER)
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.
 		_, _ = w.Write(crlBytes)
@@ -403,7 +403,7 @@ func TestOCSPRevocationChecker_CheckRevocation_Good(t *testing.T) {
 		//nolint:errcheck // Test OCSP response generation, errors not critical.
 		ocspRespBytes, _ := asn1.Marshal(ocspResp)
 
-		w.Header().Set("Content-Type", "application/ocsp-response")
+		w.Header().Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeOCSPResponse)
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.
 		_, _ = w.Write(ocspRespBytes)
@@ -437,7 +437,7 @@ func TestCombinedRevocationChecker_CheckRevocation(t *testing.T) {
 
 	// Create test CRL server.
 	crlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/pkix-crl")
+		w.Header().Set("Content-Type", cryptoutilSharedMagic.PKIContentTypeCRLDER)
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.
 		_, _ = w.Write(crlBytes)

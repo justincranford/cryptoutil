@@ -196,6 +196,8 @@ func TestIsMagicTrivialLiteral_String(t *testing.T) {
 		{name: "empty string", value: `""`, expected: true},
 		{name: "single char", value: `"a"`, expected: true},
 		{name: "two chars", value: `"ab"`, expected: true},
+		{name: "yaml extension", value: `"yaml"`, expected: true},
+		{name: "yml extension", value: `"yml"`, expected: true},
 		{name: "three chars", value: `"abc"`, expected: false},
 		{name: "long string", value: `"https"`, expected: false},
 	}
@@ -253,6 +255,22 @@ func TestParseMagicDir_MultipleFiles(t *testing.T) {
 	require.Len(t, inv.Constants, 2)
 	require.Equal(t, "FileOneConst", inv.Constants[0].Name)
 	require.Equal(t, "FileTwoConst", inv.Constants[1].Name)
+}
+
+func TestParseMagicDir_IgnoresLifecycleLabels(t *testing.T) {
+	t.Parallel()
+
+	magicDir := t.TempDir()
+	content := "package magic\n\nconst LifecycleLabel = \"root\"\n"
+	require.NoError(t, os.WriteFile(
+		filepath.Join(magicDir, "magic_lifecycle.go"),
+		[]byte(content),
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+
+	inventory, err := ParseMagicDir(magicDir)
+	require.NoError(t, err)
+	require.Empty(t, inventory.Constants)
 }
 
 func TestIsMagicTrivialLiteral_Float(t *testing.T) {

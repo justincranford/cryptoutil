@@ -173,7 +173,7 @@ func setupE2ETestMainWithDeps(runFn func() int, cfg E2ETestConfig, onReady func(
 //	    }))
 //	}
 func SetupE2ETestMain(m *testing.M, cfg E2ETestConfig, onReady func(*E2ETestEnv)) int {
-	// Use a lazy closure so m.Run is only called when setup succeeds.
+	// Pass a method value so m.Run is only called when setup succeeds.
 	// This prevents a nil-pointer dereference when m is nil in tests where setup always fails.
-	return setupE2ETestMainWithDeps(func() int { return m.Run() }, cfg, onReady, defaultTestmainFactoryDeps())
+	return setupE2ETestMainWithDeps(m.Run, cfg, onReady, defaultTestmainFactoryDeps())
 }

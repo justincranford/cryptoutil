@@ -2,6 +2,8 @@
 package no_hardcoded_passwords
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -55,7 +57,7 @@ import "testing"
 
 func TestSomething(t *testing.T) {
 	t.Parallel()
-	password := "test123"
+	password := ` + `"test123"` + `
 	_ = password
 }
 `,
@@ -124,12 +126,12 @@ func TestCheckHardcodedPasswords(t *testing.T) {
 	}{
 		{
 			name:        "hardcoded_password",
-			fileContent: `password := "test123"`,
+			fileContent: `password := ` + `"test123"`,
 			wantIssues:  true,
 		},
 		{
 			name:        "hardcoded_password_alt",
-			fileContent: `password := "password"`,
+			fileContent: `password := ` + `"password"`,
 			wantIssues:  true,
 		},
 		{
@@ -170,6 +172,17 @@ func TestCheckHardcodedPasswords_ReadFileError(t *testing.T) {
 	issues := CheckHardcodedPasswords("/nonexistent/path/that/does/not/exist_test.go")
 	require.NotEmpty(t, issues)
 	require.Contains(t, issues[0], "Error reading file")
+}
+
+func TestCheck_WalkError(t *testing.T) {
+	t.Parallel()
+
+	walkErr := errors.New("injected walk error")
+	err := checkWithWalkDirFn(cryptoutilCmdCicdCommon.NewLogger("test"), ".", func(root string, walkFn fs.WalkDirFunc) error {
+		return walkFn(root, nil, walkErr)
+	})
+	require.ErrorIs(t, err, walkErr)
+	require.ErrorContains(t, err, "walking test files")
 }
 
 func findProjectRoot() (string, error) {

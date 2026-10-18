@@ -11,13 +11,56 @@
 package test_help_api
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	http "net/http"
+	"testing"
+
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+const jsonEncodingTestFailure = "injected JSON encoding failure"
+
+func AssertJSONEncodingFailure(t testing.TB, path string, request *http.Request, handler fiber.Handler) {
+	t.Helper()
+
+	app := fiber.New(fiber.Config{
+		DisableStartupMessage: true,
+		JSONEncoder: func(any) ([]byte, error) {
+			return nil, errors.New(jsonEncodingTestFailure)
+		},
+	})
+	app.Get(path, handler)
+
+	assertJSONEncodingFailureWith(request, app.Test, t.Fatalf, t.Errorf)
+}
+
+func assertJSONEncodingFailureWith(
+	request *http.Request,
+	appTest func(*http.Request, ...int) (*http.Response, error),
+	fatalf func(string, ...any),
+	errorf func(string, ...any),
+) {
+	response, err := appTest(request, -1)
+	if err != nil {
+		fatalf("request failed: %v", err)
+
+		return
+	}
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			errorf("failed to close response body: %v", err)
+		}
+	}()
+
+	if response.StatusCode != http.StatusInternalServerError {
+		errorf("unexpected status: got %d, want %d", response.StatusCode, http.StatusInternalServerError)
+	}
+}
 
 // HealthClient is a test-only HTTPS client for hitting service health endpoints.
 type HealthClient struct {

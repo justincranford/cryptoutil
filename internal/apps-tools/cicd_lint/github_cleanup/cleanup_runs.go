@@ -137,7 +137,7 @@ func listWorkflowRunsAPI(cfg *CleanupConfig) ([]workflowRun, error) {
 			fmt.Sprintf("/repos/{owner}/{repo}/actions/runs?per_page=%d&page=%d", maxPerPage, page),
 		)
 
-		output, err := ghExec(args...)
+		output, err := cfg.executeGH(args...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch page %d: %w", page, err)
 		}
@@ -174,7 +174,7 @@ func deleteWorkflowRun(cfg *CleanupConfig, runID int64) error {
 		"/repos/{owner}/{repo}/actions/runs/"+strconv.FormatInt(runID, cryptoutilSharedMagic.DecimalRadix),
 	)
 
-	if _, err := ghExec(args...); err != nil {
+	if _, err := cfg.executeGH(args...); err != nil {
 		return fmt.Errorf("failed to delete run %d: %w", runID, err)
 	}
 

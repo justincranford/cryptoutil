@@ -70,6 +70,8 @@ func newTOTPIntegrationTestFixture() (*cryptoutilIdentityConfig.Config, *cryptou
 		&cryptoutilIdentityDomain.User{},
 		&cryptoutilIdentityMfa.TOTPSecret{},
 		&cryptoutilIdentityMfa.BackupCode{},
+		&cryptoutilIdentityMfa.WebAuthnSession{},
+		&cryptoutilIdentityMfa.WebAuthnCredential{},
 	); err != nil {
 		return nil, nil, errors.Join(fmt.Errorf("failed to auto-migrate TOTP test database: %w", err), repoFactory.Close())
 	}

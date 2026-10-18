@@ -106,11 +106,14 @@ func TestNewUnsealKeysServiceSharedSecrets_HKDFError(t *testing.T) {
 func TestNewUnsealKeysServiceFromSysInfo_HKDFError(t *testing.T) {
 	t.Parallel()
 
+	stubGetAllInfo := func(_ cryptoutilSharedUtilSysinfo.SysInfoProvider, _ time.Duration) ([][]byte, error) {
+		return [][]byte{make([]byte, cryptoutilSharedMagic.MinSharedSecretLength)}, nil
+	}
 	stubHKDF := func(_, _, _ []byte, _ int) ([]byte, error) {
 		return nil, fmt.Errorf("simulated HKDF error")
 	}
 
-	unsealKeysService, err := newUnsealKeysServiceFromSysInfoInternal(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{}, cryptoutilSharedUtilSysinfo.GetAllInfoWithTimeout, stubHKDF)
+	unsealKeysService, err := newUnsealKeysServiceFromSysInfoInternal(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{}, stubGetAllInfo, stubHKDF)
 
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)

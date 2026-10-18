@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	lintFitnessRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -196,6 +197,36 @@ func TestCheck_DelegatesToCheckInDir(t *testing.T) {
 
 	err := CheckInDir(logger, root, os.ReadDir, os.ReadFile)
 	require.NoError(t, err, "Check() should pass on project root")
+}
+
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	root := findProjectRoot(t)
+
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+	defer func() {
+		require.NoError(t, os.Chdir(originalDir))
+	}()
+
+	require.NoError(t, Check(cryptoutilCmdCicdCommon.NewLogger("test-check-workspace-root")))
+}
+
+func TestCheckInDir_DeploymentViolation(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(root, cryptoutilSharedMagic.CICDConfigsDir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	deploymentConfigDir := filepath.Join(root, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "config")
+	require.NoError(t, os.MkdirAll(deploymentConfigDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	configPath := filepath.Join(deploymentConfigDir, cryptoutilSharedMagic.OTLPServiceSMKMS+lintFitnessRegistry.DeploymentConfigSuffixSQLite1)
+	require.NoError(t, os.WriteFile(configPath, []byte("otlp-service: incorrect\n"), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test-deployment-violation"), root, os.ReadDir, os.ReadFile)
+	require.ErrorContains(t, err, "OTLP service name violations")
+	require.ErrorContains(t, err, "incorrect")
 }
 
 func TestCheckOTLPServiceValue_NonStringValue(t *testing.T) {

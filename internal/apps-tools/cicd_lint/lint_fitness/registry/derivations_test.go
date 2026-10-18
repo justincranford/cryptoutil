@@ -414,3 +414,30 @@ func TestDockerfileEntrypoint_UnknownPSID(t *testing.T) {
 
 	require.Nil(t, DockerfileEntrypoint("unknown-service"))
 }
+
+func TestDerivedLookupHelpers(t *testing.T) {
+	t.Parallel()
+
+	ps := allProductServices[0]
+	product := allProducts[0]
+	suite := allSuites[0]
+
+	require.NotEmpty(t, ProductDisplayName(ps.PSID))
+	require.Empty(t, ProductDisplayName("unknown-psid"))
+	require.Equal(t, ps.DisplayName, ServiceDisplayName(ps.PSID))
+	require.Empty(t, ServiceDisplayName("unknown-psid"))
+	require.Equal(t, allRegistryFile.ProductServices[0].BasePort+99, PortRangeEnd(ps.PSID))
+	require.Zero(t, PortRangeEnd("unknown-psid"))
+	require.NotEmpty(t, PSIDsForProduct(product.ID))
+	require.Nil(t, PSIDsForProduct("unknown-product"))
+	require.Equal(t, ps.Product, ProductForPSID(ps.PSID))
+	require.Empty(t, ProductForPSID("unknown-psid"))
+	require.Equal(t, product.InitPSID, ProductInitPSID(product.ID))
+	require.Empty(t, ProductInitPSID("unknown-product"))
+	require.Equal(t, suite.InitPSID, SuiteInitPSID(suite.ID))
+	require.Empty(t, SuiteInitPSID("unknown-suite"))
+	require.Equal(t, suite.DisplayName, SuiteDisplayName(suite.ID))
+	require.Empty(t, SuiteDisplayName("unknown-suite"))
+	require.Equal(t, product.DisplayName, ProductDisplayNameByID(product.ID))
+	require.Empty(t, ProductDisplayNameByID("unknown-product"))
+}

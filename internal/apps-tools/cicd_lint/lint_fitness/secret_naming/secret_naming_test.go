@@ -25,6 +25,21 @@ func TestCheck_RealWorkspace(t *testing.T) {
 	}
 }
 
+// Sequential: changes the process working directory to exercise Check.
+func TestCheck_WorkspaceRoot(t *testing.T) {
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", ".."))
+	require.NoError(t, err)
+	original, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+	defer func() {
+		require.NoError(t, os.Chdir(original))
+	}()
+
+	require.NoError(t, Check(cryptoutilCmdCicdCommon.NewLogger("test-check-workspace-root")))
+}
+
 func TestFindViolationsInDir_ValidSecrets(t *testing.T) {
 	t.Parallel()
 
@@ -158,6 +173,28 @@ func TestFindViolationsInDir_MissingDeploymentsDir(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for missing deployments/ directory")
 	}
+}
+
+func TestFindViolationsInDir_NonDirectoryAndUnreadableSecretsPath(t *testing.T) {
+	t.Parallel()
+
+	rootDir := setupTempDir(t, map[string]string{
+		"deployments/standalone-file": testContent,
+		"deployments/sm-kms/secrets":  testContent,
+	})
+
+	violations, err := FindViolationsInDir(rootDir)
+	require.NoError(t, err)
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], "failed to read secrets/ directory")
+}
+
+func TestCheckInDir_MissingDeploymentsDirectory(t *testing.T) {
+	t.Parallel()
+
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test-check-missing-deployments"), t.TempDir())
+	require.ErrorContains(t, err, "failed to check secret naming")
+	require.ErrorContains(t, err, "failed to read deployments/")
 }
 
 func TestCheckInDir_WithViolation(t *testing.T) {

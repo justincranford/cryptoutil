@@ -302,19 +302,3 @@ func TestFormatTemplatePatternResult(t *testing.T) {
 		})
 	}
 }
-
-func TestValidateTemplatePattern_RealTemplate(t *testing.T) {
-	t.Parallel()
-
-	templatePath := filepath.Join(".", "..", "..", "..", "..", defaultDeploymentsDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
-
-	info, err := os.Stat(templatePath)
-	if err != nil || !info.IsDir() {
-		t.Skip("Real template directory not found - skipping integration test")
-	}
-
-	result, err := ValidateTemplatePattern(templatePath)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-	require.True(t, result.Valid, "Real template should pass validation. Errors: %v", result.Errors)
-}

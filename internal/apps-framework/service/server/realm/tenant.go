@@ -63,6 +63,7 @@ type TenantManager struct {
 	schemaCreated  map[string]bool
 	mu             sync.RWMutex
 	defaultRealmID string
+	execSchemaFn   func(context.Context, string) error
 }
 
 // TenantManagerConfig configures the tenant manager.
@@ -95,6 +96,9 @@ func NewTenantManager(db *gorm.DB, config *TenantManagerConfig) (*TenantManager,
 		tenants:        make(map[string]*TenantConfig),
 		schemaCreated:  make(map[string]bool),
 		defaultRealmID: config.DefaultRealmID,
+		execSchemaFn: func(ctx context.Context, query string) error {
+			return db.WithContext(ctx).Exec(query).Error
+		},
 	}, nil
 }
 
@@ -234,7 +238,7 @@ func (m *TenantManager) createTenantSchema(ctx context.Context, tenant *TenantCo
 
 	// Create schema (PostgreSQL specific).
 	sql := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", tenant.SchemaName)
-	if err := m.db.WithContext(ctx).Exec(sql).Error; err != nil {
+	if err := m.execSchemaFn(ctx, sql); err != nil {
 		return fmt.Errorf("failed to create schema %s: %w", tenant.SchemaName, err)
 	}
 
@@ -251,7 +255,7 @@ func (m *TenantManager) dropTenantSchema(ctx context.Context, tenant *TenantConf
 
 	// Drop schema (PostgreSQL specific).
 	sql := fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", tenant.SchemaName)
-	if err := m.db.WithContext(ctx).Exec(sql).Error; err != nil {
+	if err := m.execSchemaFn(ctx, sql); err != nil {
 		return fmt.Errorf("failed to drop schema %s: %w", tenant.SchemaName, err)
 	}
 

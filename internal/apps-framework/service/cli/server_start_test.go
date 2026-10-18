@@ -93,6 +93,37 @@ func TestStartServiceServer_ParseError(t *testing.T) {
 	require.Empty(t, stdout.String())
 }
 
+func TestStartServiceServer_NewServerError(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsFrameworkCli.StartServiceServer(
+		nil,
+		&stdout,
+		&stderr,
+		cryptoutilAppsFrameworkCli.ServerStartOptions[*struct{}]{
+			UsageServer:  testUsageTestServer,
+			ServiceLabel: testServiceID,
+			FlagSetName:  testTestServer,
+			ParseConfig: func(_ *pflag.FlagSet, _ []string, _ bool) (*struct{}, error) {
+				return &struct{}{}, nil
+			},
+			NewServer: func(_ context.Context, _ *struct{}) (cryptoutilAppsFrameworkCli.ReadyStarter, error) {
+				return nil, fmt.Errorf("injected server construction failure")
+			},
+			BindAddresses: func(_ *struct{}) (string, uint16, string, uint16) {
+				return cryptoutilSharedMagic.IPv4Loopback, 8443, cryptoutilSharedMagic.IPv4Loopback, 9443
+			},
+		},
+	)
+
+	require.Equal(t, 1, exitCode)
+	require.Contains(t, stderr.String(), "Failed to create server")
+	require.Contains(t, stderr.String(), "injected server construction failure")
+	require.Empty(t, stdout.String())
+}
+
 func TestStartServiceServer_Success(t *testing.T) {
 	t.Parallel()
 

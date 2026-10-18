@@ -8,6 +8,7 @@ import (
 	crand "crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"math/big"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -19,7 +20,7 @@ import (
 func GenerateDeviceCode() (string, error) {
 	bytes := make([]byte, cryptoutilSharedMagic.DefaultDeviceCodeLength)
 
-	if _, err := crand.Read(bytes); err != nil {
+	if _, err := io.ReadFull(crand.Reader, bytes); err != nil {
 		return "", fmt.Errorf("failed to generate device code: %w", err)
 	}
 

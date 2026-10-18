@@ -271,7 +271,7 @@ src/test/java/
 | Product | `SkeletonProductSimulation` | skeleton-template | 8900 |
 | Suite | `CryptoutilSuiteSimulation` | All 7 active services | 8000-8900 |
 
-All simulations support `profile` (quick/standard/stress), `virtualclients`, and `durationSeconds` system properties.
+All simulations support `profile` (quick/standard/stress), `virtualclients`, and `durationSeconds` system properties. `ServiceApiSimulation` additionally supports `cipher`, `signature`, and `complete` profiles.
 
 ## Creating Custom Simulations
 

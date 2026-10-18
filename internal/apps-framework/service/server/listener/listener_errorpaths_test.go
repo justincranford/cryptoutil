@@ -185,15 +185,10 @@ func TestPublicHTTPServer_Start_ContextCancellation(t *testing.T) {
 		startErr <- server.Start(ctx)
 	}()
 
-	for i := 0; i < cryptoutilSharedMagic.MaxErrorDisplay; i++ {
-		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
-
-		if server.ActualPort() > 0 {
-			break
-		}
-	}
-
-	require.Greater(t, server.ActualPort(), 0)
+	require.Eventually(t, func() bool {
+		return server.ActualPort() > 0
+	}, cryptoutilSharedMagic.TestTimeoutCryptoutilReady, cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval,
+		"public server should allocate a dynamic port")
 
 	cancel()
 	wg.Wait()

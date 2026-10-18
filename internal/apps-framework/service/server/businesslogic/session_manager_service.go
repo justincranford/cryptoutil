@@ -6,6 +6,7 @@ package businesslogic
 import (
 	"context"
 	"fmt"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -140,6 +141,11 @@ func (s *SessionManagerService) ValidateServiceSession(
 	}
 
 	return s.sessionManager.ValidateServiceSession(ctx, token)
+}
+
+// ServiceSessionExpiration returns the configured service session lifetime.
+func (s *SessionManagerService) ServiceSessionExpiration() time.Duration {
+	return s.sessionManager.config.ServiceSessionExpiration
 }
 
 // CleanupExpiredSessions removes expired sessions from the database.

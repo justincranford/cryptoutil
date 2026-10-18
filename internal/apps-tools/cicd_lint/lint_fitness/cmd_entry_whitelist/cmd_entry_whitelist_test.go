@@ -208,6 +208,19 @@ func TestCheckInDir_InvalidStructure(t *testing.T) {
 	assert.Contains(t, err.Error(), "cmd-entry-whitelist: found")
 }
 
+func TestCheckInDir_MultipleInvalidEntries(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	mkdir(t, filepath.Join(tmpDir, "cmd", "identity-compose"))
+	mkdir(t, filepath.Join(tmpDir, "cmd", "sm-run"))
+
+	err := lintFitnessCmdEntryWhitelist.CheckInDir(newTestLogger(), tmpDir)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cmd-entry-whitelist: found 2 unauthorized cmd/ entries")
+}
+
 func TestCheckInDir_NonExistentRoot_ReturnsError(t *testing.T) {
 	t.Parallel()
 
@@ -255,7 +268,6 @@ func TestAllowedEntrySet_ContainsKnownEntries(t *testing.T) {
 	assert.False(t, set["identity-compose"])
 }
 
-// TestCheck_Integration runs the linter against the real workspace.
 func TestCheck_Integration(t *testing.T) {
 	t.Parallel()
 	root := findProjectRoot(t)

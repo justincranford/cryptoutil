@@ -19,8 +19,79 @@ import (
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz/server/apis"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )
+
+func TestClientAuthentication_FallbackErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		clientID         string
+		authHeader       string
+		clientAuthMethod cryptoutilIdentityDomain.ClientAuthMethod
+	}{
+		{
+			name:       "basic_auth_without_client_secret_separator",
+			authHeader: "Basic " + base64.StdEncoding.EncodeToString([]byte("malformed")),
+		},
+		{
+			name:     "unknown_client_id_without_secret",
+			clientID: "unregistered-client",
+		},
+		{
+			name:             "basic_client_id_without_secret",
+			clientAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
+		},
+		{
+			name:             "mtls_client_without_tls_connection",
+			clientAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodTLSClientAuth,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			config := createClientAuthFlowTestConfig(t)
+			repoFactory := createClientAuthFlowTestRepoFactory(t, config)
+
+			clientID := tc.clientID
+			if tc.clientAuthMethod != "" {
+				client := createClientAuthFlowTestClient(t, repoFactory, tc.clientAuthMethod)
+				clientID = client.ClientID
+			}
+
+			service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+			app := fiber.New()
+			service.RegisterRoutes(app)
+
+			form := url.Values{
+				cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
+			}
+			if clientID != "" {
+				form.Set(cryptoutilSharedMagic.ParamClientID, clientID)
+			}
+
+			request := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(form.Encode()))
+			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+			if tc.authHeader != "" {
+				request.Header.Set("Authorization", tc.authHeader)
+			}
+
+			response, err := app.Test(request, -1)
+
+			require.NoError(t, err)
+			defer func() {
+				require.NoError(t, response.Body.Close())
+			}()
+
+			require.Equal(t, fiber.StatusUnauthorized, response.StatusCode)
+		})
+	}
+}
 
 func TestClientAuthentication_BasicAuth_InvalidFormat(t *testing.T) {
 	t.Parallel()

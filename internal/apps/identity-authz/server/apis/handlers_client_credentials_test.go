@@ -7,11 +7,14 @@ package apis_test
 import (
 	"context"
 	"encoding/base64"
+	json "encoding/json"
+	"errors"
 	"fmt"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -138,6 +141,123 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 			require.Equal(t, tc.expectedStatus, resp.StatusCode, "Expected specific HTTP status for error path")
 		})
 	}
+}
+
+func TestHandleClientCredentialsGrant_AuthenticatedFailurePaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                   string
+		tokenServiceConfigured bool
+		accessTokenErr         error
+		seedDuplicate          bool
+		expectedStatus         int
+		expectedError          string
+		expectedAccessToken    string
+	}{
+		{
+			name:           "token_service_not_configured",
+			expectedStatus: fiber.StatusInternalServerError,
+			expectedError:  cryptoutilSharedMagic.ErrorServerError,
+		},
+		{
+			name:                   testAccessTokenIssuanceFailed,
+			tokenServiceConfigured: true,
+			accessTokenErr:         errors.New("injected token issuance failure"),
+			expectedStatus:         fiber.StatusInternalServerError,
+			expectedError:          cryptoutilSharedMagic.ErrorServerError,
+		},
+		{
+			name:                   "token_persistence_failure_is_nonfatal",
+			tokenServiceConfigured: true,
+			seedDuplicate:          true,
+			expectedStatus:         fiber.StatusOK,
+			expectedAccessToken:    testAccessToken,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			config, repoFactory, _ := createClientCredentialsTestDependencies(t)
+			client := createClientAuthFlowTestClient(t, repoFactory, cryptoutilIdentityDomain.ClientAuthMethodSecretBasic)
+
+			if tc.seedDuplicate {
+				now := time.Now().UTC()
+				err := repoFactory.TokenRepository().Create(ctx, &cryptoutilIdentityDomain.Token{
+					TokenValue:  testAccessToken,
+					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
+					TokenFormat: cryptoutilIdentityDomain.TokenFormatJWS,
+					ClientID:    client.ID,
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID},
+					IssuedAt:    now,
+					ExpiresAt:   now.Add(time.Duration(cryptoutilSharedMagic.AccessTokenExpirySeconds) * time.Second),
+				})
+				require.NoError(t, err)
+			}
+
+			var service *cryptoutilIdentityAuthz.Service
+			if tc.tokenServiceConfigured {
+				service = cryptoutilIdentityAuthz.NewService(config, repoFactory, clientCredentialsTestTokenService{accessTokenErr: tc.accessTokenErr})
+			} else {
+				service = cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+			}
+
+			app := fiber.New()
+			service.RegisterRoutes(app)
+
+			form := url.Values{
+				cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
+				cryptoutilSharedMagic.ClaimScope:     []string{cryptoutilSharedMagic.ScopeOpenID},
+			}
+			request := httptest.NewRequest(testPost, testOauth2V1Token, strings.NewReader(form.Encode()))
+			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			request.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(client.ClientID+":"+testTestSecret)))
+
+			response, err := app.Test(request, -1)
+
+			require.NoError(t, err)
+			defer func() {
+				require.NoError(t, response.Body.Close())
+			}()
+
+			require.Equal(t, tc.expectedStatus, response.StatusCode)
+
+			var body struct {
+				Error       string `json:"error"`
+				AccessToken string `json:"access_token"`
+			}
+			require.NoError(t, json.NewDecoder(response.Body).Decode(&body))
+			require.Equal(t, tc.expectedError, body.Error)
+			require.Equal(t, tc.expectedAccessToken, body.AccessToken)
+		})
+	}
+}
+
+type clientCredentialsTestTokenService struct {
+	accessTokenErr error
+}
+
+func (s clientCredentialsTestTokenService) IssueAccessToken(_ context.Context, _ map[string]any) (string, error) {
+	if s.accessTokenErr != nil {
+		return "", s.accessTokenErr
+	}
+
+	return testAccessToken, nil
+}
+
+func (clientCredentialsTestTokenService) IssueRefreshToken(_ context.Context) (string, error) {
+	return "", nil
+}
+
+func (clientCredentialsTestTokenService) ValidateAccessToken(_ context.Context, _ string) (map[string]any, error) {
+	return nil, nil
+}
+
+func (clientCredentialsTestTokenService) GetPublicKeys() []map[string]any {
+	return nil
 }
 
 // Helper functions.

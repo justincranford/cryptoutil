@@ -114,15 +114,17 @@ type CoreWithServices struct {
 	RealmRepository       cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository
 	TenantRepository      cryptoutilAppsFrameworkServiceServerRepository.TenantRepository
 	UserRepository        cryptoutilAppsFrameworkServiceServerRepository.UserRepository
+	ClientRepository      cryptoutilAppsFrameworkServiceServerRepository.ClientRepository
 	JoinRequestRepository cryptoutilAppsFrameworkServiceServerRepository.TenantJoinRequestRepository
 
 	// Services.
-	BarrierService      *cryptoutilAppsFrameworkServiceServerBarrier.Service
-	RealmService        cryptoutilAppsFrameworkServiceServerService.RealmService
-	SessionManager      *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
-	RegistrationService *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService
-	RotationService     *cryptoutilAppsFrameworkServiceServerBarrier.RotationService
-	StatusService       *cryptoutilAppsFrameworkServiceServerBarrier.StatusService
+	BarrierService            *cryptoutilAppsFrameworkServiceServerBarrier.Service
+	RealmService              cryptoutilAppsFrameworkServiceServerService.RealmService
+	SessionManager            *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	RegistrationService       *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService
+	ClientRegistrationService cryptoutilAppsFrameworkServiceServerService.RegistrationService
+	RotationService           *cryptoutilAppsFrameworkServiceServerBarrier.RotationService
+	StatusService             *cryptoutilAppsFrameworkServiceServerBarrier.StatusService
 }
 
 // InitializeServicesOnCore initializes all business logic services on an existing Core.
@@ -213,6 +215,9 @@ func initializeServicesOnCoreInternal(
 	userRepo := cryptoutilAppsFrameworkServiceServerRepository.NewUserRepository(core.DB)
 	services.UserRepository = userRepo
 
+	clientRepo := cryptoutilAppsFrameworkServiceServerRepository.NewClientRepository(core.DB)
+	services.ClientRepository = clientRepo
+
 	joinRequestRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantJoinRequestRepository(core.DB)
 	services.JoinRequestRepository = joinRequestRepo
 
@@ -223,6 +228,19 @@ func initializeServicesOnCoreInternal(
 		joinRequestRepo,
 	)
 	services.RegistrationService = registrationService
+
+	roleRepo := cryptoutilAppsFrameworkServiceServerRepository.NewRoleRepository(core.DB)
+	clientRegistrationService := cryptoutilAppsFrameworkServiceServerService.NewRegistrationService(
+		cryptoutilAppsFrameworkServiceServerService.NewTenantService(tenantRepo, roleRepo),
+		userRepo,
+		clientRepo,
+		cryptoutilAppsFrameworkServiceServerRepository.NewUnverifiedUserRepository(core.DB),
+		cryptoutilAppsFrameworkServiceServerRepository.NewUnverifiedClientRepository(core.DB),
+		roleRepo,
+		cryptoutilAppsFrameworkServiceServerRepository.NewUserRoleRepository(core.DB),
+		cryptoutilAppsFrameworkServiceServerRepository.NewClientRoleRepository(core.DB),
+	)
+	services.ClientRegistrationService = clientRegistrationService
 
 	// Create barrier rotation service.
 	rotationService, err := newRotationServiceFn(

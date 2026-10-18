@@ -3,6 +3,7 @@ package magic_aliases
 
 import (
 	"fmt"
+	"go/ast"
 	"os"
 	"path/filepath"
 	"testing"
@@ -165,6 +166,28 @@ localC = cryptoutilSharedMagic.ProtocolHTTP
 	require.NoError(t, err)
 }
 
+func TestCheckMagicAliasesInDir_SortsAliasesAcrossFiles(t *testing.T) {
+	t.Parallel()
+
+	magicDir := t.TempDir()
+	rootDir := t.TempDir()
+	writeGoFile(t, rootDir, "pkg/b", "b.go", `package b
+
+import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+const localB = cryptoutilSharedMagic.EmptyString
+`)
+	writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
+
+import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+const localA = cryptoutilSharedMagic.EmptyString
+`)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger(t.Name())
+	require.NoError(t, CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk))
+}
+
 func TestCheckMagicAliasesInDir_InvalidRootDir(t *testing.T) {
 	t.Parallel()
 
@@ -267,6 +290,19 @@ func TestFindMagicImportAlias_DefaultName(t *testing.T) {
 	require.Len(t, violations, 1)
 	require.Equal(t, "x", violations[0].LocalName)
 	require.Equal(t, "EmptyString", violations[0].MagicName)
+}
+
+func TestFindMagicImportAlias_SkipsMissingPath(t *testing.T) {
+	t.Parallel()
+
+	file := &ast.File{
+		Imports: []*ast.ImportSpec{
+			{},
+			{Path: &ast.BasicLit{Value: `"cryptoutil/internal/shared/magic"`}},
+		},
+	}
+
+	require.Equal(t, "magic", findMagicImportAlias(file))
 }
 
 func TestFindAliasesInFile_UnparseableFile(t *testing.T) {

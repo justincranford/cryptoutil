@@ -160,6 +160,28 @@ func TestValidateAuthentication(t *testing.T) {
 	}
 }
 
+func TestValidateAuthentication_Timeout(t *testing.T) {
+	t.Parallel()
+
+	validator, err := NewHardwareErrorValidator(
+		value3,
+		cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond,
+		time.Second,
+	)
+	require.NoError(t, err)
+
+	operationDone := make(chan struct{})
+	err = validator.ValidateAuthentication(context.Background(), func(context.Context) error {
+		<-operationDone
+
+		return nil
+	})
+
+	close(operationDone)
+
+	require.ErrorContains(t, err, testAuthenticationTimeout)
+}
+
 // TestRetryWithBackoff tests retry logic with exponential backoff.
 func TestRetryWithBackoff(t *testing.T) {
 	t.Parallel()
@@ -224,6 +246,22 @@ func TestRetryWithBackoff(t *testing.T) {
 	}
 }
 
+func TestRetryWithBackoff_CancelledContext(t *testing.T) {
+	t.Parallel()
+
+	validator, err := NewHardwareErrorValidator(value3, time.Second, time.Second)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err = validator.RetryWithBackoff(ctx, value3, func(context.Context) error {
+		return ErrDeviceUnresponsive
+	})
+
+	require.ErrorContains(t, err, "retry cancelled")
+}
+
 // TestMonitorDevicePresence tests device presence monitoring.
 func TestMonitorDevicePresence(t *testing.T) {
 	t.Parallel()
@@ -286,6 +324,26 @@ func TestMonitorDevicePresence(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMonitorDevicePresence_TransientError(t *testing.T) {
+	t.Parallel()
+
+	validator, err := NewHardwareErrorValidator(value3, time.Second, time.Millisecond)
+	require.NoError(t, err)
+
+	attempts := 0
+	err = validator.MonitorDevicePresence(context.Background(), func(context.Context) error {
+		attempts++
+		if attempts == 1 {
+			return errors.New("temporary device query failure")
+		}
+
+		return nil
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, 2, attempts)
 }
 
 // TestClassifyError tests error classification.

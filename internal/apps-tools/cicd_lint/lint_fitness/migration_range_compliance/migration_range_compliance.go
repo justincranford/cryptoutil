@@ -34,6 +34,15 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir verifies migration range compliance under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDirWithOperations(logger, rootDir, checkDir, findDomainMigrationDirsWithPSID)
+}
+
+func checkInDirWithOperations(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	rootDir string,
+	checkDirFn func(string, int, int, bool) ([]string, error),
+	findDomainDirsFn func(string, string) ([]migrationDirEntry, error),
+) error {
 	logger.Log("Checking migration range compliance...")
 
 	var violations []string
@@ -47,7 +56,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		cryptoutilSharedMagic.FrameworkInternalDir,
 		"service", cryptoutilSharedMagic.CMD_SERVER, "repository", "migrations")
 
-	templateViolations, err := checkDir(templateDir, templateMigrationMin, templateMigrationMax, true)
+	templateViolations, err := checkDirFn(templateDir, templateMigrationMin, templateMigrationMax, true)
 	if err != nil {
 		return fmt.Errorf("checking template migrations: %w", err)
 	}
@@ -57,7 +66,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	// Step 3: Check all domain migration directories with per-PS-ID ranges.
 	appsDir := filepath.Join(rootDir, "internal", "apps")
 
-	domainDirs, err := findDomainMigrationDirsWithPSID(appsDir, templateDir)
+	domainDirs, err := findDomainDirsFn(appsDir, templateDir)
 	if err != nil {
 		return fmt.Errorf("finding domain migration dirs: %w", err)
 	}
@@ -69,7 +78,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		rangeInfo, ok := rangeMap[entry.psID]
 		if !ok {
 			// PS-ID not in registry — use loose lower bound only.
-			dirViolations, dirErr := checkDir(entry.dir, templateMigrationMax+1, 0, false)
+			dirViolations, dirErr := checkDirFn(entry.dir, templateMigrationMax+1, 0, false)
 			if dirErr != nil {
 				return fmt.Errorf("checking migrations in %s: %w", entry.dir, dirErr)
 			}
@@ -79,7 +88,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			continue
 		}
 
-		dirViolations, dirErr := checkDir(entry.dir, rangeInfo.Start, rangeInfo.End, false)
+		dirViolations, dirErr := checkDirFn(entry.dir, rangeInfo.Start, rangeInfo.End, false)
 		if dirErr != nil {
 			return fmt.Errorf("checking migrations in %s: %w", entry.dir, dirErr)
 		}
@@ -142,7 +151,16 @@ func checkRangeCollisions(ranges []lintFitnessRegistry.MigrationRangeInfo) []str
 // checkDir validates that all migration SQL files in dir have version numbers within [min, max].
 // If max is 0, there is no upper bound.
 func checkDir(dir string, min, max int, isTemplate bool) ([]string, error) {
-	entries, err := os.ReadDir(dir)
+	return checkDirWithReadDir(dir, min, max, isTemplate, os.ReadDir)
+}
+
+func checkDirWithReadDir(
+	dir string,
+	min, max int,
+	isTemplate bool,
+	readDirFn func(string) ([]os.DirEntry, error),
+) ([]string, error) {
+	entries, err := readDirFn(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("directory not found: %s", dir)
@@ -219,23 +237,32 @@ func isNonFrameworkProduct(dirName string) bool {
 // the template service and non-framework products. Returns (dir, psID) pairs where psID is
 // derived from the first path component under appsDir.
 func findDomainMigrationDirsWithPSID(appsDir, templateDir string) ([]migrationDirEntry, error) {
-	if _, statErr := os.Stat(appsDir); os.IsNotExist(statErr) {
+	return findDomainMigrationDirsWithOperations(appsDir, templateDir, os.Stat, filepath.Abs, filepath.Walk)
+}
+
+func findDomainMigrationDirsWithOperations(
+	appsDir, templateDir string,
+	statFn func(string) (os.FileInfo, error),
+	absFn func(string) (string, error),
+	walkFn func(string, filepath.WalkFunc) error,
+) ([]migrationDirEntry, error) {
+	if _, statErr := statFn(appsDir); os.IsNotExist(statErr) {
 		return nil, fmt.Errorf("internal/apps directory not found at %s", appsDir)
 	}
 
-	absTemplateDir, err := filepath.Abs(templateDir)
+	absTemplateDir, err := absFn(templateDir)
 	if err != nil {
 		return nil, fmt.Errorf("abs template dir: %w", err)
 	}
 
-	absAppsDir, err := filepath.Abs(appsDir)
+	absAppsDir, err := absFn(appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("abs apps dir: %w", err)
 	}
 
 	var entries []migrationDirEntry
 
-	walkErr := filepath.Walk(appsDir, func(path string, info os.FileInfo, walkErr error) error {
+	walkErr := walkFn(appsDir, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -249,7 +276,7 @@ func findDomainMigrationDirsWithPSID(appsDir, templateDir string) ([]migrationDi
 		}
 
 		// Skip non-framework products (using legacy migration numbering).
-		absPath, absErr := filepath.Abs(path)
+		absPath, absErr := absFn(path)
 		if absErr != nil {
 			return fmt.Errorf("abs path %s: %w", path, absErr)
 		}

@@ -122,7 +122,7 @@ func TestStoreCertificatePEM(t *testing.T) {
 		{
 			name:        "valid PEM storage",
 			subject:     serverSubject,
-			opts:        DefaultStorageOptions(filepath.Join(tempDir, "pem")),
+			opts:        DefaultStorageOptions(filepath.Join(tempDir, cryptoutilSharedMagic.PKICRLFormatPEM)),
 			expectError: false,
 		},
 		{

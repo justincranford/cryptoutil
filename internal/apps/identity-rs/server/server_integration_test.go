@@ -7,7 +7,6 @@ import (
 	"io"
 	http "net/http"
 	"testing"
-	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -54,7 +53,7 @@ func TestRSServer_PublicHealth(t *testing.T) {
 	requireTestSetup(t)
 
 	client := &http.Client{
-		Timeout: httpTimeout,
+		Timeout: cryptoutilSharedMagic.DefaultHealthCheckTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS13,
@@ -69,16 +68,16 @@ func TestRSServer_PublicHealth(t *testing.T) {
 		path     string
 		wantCode int
 	}{
-		{"health", "/health", http.StatusOK},
-		{"livez", cryptoutilSharedMagic.PrivateAdminLivezRequestPath, http.StatusOK},
-		{"readyz", cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, http.StatusOK},
+		{testRouteNameHealth, testHealthRoutePath, http.StatusOK},
+		{testRouteNameLivez, cryptoutilSharedMagic.PrivateAdminLivezRequestPath, http.StatusOK},
+		{testRouteNameReadyz, cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, http.StatusOK},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			url := testBaseURL + tt.path
 
-			ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultHealthCheckTimeout)
 			defer cancel()
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -110,6 +109,3 @@ func TestRSServer_AccessorMethods(t *testing.T) {
 	require.NotEmpty(t, testServer.PublicBaseURL())
 	require.NotEmpty(t, testServer.AdminBaseURL())
 }
-
-// HTTP timeout for test requests.
-const httpTimeout = 5 * time.Second

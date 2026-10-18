@@ -94,6 +94,57 @@ func TestIntrospectionRevocationFlow(t *testing.T) {
 	t.Log("âœ… FULL FLOW PASSED: Introspection correctly validates revocation status")
 }
 
+func TestIntrospectionIncludesUserAndTokenTypeHint(t *testing.T) {
+	t.Parallel()
+
+	config := createRevocationFlowTestConfig(t)
+
+	repoFactory := createRevocationFlowTestRepoFactory(t)
+	defer func() {
+		require.NoError(t, repoFactory.Close())
+	}()
+
+	client := createRevocationFlowTestClient(t, repoFactory)
+	token := createRevocationFlowTestToken(t, repoFactory, client.ID, false)
+	userID := googleUuid.Must(googleUuid.NewV7())
+	now := time.Now().UTC()
+	user := &cryptoutilIdentityDomain.User{
+		ID:           userID,
+		Sub:          "introspection-user-" + userID.String(),
+		PasswordHash: testDummyHash,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+	require.NoError(t, repoFactory.UserRepository().Create(context.Background(), user))
+
+	token.UserID = cryptoutilIdentityDomain.NullableUUID{UUID: userID, Valid: true}
+	require.NoError(t, repoFactory.TokenRepository().Update(context.Background(), token))
+
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	service.RegisterRoutes(app)
+
+	form := url.Values{
+		cryptoutilSharedMagic.ParamToken:         []string{token.TokenValue},
+		cryptoutilSharedMagic.ParamTokenTypeHint: []string{cryptoutilSharedMagic.TokenTypeAccessToken},
+	}
+	request := httptest.NewRequest(testPost, testOauth2V1Introspect, strings.NewReader(form.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	response, err := app.Test(request, -1)
+
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, response.Body.Close())
+	}()
+
+	var result map[string]any
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&result))
+	require.Equal(t, fiber.StatusOK, response.StatusCode)
+	require.Equal(t, userID.String(), result[cryptoutilSharedMagic.ClaimSub])
+	require.Equal(t, cryptoutilSharedMagic.TokenTypeAccessToken, result[cryptoutilSharedMagic.ParamTokenTypeHint])
+}
+
 // TestIntrospectionRefreshTokenRevocation validates revocation of refresh tokens.
 func TestIntrospectionRefreshTokenRevocation(t *testing.T) {
 	t.Parallel()

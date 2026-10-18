@@ -93,6 +93,14 @@ func validateAdminNotExposed(composePath string, result *AdminValidationResult) 
 
 // validateAdminConfigSettings checks config files for correct admin bind settings.
 func validateAdminConfigSettings(configDir string, result *AdminValidationResult) {
+	validateAdminConfigSettingsWithReadFile(configDir, result, os.ReadFile)
+}
+
+func validateAdminConfigSettingsWithReadFile(
+	configDir string,
+	result *AdminValidationResult,
+	readFileFn func(string) ([]byte, error),
+) {
 	entries, err := os.ReadDir(configDir)
 	if err != nil {
 		return
@@ -105,7 +113,7 @@ func validateAdminConfigSettings(configDir string, result *AdminValidationResult
 
 		configPath := filepath.Join(configDir, entry.Name())
 
-		data, err := os.ReadFile(configPath)
+		data, err := readFileFn(configPath)
 		if err != nil {
 			continue
 		}

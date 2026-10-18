@@ -20,9 +20,11 @@ import (
 type PublicServer struct {
 	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase // Reusable server infrastructure.
 
-	cfg            *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings
-	sessionManager *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
-	realmService   cryptoutilAppsFrameworkServiceServerService.RealmService
+	cfg             *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings
+	sessionManager  *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	realmService    cryptoutilAppsFrameworkServiceServerService.RealmService
+	authzHTTPClient *http.Client
+	sendStringFn    func(*fiber.Ctx, string) error
 }
 
 // NewPublicServer creates a new identity-rp public server using builder-provided infrastructure.
@@ -38,6 +40,15 @@ func NewPublicServer(
 		cfg:            cfg,
 		sessionManager: sessionManager,
 		realmService:   realmService,
+		authzHTTPClient: &http.Client{
+			Timeout: cryptoutilSharedMagic.AuthorizationCheckTimeout,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					MinVersion:         tls.VersionTLS13,
+					InsecureSkipVerify: cfg.DevMode, //nolint:gosec // Dev mode only
+				},
+			},
+		},
 	}
 }
 
@@ -85,7 +96,7 @@ func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 
 // handleLivez returns liveness status.
 func (s *PublicServer) handleLivez(c *fiber.Ctx) error {
-	if err := c.SendString("OK"); err != nil {
+	if err := s.sendString(c, "OK"); err != nil {
 		return fmt.Errorf("failed to send liveness response: %w", err)
 	}
 
@@ -112,8 +123,20 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 		}
 	}
 
-	if err := c.SendString("OK"); err != nil {
+	if err := s.sendString(c, "OK"); err != nil {
 		return fmt.Errorf("failed to send readiness response: %w", err)
+	}
+
+	return nil
+}
+
+func (s *PublicServer) sendString(c *fiber.Ctx, value string) error {
+	if s.sendStringFn != nil {
+		return s.sendStringFn(c, value)
+	}
+
+	if err := c.SendString(value); err != nil {
+		return fmt.Errorf("failed to send response body: %w", err)
 	}
 
 	return nil
@@ -125,17 +148,6 @@ func (s *PublicServer) checkAuthZServer() error {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.AuthorizationCheckTimeout)
 	defer cancel()
 
-	// Create HTTP client with TLS (skip verify for dev mode).
-	client := &http.Client{
-		Timeout: cryptoutilSharedMagic.AuthorizationCheckTimeout,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS13,
-				InsecureSkipVerify: s.cfg.DevMode, //nolint:gosec // Dev mode only
-			},
-		},
-	}
-
 	// Build livez URL.
 	livezURL := s.cfg.AuthzServerURL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
 
@@ -144,7 +156,7 @@ func (s *PublicServer) checkAuthZServer() error {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := client.Do(req)
+	resp, err := s.authzHTTPClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to connect to authz server: %w", err)
 	}

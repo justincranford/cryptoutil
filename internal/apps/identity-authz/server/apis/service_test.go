@@ -84,6 +84,17 @@ func TestService_StartStop(t *testing.T) {
 			startErr: false,
 			stopErr:  false,
 		},
+		{
+			name: testClosedDatabaseCase,
+			setupRepo: func(t *testing.T) *cryptoutilIdentityRepository.RepositoryFactory {
+				repoFactory := createServiceTestRepoFactory(t)
+				require.NoError(t, repoFactory.Close())
+
+				return repoFactory
+			},
+			startErr: true,
+			stopErr:  true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -124,10 +135,11 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 	testSecret := "test-secret-plaintext"
 
 	tests := []struct {
-		name         string
-		setupClients func(*testing.T, *cryptoutilIdentityRepository.RepositoryFactory) []*cryptoutilIdentityDomain.Client
-		wantErr      bool
-		errContains  string
+		name            string
+		setupClients    func(*testing.T, *cryptoutilIdentityRepository.RepositoryFactory) []*cryptoutilIdentityDomain.Client
+		closeRepository bool
+		wantErr         bool
+		errContains     string
 	}{
 		{
 			name: "migrate clients with legacy plaintext secrets",
@@ -178,6 +190,12 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name:            testClosedDatabaseCase,
+			closeRepository: true,
+			wantErr:         true,
+			errContains:     "client secret migration failed",
+		},
 	}
 
 	for _, tc := range tests {
@@ -192,6 +210,10 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 			var originalClients []*cryptoutilIdentityDomain.Client
 			if tc.setupClients != nil {
 				originalClients = tc.setupClients(t, repoFactory)
+			}
+
+			if tc.closeRepository {
+				require.NoError(t, repoFactory.Close())
 			}
 
 			// Create service and migrate.

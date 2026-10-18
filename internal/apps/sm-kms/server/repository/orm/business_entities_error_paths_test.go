@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 // Copyright (c) 2025-2026 Justin Cranford.
 package orm
 
@@ -18,10 +15,8 @@ import (
 )
 
 // TestToAppErr_GormRecordNotFound tests toAppErr handling of gorm.ErrRecordNotFound.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestToAppErr_GormRecordNotFound(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -47,10 +42,8 @@ func TestToAppErr_GormRecordNotFound(t *testing.T) {
 }
 
 // TestToAppErr_UniqueConstraintViolation tests toAppErr handling of unique constraint violations.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -108,10 +101,8 @@ func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 }
 
 // TestToAppErr_ForeignKeyViolation tests toAppErr handling of foreign key constraint violations.
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestToAppErr_ForeignKeyViolation(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -163,10 +154,8 @@ func TestToAppErr_GenericError(t *testing.T) {
 
 // toAppErr Error Mapping Tests
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -183,10 +172,8 @@ func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -203,10 +190,8 @@ func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -223,10 +208,8 @@ func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -243,10 +226,8 @@ func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -263,10 +244,8 @@ func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -283,10 +262,8 @@ func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -305,10 +282,8 @@ func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
 
 // SQLite-specific error tests (trigger via actual database operations).
 
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	// Create elastic key.
@@ -356,11 +331,8 @@ func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 }
 
 // Default error fallback test.
-
+// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase.
 func TestOrmTransaction_toAppErr_UnknownError(t *testing.T) {
-	t.Parallel()
-
-	// Sequential: uses shared package-level SQLite fixture state via CleanupDatabase
 	CleanupDatabase(t, testOrmRepository, KMSCleanupTables)
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {

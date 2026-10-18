@@ -8,6 +8,7 @@ import (
 	crand "crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -19,7 +20,7 @@ import (
 // server-side rather than exposing them in browser URLs.
 func GenerateRequestURI() (string, error) {
 	randomBytes := make([]byte, cryptoutilSharedMagic.DefaultRequestURILength)
-	if _, err := crand.Read(randomBytes); err != nil {
+	if _, err := io.ReadFull(crand.Reader, randomBytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes for request_uri: %w", err)
 	}
 

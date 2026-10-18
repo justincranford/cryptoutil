@@ -17,6 +17,7 @@ import (
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz/server/apis"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
+	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )
 
@@ -306,6 +307,31 @@ func TestHandleJWKS(t *testing.T) {
 			tc.validateBody(t, body)
 		})
 	}
+}
+
+func TestHandleJWKS_WithTokenService(t *testing.T) {
+	t.Parallel()
+
+	config := createDiscoveryTestConfig(t, "https://jwks.example.com")
+	repoFactory := createDiscoveryTestRepoFactory(t, config)
+	tokenService := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, config.Tokens)
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenService)
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	service.RegisterRoutes(app)
+
+	response, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/oauth2/v1/jwks", nil), -1)
+
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, response.Body.Close())
+	}()
+
+	var result map[string][]any
+	require.NoError(t, json.NewDecoder(response.Body).Decode(&result))
+	require.Equal(t, fiber.StatusOK, response.StatusCode)
+	require.Contains(t, result, "keys")
+	require.Empty(t, result["keys"])
 }
 
 // createDiscoveryTestConfig creates a test Config with specified issuer.

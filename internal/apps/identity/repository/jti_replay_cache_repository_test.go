@@ -23,6 +23,12 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
+const (
+	testDuplicateKeyInput     = "duplicate-key"
+	testDuplicateKeySubstring = "duplicate"
+	testKeySubstring          = "key"
+)
+
 // setupTestDB creates an in-memory SQLite database for testing.
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
@@ -149,4 +155,73 @@ func TestJTIReplayCacheRepository_DeleteExpired(t *testing.T) {
 	exists, err = repo.Exists(ctx, validJTI)
 	require.NoError(t, err)
 	require.True(t, exists, "Valid JTI should still exist")
+}
+
+func TestJTIReplayCacheRepository_DatabaseErrors(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	require.NoError(t, sqlDB.Close())
+
+	repo := NewJTIReplayCacheRepository(db)
+	ctx := context.Background()
+
+	err = repo.Store(ctx, "closed-db-jti", googleUuid.New(), time.Now().UTC())
+	require.ErrorContains(t, err, "failed to store JTI")
+
+	exists, err := repo.Exists(ctx, "closed-db-jti")
+	require.ErrorContains(t, err, "failed to check JTI existence")
+	require.False(t, exists)
+
+	deleted, err := repo.DeleteExpired(ctx)
+	require.ErrorContains(t, err, "failed to delete expired JTI entries")
+	require.Zero(t, deleted)
+}
+
+func TestIsDuplicateKeyError(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{name: "nil", err: nil, want: false},
+		{name: "sqlite duplicate", err: fmt.Errorf("UNIQUE constraint failed: cache.jti"), want: true},
+		{name: "postgres duplicate", err: fmt.Errorf("duplicate key value violates unique constraint"), want: true},
+		{name: "other error", err: fmt.Errorf("database unavailable"), want: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, tc.want, isDuplicateKeyError(tc.err))
+		})
+	}
+}
+
+func TestContainsSubstring(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    string
+		sub      string
+		expected bool
+	}{
+		{name: "match at start", input: testDuplicateKeyInput, sub: testDuplicateKeySubstring, expected: true},
+		{name: "match in middle", input: testDuplicateKeyInput, sub: "ate-", expected: true},
+		{name: "match at end", input: testDuplicateKeyInput, sub: testKeySubstring, expected: true},
+		{name: "no match", input: testDuplicateKeyInput, sub: "absent", expected: false},
+		{name: "substring longer than input", input: testKeySubstring, sub: testDuplicateKeySubstring, expected: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, tc.expected, containsSubstring(tc.input, tc.sub))
+		})
+	}
 }

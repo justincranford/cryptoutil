@@ -33,19 +33,22 @@ const (
 // StubPublicServer is a minimal IPublicServer for test infrastructure setup.
 // Set StartErr to simulate startup failures.
 type StubPublicServer struct {
-	StartErr error
+	StartErr    error
+	ShutdownErr error
 }
 
 func (s *StubPublicServer) Start(_ context.Context) error    { return s.StartErr }
-func (s *StubPublicServer) Shutdown(_ context.Context) error { return nil }
+func (s *StubPublicServer) Shutdown(_ context.Context) error { return s.ShutdownErr }
 func (s *StubPublicServer) ActualPort() int                  { return StubPublicPortValue }
 func (s *StubPublicServer) PublicBaseURL() string            { return stubPublicBaseURL }
 
 // StubAdminServer is a minimal IAdminServer for test infrastructure setup.
-type StubAdminServer struct{}
+type StubAdminServer struct {
+	ShutdownErr error
+}
 
 func (s *StubAdminServer) Start(_ context.Context) error      { return nil }
-func (s *StubAdminServer) Shutdown(_ context.Context) error   { return nil }
+func (s *StubAdminServer) Shutdown(_ context.Context) error   { return s.ShutdownErr }
 func (s *StubAdminServer) ActualPort() int                    { return StubAdminPortValue }
 func (s *StubAdminServer) SetReady(_ bool)                    {}
 func (s *StubAdminServer) AdminBaseURL() string               { return stubAdminBaseURL }
@@ -56,11 +59,32 @@ func (s *StubAdminServer) AdminTLSRootCAPool() *x509.CertPool { return nil }
 func NewTestApplication(t testing.TB) *cryptoutilAppsFrameworkServiceServer.Application {
 	t.Helper()
 
-	app, err := cryptoutilAppsFrameworkServiceServer.NewApplication(
-		context.Background(), &StubPublicServer{}, &StubAdminServer{},
-	)
+	return newTestApplication(t, cryptoutilAppsFrameworkServiceServer.NewApplication, t.Fatalf)
+}
+
+func newTestApplication(
+	t testing.TB,
+	newApplicationFn func(
+		context.Context,
+		cryptoutilAppsFrameworkServiceServer.IPublicServer,
+		cryptoutilAppsFrameworkServiceServer.IAdminServer,
+	) (*cryptoutilAppsFrameworkServiceServer.Application, error),
+	fatalfFn func(string, ...any),
+) *cryptoutilAppsFrameworkServiceServer.Application {
+	t.Helper()
+
+	app, err := newApplicationFn(context.Background(), &StubPublicServer{}, &StubAdminServer{})
+
+	return applicationOrFatal(app, err, fatalfFn)
+}
+
+func applicationOrFatal(
+	app *cryptoutilAppsFrameworkServiceServer.Application,
+	err error,
+	fatalfFn func(string, ...any),
+) *cryptoutilAppsFrameworkServiceServer.Application {
 	if err != nil {
-		t.Fatalf("stubs: failed to create test application: %v", err)
+		fatalfFn("stubs: failed to create test application: %v", err)
 	}
 
 	return app

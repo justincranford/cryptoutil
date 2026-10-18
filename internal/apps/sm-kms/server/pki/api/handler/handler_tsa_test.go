@@ -107,9 +107,14 @@ func TestTsaTimestamp_EmptyBody(t *testing.T) {
 func createValidTimestampRequest(t *testing.T) []byte {
 	t.Helper()
 
-	// RFC 3161 TimeStampReq structure (simplified for testing).
+	// RFC 3161 TimeStampReq structure.
+	type AlgorithmIdentifier struct {
+		Algorithm  asn1.ObjectIdentifier
+		Parameters asn1.RawValue `asn1:"optional"`
+	}
+
 	type MessageImprint struct {
-		HashAlgorithm asn1.ObjectIdentifier
+		HashAlgorithm AlgorithmIdentifier
 		HashedMessage []byte
 	}
 
@@ -131,7 +136,7 @@ func createValidTimestampRequest(t *testing.T) []byte {
 	tsReq := TimeStampReq{
 		Version: 1,
 		MessageImprint: MessageImprint{
-			HashAlgorithm: sha256OID,
+			HashAlgorithm: AlgorithmIdentifier{Algorithm: sha256OID},
 			HashedMessage: hash[:],
 		},
 		Nonce:   big.NewInt(12345),

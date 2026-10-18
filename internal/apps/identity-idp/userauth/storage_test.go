@@ -52,6 +52,55 @@ func TestInMemoryChallengeStore_StoreAndRetrieve(t *testing.T) {
 	require.Equal(t, testSecret, secret, "Secret should match")
 }
 
+func TestInMemoryChallengeStore_Update(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		storeFirst bool
+		wantError  bool
+	}{
+		{name: "existing challenge is updated", storeFirst: true},
+		{name: "missing challenge returns an error", wantError: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+			challengeID := googleUuid.Must(googleUuid.NewV7())
+
+			if tc.storeFirst {
+				require.NoError(t, store.Store(ctx, &cryptoutilIdentityIdpUserauth.AuthChallenge{
+					ID:        challengeID,
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
+				}, "secret"))
+			}
+
+			updated := &cryptoutilIdentityIdpUserauth.AuthChallenge{
+				ID:        challengeID,
+				ExpiresAt: time.Now().UTC().Add(time.Hour),
+				Metadata:  map[string]any{"updated": true},
+			}
+
+			err := store.Update(ctx, updated)
+			if tc.wantError {
+				require.ErrorContains(t, err, "not found")
+
+				return
+			}
+
+			require.NoError(t, err)
+
+			retrieved, _, err := store.Retrieve(ctx, challengeID)
+			require.NoError(t, err)
+			require.Equal(t, true, retrieved.Metadata["updated"])
+		})
+	}
+}
+
 func TestInMemoryChallengeStore_RetrieveNotFound(t *testing.T) {
 	t.Parallel()
 

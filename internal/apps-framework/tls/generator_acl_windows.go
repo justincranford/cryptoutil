@@ -88,28 +88,40 @@ func validatePrivateStagingDirectoryACL(path string) error {
 	return validatePrivateACL(path, windows.OBJECT_INHERIT_ACE|windows.CONTAINER_INHERIT_ACE)
 }
 
+type privateACLValidationOperations struct {
+	getTokenUserFn         func() (*windows.Tokenuser, error)
+	createWellKnownSidFn   func(windows.WELL_KNOWN_SID_TYPE) (*windows.SID, error)
+	getNamedSecurityInfoFn func(string, windows.SE_OBJECT_TYPE, windows.SECURITY_INFORMATION) (*windows.SECURITY_DESCRIPTOR, error)
+	getDACLFn              func(*windows.SECURITY_DESCRIPTOR) (*windows.ACL, bool, error)
+	getControlFn           func(*windows.SECURITY_DESCRIPTOR) (windows.SECURITY_DESCRIPTOR_CONTROL, uint32, error)
+}
+
 func validatePrivateACL(path string, inheritance uint32) error {
-	tokenUser, err := windows.GetCurrentProcessToken().GetTokenUser()
+	return validatePrivateACLWithOperations(path, inheritance, defaultPrivateACLValidationOperations())
+}
+
+func validatePrivateACLWithOperations(path string, inheritance uint32, ops privateACLValidationOperations) error {
+	tokenUser, err := ops.getTokenUserFn()
 	if err != nil {
 		return fmt.Errorf("get current user SID: %w", err)
 	}
 
-	systemSID, err := windows.CreateWellKnownSid(windows.WinLocalSystemSid)
+	systemSID, err := ops.createWellKnownSidFn(windows.WinLocalSystemSid)
 	if err != nil {
 		return fmt.Errorf("create LocalSystem SID: %w", err)
 	}
 
-	descriptor, err := windows.GetNamedSecurityInfo(path, windows.SE_FILE_OBJECT, windows.DACL_SECURITY_INFORMATION)
+	descriptor, err := ops.getNamedSecurityInfoFn(path, windows.SE_FILE_OBJECT, windows.DACL_SECURITY_INFORMATION)
 	if err != nil {
 		return fmt.Errorf("read private material security descriptor: %w", err)
 	}
 
-	dacl, _, err := descriptor.DACL()
+	dacl, _, err := ops.getDACLFn(descriptor)
 	if err != nil {
 		return fmt.Errorf("read private material DACL: %w", err)
 	}
 
-	control, _, err := descriptor.Control()
+	control, _, err := ops.getControlFn(descriptor)
 	if err != nil {
 		return fmt.Errorf("read private material DACL control flags: %w", err)
 	}
@@ -154,4 +166,20 @@ func validatePrivateACL(path string, inheritance uint32) error {
 	runtime.KeepAlive(descriptor)
 
 	return nil
+}
+
+func defaultPrivateACLValidationOperations() privateACLValidationOperations {
+	return privateACLValidationOperations{
+		getTokenUserFn: func() (*windows.Tokenuser, error) {
+			return windows.GetCurrentProcessToken().GetTokenUser()
+		},
+		createWellKnownSidFn:   windows.CreateWellKnownSid,
+		getNamedSecurityInfoFn: windows.GetNamedSecurityInfo,
+		getDACLFn: func(descriptor *windows.SECURITY_DESCRIPTOR) (*windows.ACL, bool, error) {
+			return descriptor.DACL()
+		},
+		getControlFn: func(descriptor *windows.SECURITY_DESCRIPTOR) (windows.SECURITY_DESCRIPTOR_CONTROL, uint32, error) {
+			return descriptor.Control()
+		},
+	}
 }

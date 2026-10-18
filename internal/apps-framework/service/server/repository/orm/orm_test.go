@@ -2,12 +2,16 @@
 package orm
 
 import (
+	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 const (
@@ -101,6 +105,54 @@ func TestOrmRepository_HealthCheck_NilGormDB(t *testing.T) {
 	require.Equal(t, cryptoutilSharedMagic.StringError, result[cryptoutilSharedMagic.StringStatus])
 }
 
+func TestOrmRepository_HealthCheck_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		gormDB  func(*testing.T) *gorm.DB
+		wantErr string
+	}{
+		{
+			name: "GORM SQL handle error",
+			gormDB: func(*testing.T) *gorm.DB {
+				return &gorm.DB{Config: &gorm.Config{}}
+			},
+			wantErr: "failed to get sql.DB from GORM",
+		},
+		{
+			name: "database ping error",
+			gormDB: func(t *testing.T) *gorm.DB {
+				t.Helper()
+
+				sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
+				require.NoError(t, err)
+				require.NoError(t, sqlDB.Close())
+
+				return &gorm.DB{
+					Config: &gorm.Config{ConnPool: sqlDB},
+					Statement: &gorm.Statement{
+						ConnPool: sqlDB,
+					},
+				}
+			},
+			wantErr: "database ping failed",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			repo := &OrmRepository{gormDB: tc.gormDB(t)}
+			result, err := repo.HealthCheck(testCtx)
+
+			require.ErrorContains(t, err, tc.wantErr)
+			require.Equal(t, cryptoutilSharedMagic.StringError, result[cryptoutilSharedMagic.StringStatus])
+		})
+	}
+}
+
 func TestOrmRepository_HealthCheck_Success(t *testing.T) {
 	t.Parallel()
 
@@ -138,6 +190,111 @@ func TestOrmRepository_WithTransaction_FnError(t *testing.T) {
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to execute transaction")
+}
+
+func TestOrmRepository_WithTransaction_ReadOnly(t *testing.T) {
+	t.Parallel()
+
+	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
+		require.NotNil(t, tx.GormTx())
+		require.Equal(t, ReadOnly, *tx.Mode())
+
+		return nil
+	})
+
+	require.NoError(t, err)
+}
+
+func TestOrmRepository_WithTransaction_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	injectedErr := errors.New("injected transaction failure")
+	tests := []struct {
+		name       string
+		repository *OrmRepository
+		fn         func(*OrmTransaction) error
+		wantErr    string
+		wantPanic  bool
+	}{
+		{
+			name: "begin failure",
+			repository: &OrmRepository{
+				telemetryService: testTelemetryService,
+				jwkGenService:    testJWKGenService,
+				gormDB:           newOrmErrorGormDB(injectedErr),
+			},
+			fn:      func(*OrmTransaction) error { return nil },
+			wantErr: "failed to begin transaction",
+		},
+		{
+			name:       "transaction function error triggers rollback",
+			repository: testOrmRepository,
+			fn:         func(*OrmTransaction) error { return injectedErr },
+			wantErr:    "failed to execute transaction",
+		},
+		{
+			name:       "commit error triggers rollback attempt",
+			repository: testOrmRepository,
+			fn: func(tx *OrmTransaction) error {
+				tx.state.gormTx = newOrmErrorGormDB(injectedErr)
+
+				return nil
+			},
+			wantErr: "failed to commit transaction",
+		},
+		{
+			name:       "panic is rethrown after rollback",
+			repository: testOrmRepository,
+			fn: func(*OrmTransaction) error {
+				panic(injectedErr)
+			},
+			wantPanic: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if tc.wantPanic {
+				require.PanicsWithValue(t, injectedErr, func() {
+					_ = tc.repository.WithTransaction(testCtx, ReadWrite, tc.fn)
+				})
+
+				return
+			}
+
+			err := tc.repository.WithTransaction(testCtx, ReadWrite, tc.fn)
+
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
+}
+
+type ormFailingTransaction struct {
+	*sql.DB
+	err error
+}
+
+func newOrmErrorGormDB(err error) *gorm.DB {
+	pool := &ormFailingTransaction{err: err}
+	config := &gorm.Config{ConnPool: pool}
+	db := &gorm.DB{Config: config}
+	db.Statement = &gorm.Statement{DB: db, ConnPool: pool}
+
+	return db
+}
+
+func (tx *ormFailingTransaction) BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error) {
+	return nil, tx.err
+}
+
+func (tx *ormFailingTransaction) Commit() error {
+	return tx.err
+}
+
+func (tx *ormFailingTransaction) Rollback() error {
+	return tx.err
 }
 
 func TestOrmTransaction_NilStateAccessors(t *testing.T) {
@@ -213,6 +370,22 @@ func TestOrmTransaction_BeginAlreadyStarted(t *testing.T) {
 	require.Contains(t, err.Error(), "transaction already started")
 
 	_ = tx.Rollback()
+}
+
+func TestOrmTransaction_VerboseLogging(t *testing.T) {
+	t.Parallel()
+
+	repo := &OrmRepository{
+		telemetryService: testTelemetryService,
+		jwkGenService:    testJWKGenService,
+		gormDB:           testGormDB,
+		verboseMode:      true,
+	}
+	tx := &OrmTransaction{ormRepository: repo}
+
+	require.NoError(t, tx.Begin(testCtx, AutoCommit))
+	require.ErrorContains(t, tx.Commit(), "can't commit because transaction is autocommit")
+	require.ErrorContains(t, tx.Rollback(), "can't rollback because transaction is autocommit")
 }
 
 func TestOrmTransaction_ReadWriteLifecycle(t *testing.T) {

@@ -56,7 +56,6 @@ func TestPEMEncodeDecodeRSA(t *testing.T) {
 
 	privateKeyPEMBytes, err := PEMEncode(privateKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("RSA Private", "pem", string(privateKeyPEMBytes))
 
 	privateKeyDecoded, err := PEMDecode(privateKeyPEMBytes)
 	require.NoError(t, err)
@@ -64,11 +63,10 @@ func TestPEMEncodeDecodeRSA(t *testing.T) {
 	require.IsType(t, &rsa.PrivateKey{}, privateKeyDecoded)
 	privateKeyDecodedTyped, ok := privateKeyDecoded.(*rsa.PrivateKey)
 	require.True(t, ok, "privateKeyDecoded should be *rsa.PrivateKey")
-	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
+	require.True(t, privateKeyOriginal.Equal(privateKeyDecodedTyped))
 
 	publicKeyPEMBytes, err := PEMEncode(publicKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("RSA Public", "pem", string(privateKeyPEMBytes))
 
 	publicKeyDecoded, err := PEMDecode(publicKeyPEMBytes)
 	require.NoError(t, err)
@@ -76,7 +74,7 @@ func TestPEMEncodeDecodeRSA(t *testing.T) {
 	require.IsType(t, &rsa.PublicKey{}, publicKeyDecoded)
 	publicKeyDecodedTyped, ok := publicKeyDecoded.(*rsa.PublicKey)
 	require.True(t, ok, "publicKeyDecoded should be *rsa.PublicKey")
-	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
+	require.True(t, publicKeyOriginal.Equal(publicKeyDecodedTyped))
 }
 
 func TestPEMEncodeDecodeECDSA(t *testing.T) {
@@ -93,7 +91,6 @@ func TestPEMEncodeDecodeECDSA(t *testing.T) {
 
 	privateKeyPEMBytes, err := PEMEncode(privateKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ECDSA Private", "pem", string(privateKeyPEMBytes))
 
 	privateKeyDecoded, err := PEMDecode(privateKeyPEMBytes)
 	require.NoError(t, err)
@@ -105,7 +102,6 @@ func TestPEMEncodeDecodeECDSA(t *testing.T) {
 
 	publicKeyPEMBytes, err := PEMEncode(publicKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ECDSA Public", "pem", string(privateKeyPEMBytes))
 
 	publicKeyDecoded, err := PEMDecode(publicKeyPEMBytes)
 	require.NoError(t, err)
@@ -118,7 +114,6 @@ func TestPEMEncodeDecodeECDSA(t *testing.T) {
 
 func TestPEMEncodeDecodeECDH(t *testing.T) {
 	t.Parallel()
-	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
 
 	keyPairOriginal, err := ecdh.P256().GenerateKey(crand.Reader)
 	require.NoError(t, err)
@@ -131,7 +126,6 @@ func TestPEMEncodeDecodeECDH(t *testing.T) {
 
 	privateKeyPEMBytes, err := PEMEncode(privateKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ECDH Private", "pem", string(privateKeyPEMBytes))
 
 	privateKeyDecoded, err := PEMDecode(privateKeyPEMBytes)
 	require.NoError(t, err)
@@ -143,7 +137,6 @@ func TestPEMEncodeDecodeECDH(t *testing.T) {
 
 	publicKeyPEMBytes, err := PEMEncode(publicKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ECDH Public", "pem", string(privateKeyPEMBytes))
 
 	publicKeyDecoded, err := PEMDecode(publicKeyPEMBytes)
 	require.NoError(t, err)
@@ -164,7 +157,6 @@ func TestPEMEncodeDecodeEdDSA(t *testing.T) {
 
 	privateKeyPEMBytes, err := PEMEncode(privateKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ED Private", "pem", string(privateKeyPEMBytes))
 
 	privateKeyDecoded, err := PEMDecode(privateKeyPEMBytes)
 	require.NoError(t, err)
@@ -176,7 +168,6 @@ func TestPEMEncodeDecodeEdDSA(t *testing.T) {
 
 	publicKeyPEMBytes, err := PEMEncode(publicKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ED Public", "pem", string(privateKeyPEMBytes))
 
 	publicKeyDecoded, err := PEMDecode(publicKeyPEMBytes)
 	require.NoError(t, err)
@@ -205,7 +196,7 @@ func TestPEMEncodeDecodeCertificate(t *testing.T) {
 
 	certificatePEMBytes, err := PEMEncode(certificateOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("Cert", "pem", string(certificatePEMBytes))
+	testTelemetryService.Slogger.Info("Cert", cryptoutilSharedMagic.PKICRLFormatPEM, string(certificatePEMBytes))
 
 	certificateDecoded, err := PEMDecode(certificatePEMBytes)
 	require.NoError(t, err)

@@ -6,6 +6,7 @@ package apis_test
 
 import (
 	"context"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -34,7 +35,7 @@ func TestRegisterRoutes_AllEndpointsRegistered(t *testing.T) {
 	service.RegisterRoutes(app)
 
 	// Test health endpoint.
-	req := httptest.NewRequest("GET", "/health", nil)
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Health check should succeed")
 
@@ -47,7 +48,7 @@ func TestRegisterRoutes_AllEndpointsRegistered(t *testing.T) {
 		method string
 		path   string
 	}{
-		{"GET", testOauth2V1Authorize},
+		{http.MethodGet, testOauth2V1Authorize},
 		{testPost, testOauth2V1Authorize},
 		{testPost, testOauth2V1Token},
 		{testPost, testOauth2V1Introspect},
