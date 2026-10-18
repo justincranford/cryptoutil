@@ -2,7 +2,7 @@
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
 name: 'docker-compose-up'
-description: 'Start Docker Compose services and wait for health checks'
+description: 'Start Docker Compose services and wait for required one-shot jobs'
 inputs:
   compose-file:
     description: 'Path to the docker-compose file'
@@ -45,13 +45,16 @@ runs:
           done
         fi
 
-        # Compose waits for every selected long-running service; verify one-shot jobs separately.
-        docker compose "${COMPOSE_ARGS[@]}" up -d --wait --wait-timeout 120
+        # Some selected services intentionally have no healthcheck; readiness is verified by
+        # the calling workflow's bounded endpoint checks.
+        docker compose "${COMPOSE_ARGS[@]}" up -d
 
-        echo "Service status:"
-        docker compose "${COMPOSE_ARGS[@]}" ps --all
-        export COMPOSE_STATE_JSON="$(docker compose "${COMPOSE_ARGS[@]}" ps --all --format json)"
-        python3 - <<'PY'
+        required_completed_timeout_seconds=120
+        required_completed_poll_interval_seconds=2
+        required_completed_deadline=$((SECONDS + required_completed_timeout_seconds))
+        while true; do
+          export COMPOSE_STATE_JSON="$(docker compose "${COMPOSE_ARGS[@]}" ps --all --format json)"
+          if python3 - <<'PY'
         import json
         import os
         import sys
@@ -91,14 +94,19 @@ runs:
             sys.exit(1)
 
         failures = []
+        pending = []
         for service in required:
             matches = [container for container in containers if container.get("Service") == service]
             if len(matches) != 1:
                 failures.append(f"{service}: found {len(matches)} containers (expected exactly one)")
                 continue
             container = matches[0]
-            if container.get("State") != "exited" or str(container.get("ExitCode")) != "0":
+            state = container.get("State")
+            exit_code = str(container.get("ExitCode"))
+            if state == "exited" and exit_code != "0":
                 failures.append(f"{service}: state={container.get('State')}, exitCode={container.get('ExitCode')}")
+            elif state != "exited":
+                pending.append(f"{service}: state={state}")
 
         if failures:
             print("ERROR: required one-shot Compose services did not each exit successfully:")
@@ -106,8 +114,32 @@ runs:
                 print(f"  {failure}")
             sys.exit(1)
 
+        if pending:
+            print("Waiting for required one-shot Compose services to exit successfully:")
+            for service_status in pending:
+                print(f"  {service_status}")
+            sys.exit(2)
+
         print("All required one-shot Compose services exited with code 0.")
         PY
+          then
+            break
+          else
+            check_status=$?
+          fi
+
+          if [ "$check_status" -ne 2 ]; then
+            exit "$check_status"
+          fi
+          if [ "$SECONDS" -ge "$required_completed_deadline" ]; then
+            echo "ERROR: required one-shot Compose services did not complete within ${required_completed_timeout_seconds}s"
+            exit 1
+          fi
+          sleep "$required_completed_poll_interval_seconds"
+        done
+
+        echo "Service status:"
+        docker compose "${COMPOSE_ARGS[@]}" ps --all
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
