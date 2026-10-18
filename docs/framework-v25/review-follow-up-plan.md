@@ -33,15 +33,13 @@ and are independent of the numbered rows in the task evidence table.
 - **4 — Complete.** The inventory maintenance procedure is documented in ENG-HANDBOOK §10.2.3
   and propagated to testing instructions. The workflow uploads both inventories; docs, workflow,
   and text validators pass.
-- **5 — Partially verified.** Six synthetic result/profile edge cases pass. The final
-  profile-driven run now verifies all 352 pinned packages, 27 no-test packages, both expected
+- **5 — Complete within the accepted scope.** Six synthetic result/profile edge cases pass. The
+  final profile-driven run verifies all 352 pinned packages, 27 no-test packages, both expected
   no-statement packages, and all 323 threshold-eligible packages with zero threshold failures;
-  aggregate coverage is 81.6% (informational). The profile and gate summary are recorded in
-  `tasks.md`. Earlier 71.5% and 79.5% collection results are historical. Keep the pinned
-  inventory and thresholds unchanged. The current run is not proven like-for-like with the
-  earlier 79.9%/78.3% aggregate and 95.3%/95.2% businesslogic baselines, so that comparison
-  remains inconclusive. The deployment-linter package's 98.1% result and synthetic gate cases
-  remain as previously evidenced.
+  aggregate coverage is informational. The profile and gate summary are recorded in `tasks.md`.
+  The user explicitly dropped the historical aggregate comparison, so it is not an acceptance
+  criterion. The pinned inventory and thresholds remain unchanged; the deployment-linter package's
+  98.1% result and synthetic gate cases remain as previously evidenced.
 - **6 — Partially verified.** A focused shuffled Linux race run passes for Authz, IDP, RS, and
   framework listener packages after fixing unsynchronized admin-listener publication in Authz and
   IDP (`test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log`). The later full race
@@ -50,8 +48,9 @@ and are independent of the numbered rows in the task evidence table.
   the shuffled health-path package passes
   (`test-output/reviewfollowup/health-path-real-workspace-shuffle.log`). A local race rerun is
   unavailable because this Windows host has no GCC/Clang
-  (`health-path-real-workspace-race-shuffle.log`); the current Docker Engine 29.8.2 is below the
-  documented 29.9.1 minimum, and no supported Linux runner is available in this continuation.
+  (`health-path-real-workspace-race-shuffle.log`); Docker Engine 29.8.2 meets the corrected
+  minimum aligned with Docker Desktop 4.95.0, but no supported Linux runner is available in this
+  continuation.
   Full-repository race validation remains outstanding.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
@@ -62,18 +61,14 @@ and are independent of the numbered rows in the task evidence table.
   key-creation requests because the simulation supplied no authorization token
   (`test-output/review-follow-up/v25-runtime-load-complete-20261016-0401/runtime-load-summary.log`
   and `load-auth-source.log`). `PublicServerBase` now maps typed application errors to their
-  declared HTTP status, so missing authorization returns 401 instead of 500; this does not make the
-  load workload valid. Headless client registration and Basic-credential exchange now produce a
-  service session, which the current Gatling scenario supplies to each virtual user's
-  cryptographic requests; compilation, Spotless, and Checkstyle pass
-  (`test-output/reviewfollowup/v25-gatling-auth-compile.log`).
-  Remaining evidence: run the complete workload against the isolated runtime and record its result;
-  do not disable authentication to make it pass. The 2026-10-16 live attempt did run against a
-  healthy isolated product runtime but failed all 48 requests before the current headless
-  client-registration/Basic-credentials session flow was implemented. That attempt does not
-  validate the current flow or establish that a current route is absent. Live authenticated load
-  against the current implementation remains unverified; see
-  `test-output/review-follow-up/v25-runtime-current/gatling-complete-retry1.log`.
+  declared HTTP status, so missing authorization returns 401 instead of 500. Headless client
+  registration and Basic-credential exchange now produce a service session, which the current
+  Gatling scenario supplies to each virtual user's cryptographic requests; compilation, Spotless,
+  and Checkstyle pass (`test-output/reviewfollowup/v25-gatling-auth-compile.log`). The authenticated
+  Service API `complete` profile passed 218/218 requests with 100% success and a 235 ms maximum
+  response time (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); do not
+  disable authentication to make load tests pass. The full multi-service load workflow and remaining
+  simulation profiles have not been run, so this recommendation remains partially verified.
 - **9 — Complete.** PKI tests were checked against parallelism, fixtures, UUIDs, cleanup, seams,
   and naming conventions; focused shuffled tests and the PostgreSQL continuity test pass.
 - **10 — Partially verified.** The final authoritative profile now passes the pinned 352-package
@@ -81,8 +76,8 @@ and are independent of the numbered rows in the task evidence table.
   threshold-eligible packages pass with no threshold failures. Aggregate coverage is 81.6%
   (informational). The current scoped results for PKI, framework/shared, fitness, remaining
   apps-tools, and non-PKI/non-identity apps are retained in `tasks.md` and
-  `test-output/coverage-analysis/`. The historical like-for-like comparison against earlier
-  aggregate and package-specific baselines remains inconclusive. Do not change the pinned
+  `test-output/coverage-analysis/`. The user explicitly dropped the historical like-for-like
+  comparison against earlier aggregate and package-specific baselines. Do not change the pinned
   inventory or thresholds.
 - **11 — Complete.** The PostgreSQL continuity test cold-starts authority components, stops and
   restarts PostgreSQL, then verifies authority-key restoration and persisted revocation state.
@@ -95,8 +90,9 @@ and are independent of the numbered rows in the task evidence table.
   `test-output/reviewfollowup/framework-v25-build-after-fixes-20261017.log`,
   `test-output/reviewfollowup/framework-v25-golangci-after-fixes-20261017.log`, and
   `test-output/reviewfollowup/framework-v25-cicd-lint-final-doc-updates-20261017.log`. The full
-  shuffled suite exits 0 with no failed tests or packages; the latest run records 84 test-level
-  skips across 325 passing packages and 41 package-level no-test events. The zero-skip criterion
+  shuffled suite exits 0 with no failed tests or packages; the latest run records 36 test-level
+  skips across 326 passing packages and 41 package-level no-test events, comprising 34
+  probability-sampled algorithm variants and two PostgreSQL-dependent tests. The zero-skip criterion
   remains open. The authoritative pinned coverage gate passes 323 eligible packages, with 27
   no-test packages, two expected no-statement packages, and zero threshold failures; see
   `tasks.md`. Linux race, authenticated load, mutation, and supported-Engine teardown/legacy-volume
@@ -182,8 +178,9 @@ and are independent of the numbered rows in the task evidence table.
   migrated leader schema and reconcile the rename on both follower tables before accepting an
   existing subscription; Bash syntax, deployment validation, template fitness, and text checks
   pass (`test-output/reviewfollowup/framework-v25-follower-schema-reconciliation-20261017.log`).
-  A persistent legacy-follower upgrade and replication smoke test remains unverified because the
-  local Docker Engine is below the documented minimum; do not claim the live upgrade path passes.
+  A persistent legacy-follower upgrade and replication smoke test remains unverified; the local
+  Docker Engine 29.8.2 meets the corrected minimum, so this is an outstanding runtime check rather
+  than a version blocker. Do not claim the live upgrade path passes.
 
 ## Excluded Recommendation
 
@@ -223,8 +220,8 @@ and are independent of the numbered rows in the task evidence table.
   action now requires an explicit Compose file and runs `docker compose down` without volume
   deletion; `ci-load.yml` passes the same sm-kms Compose file it starts. Static workflow validation
   passes (`framework-v25-compose-teardown-validation-20261016.log`), but live teardown validation
-  is blocked because Docker Engine 29.8.2 is below the documented 29.9.1 minimum. No evidence
-  attributes historical deletions to the corrected action. Do not claim this session removed the
+  remains outstanding; Docker Engine 29.8.2 meets the corrected minimum. No evidence attributes
+  historical deletions to the corrected action. Do not claim this session removed the
   screenshot's Postgres entries or product-retest project, and do not delete preserved volumes. Do
   not perform destructive deduplication while legacy-volume contents and provenance are unknown.
   Remaining evidence: resolve the disappearance provenance and perform any eventual teardown test

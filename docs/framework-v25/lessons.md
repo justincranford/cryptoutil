@@ -12,7 +12,7 @@ after each phase's quality gates pass.
 2. [Phase 2](#phase-2-extend-sm-kms-api-with-pki-endpoints): All 18 PKI routes are registered under both public API prefixes; OpenAPI and handler tests pass.
 3. [Phase 3](#phase-3-delete-pki-ca-service-artifacts): The standalone pki-ca service artifacts are absent and normal/tagged builds pass.
 4. [Phase 4](#phase-4-delete-pki-product-and-update-registry): The canonical registry, runtime registry, and fitness validation reflect 3 products and 7 PS-IDs.
-5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds. Phase 5 remains in progress because literal zero-skip, supported-engine Linux race/lifecycle, mutation, authenticated-load, and legacy-volume validation remain open.
+5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds. Phase 5 remains in progress because literal zero-skip, full-repository Linux race, Docker lifecycle, mutation, authenticated-load, and legacy-volume validation remain open; the historical aggregate comparison was dropped at the user's direction.
 6. [Phase 6](#phase-6-knowledge-propagation): README and handbook topology documentation are reconciled, lessons are recorded, and docs propagation validation passes.
 
 ---
@@ -121,11 +121,11 @@ Treat the machine-readable registry as the source of truth, validate all derived
 
 ### What Worked
 
-Recorded normal/tagged builds, the default-concurrency shuffled full suite, normal/tagged golangci-lint, and applicable cicd-lint checks passed. The latest full run has 17,637 passing tests, no failures, 63 explicitly explained skips, and 41 packages without test files. The current pinned coverage profile passes all 323 eligible thresholds; the focused sysinfo profile reaches 100.0%. A focused shuffled Linux race run passed for Authz, IDP, RS, and framework listener packages after fixing admin-listener publication races, but full supported-engine race acceptance remains open.
+Recorded normal/tagged builds, the default-concurrency shuffled full suite, normal/tagged golangci-lint, and applicable cicd-lint checks passed. The latest full run has 17,637 passing tests, no failures, 63 explicitly explained skips, and 41 packages without test files. The current pinned coverage profile passes all 323 eligible thresholds; the focused sysinfo profile reaches 100.0%. A focused shuffled Linux race run passed for Authz, IDP, RS, and framework listener packages after fixing admin-listener publication races, but full-repository race acceptance remains open.
 
 ### What Didn't Work
 
-The earlier CI-equivalent coverage baseline reported 152/320 executable packages meeting thresholds and 168/320 below (71.5% aggregate statement coverage); this is historical and superseded by the pinned 352-package profile, which now passes all thresholds. The historical aggregate comparison remains inconclusive because those profiles are not like-for-like. Full-repository race validation remains outstanding. The Windows host has no GCC compiler, and Docker Engine 29.8.2 is below the documented 29.9.1 minimum, so the local environment cannot satisfy the supported Linux race/lifecycle gates. An initial inline Windows coverage-profile argument was parsed as an extra package.
+The earlier CI-equivalent coverage baseline reported 152/320 executable packages meeting thresholds and 168/320 below (71.5% aggregate statement coverage); this is historical and superseded by the pinned 352-package profile, which now passes all thresholds. The user explicitly dropped the historical aggregate comparison, so it will not be pursued; the profiles were not established as like-for-like. Full-repository race validation remains outstanding. The Windows host has no GCC compiler; Docker Engine 29.8.2 meets the corrected minimum aligned with Docker Desktop 4.95.0. An initial inline Windows coverage-profile argument was parsed as an extra package.
 
 ### Root Causes
 

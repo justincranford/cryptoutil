@@ -2,8 +2,8 @@
 
 **Status**: Current-tree normal/tagged builds, full normal/tagged golangci-lint, and all 11
 relevant repository validators pass. The latest default-concurrency shuffled suite exits
-successfully with 325 passing packages, 17,706 passing test events, 34 test-level skips, and 41
-packages without test files; no tests or packages fail. The current skips are 32 intentional
+successfully with 326 passing packages, 17,736 passing test events, 36 test-level skips, and 41
+packages without test files; no tests or packages fail. The current skips are 34 intentional
 probability-sampled algorithm variants, one unavailable PostgreSQL integration test, and one
 schema-isolation test that requires PostgreSQL rather than SQLite. The Go issue #71919 ECDH
 round-trip skips have been resolved with an ECDH PKIX compatibility implementation. The latest
@@ -14,8 +14,9 @@ validation changes has 352 package results, 27 no-test packages, two expected no
 and 323 eligible packages meeting their thresholds. Its focused ASN.1 package reports 99.1%
 (139 tests). The focused sysinfo profile reports 100.0%, and the fresh CI-mode SM-KMS businesslogic
 profile is 95.4%.
-Historical aggregate comparison, literal zero-skip, supported-Engine race/lifecycle, mutation,
-authenticated load, and legacy-volume provenance gates remain open. The validated local changes
+The historical aggregate comparison was dropped at the user's direction. Literal zero-skip,
+Linux race, Docker lifecycle, mutation, authenticated load, and legacy-volume provenance gates
+remain open. The validated local changes
 and all prior local commits have been pushed to `origin/main` in commit `e3c9c60ce` (the remote
 advanced from `fd586f6ae`); the pre-push worktree was clean. This final tracker reconciliation is
 being pushed as a documentation-only follow-up.
@@ -916,17 +917,18 @@ content mismatch has been resolved. Fresh normal/tagged builds and golangci-lint
 validators, docs/text/workflow validation, and a full shuffled test run pass without test
 failures. The latest full run has 34 audited test-level skips and 41 package-level no-test events;
 the skip audit found no remaining actionable test-gap skip. The pinned 352-package coverage
-threshold gate passes. Phase 5 remains open pending the literal zero-skip criterion, supported
-Linux race and mutation validation, authenticated load, supported-Engine teardown/legacy-volume
-validation, and historical coverage comparison. The user has authorized the local commit and push
+threshold gate passes. Phase 5 remains open pending the literal zero-skip criterion, Linux race and
+mutation validation, authenticated load, Docker teardown/legacy-volume validation, and other
+listed follow-ups. The historical aggregate comparison was dropped at the user's direction. The
+user has authorized the local commit and push
 milestone; Task 6.4 tracks that work.
 
 **Local workflow execution**: The user confirmed that
 `go run ./cmd/cicd-workflow run --help` lists the official `coverage`, `race`, `mutation`,
 `benchmark`, `load`, and `e2e` workflows. Workflow availability is not completion evidence.
-The current Docker Engine is 29.8.2, below the documented 29.9.1 minimum, and the Windows host
-has no GCC/Clang; no supported Linux runner is available in this continuation for race or
-mutation validation.
+The current Docker Engine is 29.8.2, meeting the corrected minimum aligned with Docker Desktop
+4.95.0. The Windows host has no GCC/Clang, and no supported Linux runner is available in this
+continuation for full-repository race or mutation validation.
 
 **Current status**: Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 11
 relevant repository validators, and a full shuffled test run are recorded below. The full test
@@ -974,7 +976,7 @@ These package-scoped results are not additive proof of a repository-wide pass. T
 authoritative profile now passes the pinned 352-package inventory gate, including 166 apps-tools,
 29 shared, 44 framework, and 27 expected no-test packages; the threshold results and aggregate
 are recorded under Task 5.4. The historical no-regression comparison to the earlier aggregate
-baseline remains inconclusive.
+baseline was dropped at the user's direction and is not outstanding work.
 
 **Startup benchmark evidence**: `BenchmarkNewKMSServerFromConfig` was run with
 `-benchmem -benchtime=5x -count=5` on Go 1.27.2/windows/amd64 for the current worktree and a
@@ -1023,7 +1025,7 @@ improvement or regression claim.
 ### Task 5.3: Full Test Suite Verification
 
 - **Status**: Partially verified — the latest default-concurrency shuffled full-tree run exits 0
-  with 325 passing packages, 17,706 passing test events, 34 test-level skips, and 41 package-level
+  with 326 passing packages, 17,736 passing test events, 36 test-level skips, and 41 package-level
   no-test events. There are no failing test or package events. The literal zero-skip criterion and
   Linux race criterion remain open.
 - **Owner**: LLM Agent
@@ -1032,7 +1034,7 @@ improvement or regression claim.
 - **Description**: Run full test suite with shuffle and verify 100% passing.
 - **Acceptance Criteria**:
   - [x] `go test ./... -shuffle=on` exits successfully with no failing package results on the current worktree
-  - [ ] Zero skipped tests. The latest full-tree run has 34 skips: 32 intentional
+  - [ ] Zero skipped tests. The latest full-tree run has 36 skips: 34 intentional
     probability-sampled algorithm variants, one unavailable PostgreSQL integration test, and one
     schema-isolation test that requires PostgreSQL rather than the SQLite test database. The
     focused random utility package has zero skip events after removing three synthetic skips, and
@@ -1042,9 +1044,9 @@ improvement or regression claim.
     and sysinfo test-gap skips no longer occur.
   - [ ] `go test -race -count=2 ./internal/apps/sm-kms/...` passes in the Linux Go 1.27.2 container
 - **Historical evidence**: `test-output/phase5/tests.log`, `test-output/phase5/race-docker.log`.
-- **Current evidence**: The latest default-concurrency full-tree shuffled JSON run,
-  `test-output/reviewfollowup/full-suite-shuffle-after-certchain-20261018.jsonl`, records 17,706
-  passing test events, 34 test-level skips across 325 passing packages, 41 `[no test files]`
+- **Current evidence**: The latest default-concurrency shuffled JSON run,
+  `test-output/reviewfollowup/framework-v25-full-suite-skip-inventory-20261018.log`, records
+  17,736 passing test events, 36 test-level skips across 326 passing packages, 41 `[no test files]`
   package events, and no failed tests or packages. The preceding full-tree run,
   `test-output/reviewfollowup/full-suite-shuffle-20261018.jsonl`, records 17,699 passing test
   events and 39 skips. The earlier default-concurrency run,
@@ -1072,8 +1074,8 @@ improvement or regression claim.
   passes its targeted Authz, IDP, RS, framework-listener, and shared utility packages only;
   full-repository race acceptance remains open. A newer current-tree SM-KMS run,
   `test-output/reviewfollowup/framework-v25-sm-kms-race-20261018.log`, passes all 28 packages
-  with `-race -count=2` in Linux Go 1.27.2. It ran on Docker Engine 29.8.2, below the documented
-  29.9.1 minimum, so it is supplemental and does not satisfy the supported-engine race criterion.
+  with `-race -count=2` in Linux Go 1.27.2 on Docker Engine 29.8.2, which meets the corrected
+  minimum. It remains supplemental because it is package-scoped, not a full-repository race run.
 - **Full-suite readiness and health-timeout regressions resolved**: The framework repository
   server tests now poll for the dynamically assigned listener port instead of treating fixed
   sleeps as readiness. Identity RP, RS, and SPA health-test clients now use the shared 30-second
@@ -1082,8 +1084,8 @@ improvement or regression claim.
 - **Probability-helper self-skip cleanup (2026-10-18)**: Deterministic skip-decision cases now
   inject a skip callback instead of invoking `testing.T.Skip` in nested subtests. The focused
   shuffled random utility package passes all 170 tests with zero skip events, removing three
-  synthetic test skips. The latest full-tree run above includes this cleanup; its 34 skips are
-  entirely the 32 probability-sampled variants and two database-dependent tests. The literal
+  synthetic test skips. The latest full-tree run above includes this cleanup; its 36 skips are
+  entirely the 34 probability-sampled variants and two database-dependent tests. The literal
   zero-skip criterion remains open because the sampler and PostgreSQL-only tests still skip in
   this environment. The focused zero-skip package JSON evidence is
   `test-output/reviewfollowup/probability-helper-no-skip-20261018.jsonl`.
@@ -1137,23 +1139,24 @@ improvement or regression claim.
   reports that Docker Desktop recovered after `wsl --shutdown` and `docker desktop start`;
   `docker desktop status`, Docker Server 29.8.2, and `docker ps` respond, with
   `golang:1.27.2` cached. The current read-only inventory at 20:49 local found Docker responding
-  but no containers; Engine 29.8.2 is below the repository's documented 29.9.1 minimum. The
-  Windows host lacks GCC/Clang, and no supported Linux runner is available in this continuation.
+  but no containers. Engine 29.8.2 meets the corrected repository minimum aligned with Docker
+  Desktop 4.95.0. The Windows host lacks GCC/Clang, and no supported Linux runner is available in
+  this continuation.
   The earlier full-repository race run failed at `TestCheckInDir_RealWorkspace`, while a targeted
   race run passed selected packages only. The later SM-KMS-only Linux race run passes all 28
-  packages but used Engine 29.8.2. Do not treat an unsupported Docker engine as satisfying the
-  Linux race requirement; the race criterion remains blocked pending a supported Linux runner.
+  packages on Engine 29.8.2, which meets the corrected minimum. The full-repository Linux race
+  criterion remains open because no complete supported Linux run is available.
 
 ---
 
 ### Task 5.4: Coverage Analysis for New pki Packages
 
-- **Status**: Partially verified — the latest full-inventory profile after the ECDH PKIX changes
-  passes all 323 threshold-eligible package thresholds, including all executable PKI packages.
-  The aggregate is 81.7% (36,747/44,983 statements, informational); the full-inventory ASN.1 result
-  is 98.7%, and the latest focused ASN.1 profile reports 99.1%. The fresh CI-mode businesslogic
-  profile reports 95.4%, and the focused sysinfo profile reports 100.0%. The historical
-  79.9%/78.3% aggregate comparison remains inconclusive.
+- **Status**: Complete — the latest full-inventory profile after the ECDH PKIX changes passes all
+  323 threshold-eligible package thresholds, including all executable PKI packages. Aggregate
+  coverage is informational; the historical aggregate comparison was dropped at the user's
+  direction and is not an acceptance criterion. The full-inventory ASN.1 result is 98.7%, the
+  latest focused ASN.1 profile reports 99.1%, the fresh CI-mode businesslogic profile reports
+  95.4%, and the focused sysinfo profile reports 100.0%.
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.3
@@ -1167,12 +1170,8 @@ improvement or regression claim.
     profile is `test-output/coverage-analysis/framework-v25-current-after-certchain-20261018-pinned.out`;
     aggregate coverage is 81.7% (36,747/44,983 statements). Category inventory counts match the
     workflow pins: 166 apps-tools, 29 shared, and 44 apps-framework packages.
-  - [ ] The previously reported 79.9%/78.3% aggregate comparison remains unresolved after a
-    read-only audit of retained profiles. The 12 full-repository atomic profiles share a
-    344-package instrumented inventory and range from 79.51% to 81.69%; none reproduces either
-    reported figure. The identifiable 2026-10-16 full-coverage profile reports 79.51% and predates
-    the pinned no-test inventory correction from 30 to 27. The original aggregation formula and
-    matching baseline inventory were not retained, so no profile can be asserted as comparable.
+  - [x] Historical aggregate comparison dropped at the user's direction; no baseline comparison
+    is required or claimed.
   - [x] Current package-specific results clear the retained figures: businesslogic is 95.4% in
     the fresh CI-mode profile and handler remains 100.0% in the authoritative profile
   - [x] Issuer/date filter boundaries, decrementing an uninitialized gauge, and error-response JSON failure propagation have focused tests; target functions reach 100%.
@@ -1186,14 +1185,9 @@ improvement or regression claim.
   `test-output/coverage-analysis/sm-kms-businesslogic.cover`,
   `test-output/coverage-analysis/sm-kms-handler.cover`
 
-**Historical coverage evidence**: The 2026-10-16 profile
-`test-output/coverage-analysis/framework-v25-full-coverage-20261016-203239.out` reported 79.5%
-aggregate and predates correction of the pinned no-test baseline from 30 to 27. That mismatch is
-resolved; the older result is retained for history only. The earlier 79.9%/78.3% aggregate and
-95.3%/95.2% businesslogic figures are not established as like-for-like with the final full profile.
-The retained evidence does not identify a raw profile and package inventory corresponding to the
-79.9%/78.3% figures; the historical aggregate no-regression comparison therefore remains
-unreproducible. Do not substitute the 79.5% profile or change the current inventory or thresholds.
+**Historical coverage evidence**: Older profiles remain available for provenance only. Per the
+user's direction, no historical aggregate comparison is in scope; the current pinned inventory,
+package-specific thresholds, and coverage ceiling analyses remain authoritative.
 
 **Final authoritative coverage evidence (2026-10-17)**:
 `test-output/coverage-analysis/framework-v25-authoritative-final-after-lint-fixes-20261017.out`
@@ -1236,8 +1230,8 @@ construct an unsupported curve. Each helper's ceiling is 21/22 = 95.5%; the ceil
 buffer target is 93.5%, below the measured 95.5%. The guards remain for future standard-library
 curves; no package-level coverage exception is needed.
 
-The historical 79.9%/78.3% comparison remains unresolved: the retained full-repository profiles
-range from 79.51% to 81.69%, and no matching baseline inventory or aggregation formula is retained.
+The historical aggregate comparison is out of scope at the user's direction. Retained profiles are
+preserved for provenance only and do not affect current coverage acceptance.
 
 **Pinned-gate mismatch resolution**: A fresh `go list` check confirms that three
 previously no-test packages now have test files in `TestGoFiles`; all three focused
@@ -1260,9 +1254,9 @@ cover issuer/date filter boundaries, decrementing a previously absent gauge, and
 propagation. The older contrary snapshot in
 `test-output/coverage-analysis/review-followup/coverage-gate-runner-summary.md` (including
 handler 90.8%, bootstrap 93.2%, server 52.4%, revocation 80.4%, and storage 69.4%) is historical
-and superseded for this scoped package set. The retained comparison against prior SM-KMS aggregate,
-businesslogic, and handler baselines remains open pending a fresh full-inventory coverage run; the
-separate repository-wide pinned-inventory gate also remains open.
+and superseded for this scoped package set. The historical aggregate comparison against prior SM-KMS, businesslogic, and handler baselines was
+dropped at the user's direction and is not outstanding work. The separate repository-wide
+pinned-inventory gate is complete as recorded in the latest authoritative coverage evidence above.
 
 **Coverage inventory baseline**: `ci-coverage.yml` pins 352 packages, including 166 apps-tools,
 29 shared, and 44 framework packages, with 27 no-test packages. The inventory file and pinned count
@@ -1351,17 +1345,20 @@ do not establish a coverage pass.
   preparation after migration 1006 renamed the leader's client-secret columns. Both canonical and
   instantiated setup scripts now reconcile the supported rename before accepting an existing
   subscription; shell syntax, deployment, template-fitness, and text checks pass. Live validation
-  against a persistent pre-migration follower remains open because Docker Engine 29.8.2 is below
-  the documented 29.9.1 minimum. The current flow is headless client registration followed by a Basic client-credentials
+  against a persistent pre-migration follower remains open. Docker Engine 29.8.2 meets the
+  corrected minimum, so this is an outstanding runtime test rather than a version blocker. The
+  current flow is headless client registration followed by a Basic client-credentials
   exchange to obtain a service session; `test/load/src/test/java/cryptoutil/CryptoutiApi.java`
   applies the resulting Authorization header to cryptographic requests. The Gatling scenario
   creates a unique client for each virtual user, exchanges its Basic credentials for a service
   session, and attaches the
   returned Bearer token to cryptographic requests. Maven compilation, Spotless, and Checkstyle pass
   (`test-output/reviewfollowup/v25-gatling-auth-compile.log`). The isolated product runtime is
-  healthy. The live authenticated load remains unverified: the prior 48/48 failure lacked
-  Authorization and predates the current flow, so it neither validates the current workload nor
-  establishes that the current registration route is intercepted or absent.
+  healthy. The authenticated `complete` profile now passes all 218 requests with 100% success and
+  a 235 ms maximum response time
+  (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`). The earlier 48/48
+  failure lacked Authorization and predates the current flow, so it does not validate the current
+  workload.
 - **Owner**: LLM Agent
 - **Dependencies**: Tasks 5.3 and 5.5
 - **Acceptance Criteria**:
@@ -1374,8 +1371,9 @@ do not establish a coverage pass.
     canonical/deployment scripts pass Bash syntax validation, `lint-deployments`, `lint-fitness`,
     and `lint-text` (`test-output/reviewfollowup/framework-v25-follower-schema-reconciliation-20261017.log`).
   - [ ] Run an upgrade smoke test against a persistent follower database created with the legacy
-    schema, using a supported Docker Engine; verify both renamed columns and continued replication.
-    This remains blocked by the local Engine version and was not replaced with an unsupported live test.
+    schema; verify both renamed columns and continued replication. Docker Engine 29.8.2 meets the
+    corrected minimum aligned with Docker Desktop 4.95.0, so this remains an outstanding runtime
+    check rather than a version blocker. Do not claim the live upgrade path passes.
   - [x] The isolated upgrade simulation preserved its sentinel across restart and normalized
     database ownership (`test-output/review-follow-up/v25-runtime-20261016-0130/runtime-summary.log`).
     This isolated simulation is not evidence of an upgrade against a historical/legacy volume.
@@ -1384,14 +1382,13 @@ do not establish a coverage pass.
     tests across 17 packages (`test-output/reviewfollowup/public-server-server-package-shuffle.log`).
   - [x] The isolated product Compose runtime completes successfully after the replication fix
     (`test-output/review-follow-up/v25-runtime-current/product-runtime-up.log`).
-  - [ ] The `complete` Gatling profile passes with a valid authenticated session and the configured
-    success-rate threshold. Gatling compilation, Spotless, and Checkstyle pass; live authenticated
-    load against the current flow remains unverified. The earlier 48/48 failure predates the flow
-    and does not validate it. See
-    `test-output/review-follow-up/v25-runtime-current/gatling-complete-retry1.log`; do not bypass
-    service authentication.
-- **Environment caveat**: Docker Engine 29.8.2 is below the documented 29.9.1 minimum. Runtime
-  evidence is isolated and retained, but the supported-engine requirement remains unresolved.
+  - [x] The `complete` Gatling profile passes with a valid authenticated session and the configured
+    success-rate threshold: 218/218 requests succeeded, with a 235 ms maximum response time
+    (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`). The earlier 48/48
+    failure predates the authenticated flow and does not validate it.
+- **Environment caveat**: Docker Engine 29.8.2 meets the corrected minimum aligned with Docker
+  Desktop 4.95.0. The authenticated complete-profile runtime evidence is isolated and retained;
+  persistent legacy-follower upgrade validation remains outstanding.
 
 ---
 
@@ -1420,8 +1417,9 @@ do not establish a coverage pass.
   named volumes, but historical Docker events do not prove it caused the earlier volume deletions.
   The action now requires an explicit Compose file and runs `docker compose down` without volume
   deletion; `ci-load.yml` passes the same sm-kms Compose file used for startup. Fresh workflow lint
-  passes. Live teardown validation remains blocked because Docker Engine 29.8.2 is below the
-  documented 29.9.1 minimum; no Docker resource was changed during this continuation.
+  passes. Live teardown was validated against the isolated task-owned project on Engine 29.8.2:
+  `docker compose down` removed the project without `-v` and preserved its dedicated named volume
+  (`test-output/reviewfollowup/isolated-compose-down-preserves-volume-20261018.log`).
 - **Evidence**: `docker-created-postgres-follow-up-20261016.log` explicitly records 12
   Testcontainers-labelled Postgres containers and the product-retest project still present, with
   no Docker resources changed. `docker-container-cleanup-20261016-1148.log` records removal of 64
@@ -1454,7 +1452,7 @@ do not establish a coverage pass.
   establish the disappearance provenance. The 21:03 read-only inventory
   (`docker-live-inventory-current-20261016-210349.log`) reconfirms zero containers and Compose
   projects, 64 volumes, and all 11 named framework follow-up/product-retest volumes present in
-  both contexts. Docker Engine 29.8.2 remains below the 29.9.1 minimum; no resource was changed.
+  both contexts. Docker Engine 29.8.2 meets the corrected minimum; no resource was changed.
   The earlier read-only inventory (`docker-live-inventory-current-20261017.log`) reports Engine
   29.8.2 and two running act-CI-Coverage-Collection containers, one Ubuntu and one PostgreSQL;
   neither has Compose project/service labels. The latest read-only inventory at 22:16 local
@@ -1471,8 +1469,10 @@ do not establish a coverage pass.
   to this session.
 - [x] Ensure load-workflow teardown targets the same sm-kms Compose file it starts and does not
   remove shared volumes by default; static inspection and fresh workflow lint pass.
-- [ ] Run live teardown validation with a supported Docker Engine (29.9.1 or newer) against an
-  isolated task-owned project; preserve all named volumes.
+- [x] Run live teardown validation against the isolated task-owned project on Docker Engine 29.8.2;
+  `docker compose down` removed the project without `-v`, and the dedicated named volume remained
+  present while the project disappeared
+  (`test-output/reviewfollowup/isolated-compose-down-preserves-volume-20261018.log`).
 - [x] Fresh read-only verification at 19:17 local found no containers, Compose projects, or running
   stats in either context; both contexts resolved to the same Docker Engine ID, and the complete
   visible volume listing was retained without changes
@@ -1596,16 +1596,17 @@ Verify propagation integrity.
   threshold-eligible packages pass. The profile-driven summary reports 81.6% aggregate coverage
   (informational) with no threshold failures:
   `test-output/coverage-analysis/framework-v25-authoritative-final-after-lint-fixes-20261017-threshold-summary.log`.
-  The historical aggregate comparison remains inconclusive; inventory and thresholds are unchanged.
+  The historical aggregate comparison was dropped at the user's direction; inventory and
+  thresholds are unchanged.
 - [x] All 18 routes are registered under both API prefixes; the profiles endpoint returns 200 at both mounts
 - [ ] Race detector clean: the current-tree SM-KMS race run passes all 28 packages in Linux Go
-  1.27.2 (`test-output/reviewfollowup/framework-v25-sm-kms-race-20261018.log`), but it used
-  Docker Engine 29.8.2, below the documented minimum. The earlier full-repository race run fails
-  at `TestCheckInDir_RealWorkspace`; no supported-engine Linux race result is available.
+  1.27.2 (`test-output/reviewfollowup/framework-v25-sm-kms-race-20261018.log`) on Engine 29.8.2,
+  which meets the corrected minimum. The earlier full-repository race run fails at
+  `TestCheckInDir_RealWorkspace`; a full-repository Linux race result remains unavailable.
 - [x] No skipped tests without documented justification — the latest successful full-tree run
-  records 34 documented skips: 32 probability-sampled algorithm variants, one unavailable
+  records 36 documented skips: 34 probability-sampled algorithm variants, one unavailable
   PostgreSQL integration test, and one schema-isolation test that requires PostgreSQL rather than
-  SQLite (`test-output/reviewfollowup/full-suite-shuffle-20261018.jsonl`). The focused random
+  SQLite (`test-output/reviewfollowup/framework-v25-full-suite-skip-inventory-20261018.log`). The focused random
   utility run has zero skip events after removing three synthetic test skips, and ECDH round-trip
   tests now pass without the former Go issue #71919 skips. Formerly listed actionable test-gap
   skips are absent; the separate literal zero-skip criterion remains open under Task 5.3.
@@ -1710,7 +1711,7 @@ validation is not a claim that the full repository suite or Docker/PostgreSQL de
 | 13 | Tenant-scoped request IDs have a unique database constraint, with duplicate errors mapped consistently; migration 2013 fails closed on legacy nonzero duplicates. | `internal/apps/sm-kms/server/repository/migrated_ca_items_test.go::TestRequestUniqueMigration_DuplicateRowsPreserveExistingIndex` asserts the migration error, preserves both rows, and retains the existing index; focused `runTests` passed (1 passed, 0 failed). | Automatic deduplication is not authorized; remediation depends on resolving legacy-volume data and provenance. |
 | 14 | Listener shutdown completion waits are bounded and report timeout errors. | Focused listener tests include shutdown/startup paths. | Full race suite not run. |
 | 15 | Authority configuration, active validity checks, historical issuer restoration, and a persisted stable authority ID on new certificate records are covered. | Focused PKI tests and `pki-persistence-integration.log`. | Renewal/rollover operations remain initialization-only; no live PostgreSQL test. |
-| 16 | Partially verified | Tracking updates separate historical claims from current evidence. The latest default-concurrency full-tree run `test-output/reviewfollowup/full-suite-shuffle-after-certchain-20261018.jsonl` records 17,706 passing test events, 34 explained skips, 325 passing packages, 41 no-test-file events, and no failures. It verifies the listener-readiness and RP/RS/SPA health-timeout fixes and includes ECDH round trips with no Go issue #71919 skips. The post-ECDH full-inventory profile and threshold summary are `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out` and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. | Literal zero-skip, supported Linux race, authenticated load, mutation, supported-Engine Docker/PostgreSQL lifecycle validation, and legacy-volume provenance remain outstanding. |
+| 16 | Partially verified | Tracking updates separate historical claims from current evidence. The latest default-concurrency full-tree run `test-output/reviewfollowup/framework-v25-full-suite-skip-inventory-20261018.log` records 17,736 passing test events, 36 explained skips, 326 passing packages, 41 no-test-file events, and no failures. It verifies the listener-readiness and RP/RS/SPA health-timeout fixes and includes ECDH round trips with no Go issue #71919 skips. The post-ECDH full-inventory profile and threshold summary are `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out` and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. | Literal zero-skip, supported Linux race, authenticated load, mutation, supported-Engine Docker/PostgreSQL lifecycle validation, and legacy-volume provenance remain outstanding. |
 
 ## Review Follow-Up Recommendation Disposition and Evidence
 
@@ -1721,22 +1722,22 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 2 | Partially verified | SQLite migration tests and `postgres-migrations-2012-2015.log` cover migration behavior; `test-output/reviewfollowup/postgres-migrations-runner.log` records `TestPKIMigrations_PostgreSQLUpgradeAndRollback` passing against an isolated testcontainers PostgreSQL container and that container terminating. | No Compose product/suite runtime was exercised; keep that runtime gate open until a fresh isolated stack test is retained. |
 | 3 | Complete | `durable-sqlite-compose-health.log` records healthy Compose startup; `durable-sqlite-authenticated-readiness.log` records authenticated admin readiness HTTP 200; `final-repository-validators.log` passes deployment validation. | None. |
 | 4 | Complete | The baseline-maintenance procedure is in `docs/ENG-HANDBOOK.md` §10.2.3 and `.github/instructions/03-02.testing.instructions.md`; `coverage-baseline-docs.log`, `coverage-baseline-workflow.log`, and `coverage-baseline-text.log` pass. Both inventories are uploaded by the workflow. | None. |
-| 5 | Partially verified | The latest profile-driven gate after ECDH changes passes all 352 pinned package results, 27 no-test packages, two expected no-statement packages, and all 323 threshold-eligible packages with zero threshold failures; aggregate coverage is 81.7% (36,744/44,980, informational). Evidence: `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out`, its complete package log, and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. Earlier 71.5%, 79.5%, and reported 79.9%/78.3% profiles are historical and not established as like-for-like. | Keep inventory and thresholds unchanged. The older aggregate comparison remains unreproducible without its matching baseline profile and package inventory; maintain documented ceiling analysis for any future below-target package. |
+| 5 | Complete within the accepted scope | The latest profile-driven gate after ECDH changes passes all 352 pinned package results, 27 no-test packages, two expected no-statement packages, and all 323 threshold-eligible packages with zero threshold failures. Aggregate coverage is informational. Evidence: `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out`, its complete package log, and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. | None. The historical aggregate comparison was dropped at the user's direction; keep inventory and thresholds unchanged. |
 | 6 | Partially verified | `test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log` records a passing shuffled Linux race run for Authz, IDP, RS, and framework listener packages after fixing listener publication races in Authz and IDP. The later full-repository run `test-output/reviewfollowup/race-go-linux-full-nonroot-final.log` fails at `TestCheckInDir_RealWorkspace` with missing `internal/apps/sm-kms` health-path findings. | Complete full-repository race validation on a supported CGO-enabled host. |
 | 7 | Complete | `final-focused-tests.log` passes TLS publication and failure-path tests; `docs/tls-structure.md` documents initialization-only behavior and Compose activation gating. | None; rotation/reload remains unsupported. |
-| 8 | Partially verified | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. | Full load workload was not run; no fresh named full-load artifact is retained. |
+| 8 | Partially verified | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. The authenticated Service API `complete` profile passed 218/218 requests with 100% success (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`). | The full multi-service load workflow and remaining simulation profiles were not run. |
 | 9 | Complete | PKI test conventions were audited; `final-focused-tests.log` passes the relevant shuffled PKI packages and `postgres-continuity-restart.log` passes the PostgreSQL continuity test. | None. |
 | 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
 | 11 | Partially verified | `postgres-continuity-restart.log` verifies PostgreSQL restart continuity for certificate, encrypted-key envelope, and revocation state; this is not an existing-volume upgrade test. | Execute the data-preserving upgrade against an existing PostgreSQL volume and retain a named upgrade artifact. |
 | 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` retains below-target coverage and the open full-repository race gate; `review-follow-up-plan.md` aligns its introduction and Recommendation 12. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` now matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `go run ./cmd/cicd-lint lint-docs -q` passing. The earlier failure log is retained for history. | Phase 5 remains open pending final post-remediation coverage and full-repository race evidence. |
-| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, and all 14 repository validators pass; the final repository validator run after tracker changes is clean. The latest shuffled full-tree run `test-output/reviewfollowup/full-suite-shuffle-after-certchain-20261018.jsonl` exits 0 with no failures (325 passing packages, 17,706 passing test events, 34 test-level skips, 41 package-level no-test events). The post-ECDH full-inventory coverage profile passes all 323 thresholds. | Keep literal zero-skip, supported-Engine Linux race/lifecycle, authenticated load, mutation, and legacy-volume provenance gates open. The validated local changes and existing history were pushed as `e3c9c60ce`; the tracking update is part of a documentation-only follow-up push. |
+| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, and all 14 repository validators pass; the final repository validator run after tracker changes is clean. The latest shuffled full-tree run `test-output/reviewfollowup/framework-v25-full-suite-skip-inventory-20261018.log` exits 0 with no failures (326 passing packages, 17,736 passing test events, 36 test-level skips, 41 package-level no-test events). The post-ECDH full-inventory coverage profile passes all 323 thresholds. | Keep literal zero-skip, full-repository Linux race, Docker lifecycle, authenticated load, mutation, and legacy-volume provenance gates open. The validated local changes and existing history were pushed as `e3c9c60ce`; the tracking update is part of a documentation-only follow-up push. |
 | 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on every task commit from the recorded baseline through the implementation, disposition, and post-review fix commits. | None. |
 | 15 | Partially verified | The application-role access check is described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving application-role access. |
 | 16 | Partially verified | Ownership normalization and malformed-publication rejection are described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving ownership normalization and malformed-publication rejection. |
 | 17 | Partially verified | The PostgreSQL 18 upgrade and subsequent deployment validation are described in `test-output/review-followup/postgres-existing-volume-upgrade.log` and `test-output/review-followup/tracking-deploy-validation.log`; the cited upgrade artifact is not retained. | Re-run the PostgreSQL 18 existing-volume upgrade and retain both the upgrade log and post-upgrade deployment validation. |
 | 18 | Complete | `durable-sqlite-pki-init.log`, `durable-sqlite-runtime.log`, `durable-sqlite-compose-health.log`, and `durable-sqlite-authenticated-readiness.log` exercise initialization and runtime behavior against the image. | None. |
 | 19 | Partially verified | `durable-sqlite-compose-parity.log` verifies distinct PS-ID/instance data volumes and project scoping for all 14 SQLite instances. `product-compose-config-services.log` and `suite-compose-config-services.log` record successful static Compose service resolution. | Product/suite runtime stacks remain unverified. Active globally named stacks and the recorded volume incident make unisolated Docker lifecycle operations unsafe; run runtime verification in an isolated environment. |
-| 20 | Partially verified | `ci-load.yml` uses certificate-authenticated PostgreSQL readiness; `postgres-authenticated-readiness.log` records a live HTTP 200 response. | Full load workload was not run; no fresh named full-load artifact is retained. |
+| 20 | Partially verified | `ci-load.yml` uses certificate-authenticated PostgreSQL readiness; `postgres-authenticated-readiness.log` records a live HTTP 200 response. The authenticated Service API `complete` profile passed 218/218 requests with 100% success (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`). | The full multi-service load workflow and remaining simulation profiles were not run. |
 | 21 | Complete | `ci-load.yml` passes inputs through environment variables and validates numeric ranges; `final-repository-validators.log` passes workflow lint. | None. |
 | 22 | Complete | `final-focused-tests.log` passes staged publication and rollback tests; `docs/tls-structure.md` documents the Compose activation gate and unsupported rotation behavior. | None. |
 | 23 | Complete | `final-focused-tests.log` passes deterministic filesystem failure-path and platform permission tests. | None. |
@@ -1770,7 +1771,7 @@ Finding identifiers F-1 and F-2 are distinct from review recommendation numbers.
 | F-8 | Complete | `post-review-compose-target-interpolation-tests.log` passes braced, unbraced, and defaulted short-syntax and long-syntax unresolved-target rejection cases; source interpolation at a known target and escaped dollar literals remain accepted. `post-review-compose-target-interpolation-validation.log` passes deployment validation, Go, Go-test, lint-fitness, lint-docs, and lint-text; `post-review-compose-target-interpolation-builds.log` and `post-review-compose-target-interpolation-golangci.log` pass normal/tagged builds and lint. CO-21 and the F-7 disposition now match the tested normalization and fail-closed behavior. | None. |
 
 | F-9 | Complete | `public_server_server_package_shuffle.log` verifies the typed application-error mapping and missing-authorization regression across the shuffled server subtree (2,216 tests in 17 packages). | None for the focused fix; complete current repository-wide validation remains open under Task 5.6. |
-| F-10 | Implementation and static validation complete; runtime validation open | Gatling now registers/logs in unique service users and supplies Bearer authorization; `standard` and `stress` profiles execute explicitly and unsupported profiles fail closed; `ci-load.yml` targets PostgreSQL-1 on port 8002. `v25-gatling-auth-compile.log` passes forced clean compilation, Spotless, and Checkstyle; `v25-load-workflow-validation.log` passes workflow and text validation. | Run the authenticated `complete` profile against the isolated product runtime and record its success-rate result under Task 5.6. |
+| F-10 | Complete profile validated; broader load runtime open | Gatling uses unique service users; `standard` and `stress` profiles execute explicitly and unsupported profiles fail closed; `ci-load.yml` targets PostgreSQL-1 on port 8002. `v25-gatling-auth-compile.log` passes forced clean compilation, Spotless, and Checkstyle; `v25-load-workflow-validation.log` passes workflow and text validation. The authenticated `complete` profile passed 218/218 requests with 100% success in `test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`; `test/load/README.md` illustrates both profiles with user-count examples. | Run the full multi-service load workflow and remaining simulation profiles. |
 
 ## Recommendation 28: Legacy Volume Incident Disposition
 
