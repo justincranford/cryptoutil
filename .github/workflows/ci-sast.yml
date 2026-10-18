@@ -277,63 +277,141 @@ jobs:
           echo "🔍 Running Staticcheck security analysis..."
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          staticcheck -f sarif ./... > staticcheck.sarif 2>/dev/null || true
-
-          if [ -f staticcheck.sarif ] && [ -s staticcheck.sarif ]; then
-            echo "✅ Staticcheck SARIF file created successfully"
-            ls -la staticcheck.sarif
-            # Validate SARIF format
-            if jq -e '.version' staticcheck.sarif >/dev/null 2>&1; then
-              echo "✅ SARIF file format is valid"
-            else
-              echo "⚠️ SARIF file format may be invalid, but proceeding with upload"
-            fi
-
-            # Fix SARIF format: Add artifactLocation to all physicalLocation entries
-            echo "🔧 Adding artifact locations to SARIF..."
-            jq '.runs[].results[].locations[]? |= (
-              if .physicalLocation.artifactLocation? == null then
-                .physicalLocation.artifactLocation = {
-                  "uri": (if .physicalLocation.region.uri? then .physicalLocation.region.uri else "unknown" end),
-                  "uriBaseId": "%SRCROOT%"
-                }
-              else
-                .
-              end |
-              if .physicalLocation.region.startLine? == 0 then
-                .physicalLocation.region.startLine = 1
-              else
-                .
-              end |
-              if .physicalLocation.region.startColumn? == 0 then
-                .physicalLocation.region.startColumn = 1
-              else
-                .
-              end
-            )' staticcheck.sarif > staticcheck-sanitized.sarif
-            mv staticcheck-sanitized.sarif staticcheck.sarif
-            echo "✅ SARIF format fixed"
+          if staticcheck -f sarif ./... > staticcheck-raw.sarif; then
+            STATICCHECK_EXIT_CODE=0
           else
-            echo "ℹ️ Staticcheck produced no issues, generating minimal SARIF for GitHub Security tab"
-            cat > staticcheck.sarif << 'EOF'
-          {
-            "version": "2.1.0",
-            "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-            "runs": [
-              {
-                "tool": {
-                  "driver": {
-                    "name": "Staticcheck",
-                    "version": "2025.1.1",
-                    "informationUri": "https://staticcheck.dev"
-                  }
-                },
-                "results": []
-              }
-            ]
-          }
-          EOF
+            STATICCHECK_EXIT_CODE=$?
           fi
+
+          STATICCHECK_EXIT_CODE="$STATICCHECK_EXIT_CODE" python3 - <<'PY'
+          import json
+          import os
+          import posixpath
+          import re
+          import sys
+          from pathlib import Path
+          from urllib.parse import quote, unquote, urlsplit
+
+          def fail(message):
+              print(f"::error::{message}", file=sys.stderr)
+              raise SystemExit(1)
+
+          try:
+              exit_code = int(os.environ["STATICCHECK_EXIT_CODE"])
+          except (KeyError, ValueError):
+              fail("Staticcheck exit status was unavailable")
+
+          if exit_code not in (0, 1):
+              fail(f"Staticcheck execution failed with exit code {exit_code}; see diagnostics above")
+
+          try:
+              with open("staticcheck-raw.sarif", encoding="utf-8") as sarif_file:
+                  report = json.load(sarif_file)
+          except (OSError, json.JSONDecodeError) as error:
+              fail(f"Staticcheck did not produce readable SARIF: {error}")
+
+          if not isinstance(report, dict) or report.get("version") != "2.1.0":
+              fail("Staticcheck output is not a SARIF 2.1.0 document")
+          report["$schema"] = "https://json.schemastore.org/sarif-2.1.0.json"
+          runs = report.get("runs")
+          if not isinstance(runs, list) or not runs:
+              fail("Staticcheck SARIF must contain at least one run")
+
+          finding_count = 0
+          for run in runs:
+              if not isinstance(run, dict):
+                  fail("Staticcheck SARIF contains a malformed run")
+              tool = run.get("tool")
+              driver = tool.get("driver") if isinstance(tool, dict) else None
+              if not isinstance(driver, dict) or not isinstance(driver.get("name"), str) or not driver["name"]:
+                  fail("Staticcheck SARIF run is missing tool.driver.name")
+              results = run.get("results")
+              if not isinstance(results, list):
+                  fail("Staticcheck SARIF run is missing its results array")
+              finding_count += len(results)
+
+          if exit_code == 1 and finding_count == 0:
+              fail("Staticcheck exited with findings status but emitted no SARIF results")
+          if exit_code == 1:
+              print(f"::warning::Staticcheck reported {finding_count} finding(s); continuing to upload the SARIF report")
+
+          workspace = Path(os.environ.get("GITHUB_WORKSPACE", os.getcwd())).resolve()
+
+          def normalize_artifact_location(location):
+              if not isinstance(location, dict):
+                  fail("Staticcheck SARIF contains a malformed artifactLocation")
+              uri = location.get("uri")
+              if not isinstance(uri, str) or not uri.strip():
+                  fail("Staticcheck SARIF artifactLocation is missing a usable uri")
+              uri = unquote(uri.replace("\\", "/"))
+              if uri.startswith("file://"):
+                  parsed_uri = urlsplit(uri)
+                  if parsed_uri.netloc not in ("", "localhost"):
+                      fail(f"Staticcheck SARIF contains a non-local file URI: {uri}")
+                  uri = parsed_uri.path
+              elif urlsplit(uri).scheme:
+                  fail(f"Staticcheck SARIF contains a non-file artifact URI: {uri}")
+
+              if uri.startswith("/"):
+                  absolute_path = Path(uri).resolve()
+                  try:
+                      relative_path = absolute_path.relative_to(workspace)
+                  except ValueError:
+                      fail(f"Staticcheck SARIF artifact is outside the repository: {uri}")
+                  normalized_uri = relative_path.as_posix()
+              else:
+                  if re.match(r"^[A-Za-z]:/", uri) or uri.startswith("//"):
+                      fail(f"Staticcheck SARIF artifact is not repository-relative: {uri}")
+                  normalized_uri = posixpath.normpath(uri)
+                  if normalized_uri in ("", ".", "..") or normalized_uri.startswith("../") or normalized_uri.startswith("/"):
+                      fail(f"Staticcheck SARIF artifact escapes the repository: {uri}")
+
+              if normalized_uri in ("", "."):
+                  fail(f"Staticcheck SARIF artifact does not identify a repository file: {uri}")
+              location["uri"] = quote(normalized_uri, safe="/-._~")
+              location.pop("uriBaseId", None)
+
+          def normalize_locations(value):
+              if isinstance(value, dict):
+                  physical_location = value.get("physicalLocation")
+                  if physical_location is not None:
+                      if not isinstance(physical_location, dict) or "artifactLocation" not in physical_location:
+                          fail("Staticcheck SARIF physicalLocation is missing artifactLocation")
+                      normalize_artifact_location(physical_location["artifactLocation"])
+                      region = physical_location.get("region")
+                      if region is not None:
+                          if not isinstance(region, dict):
+                              fail("Staticcheck SARIF physicalLocation contains a malformed region")
+                          for coordinate in ("startLine", "startColumn"):
+                              number = region.get(coordinate)
+                              if number is not None:
+                                  if isinstance(number, bool) or not isinstance(number, int) or number < 0:
+                                      fail(f"Staticcheck SARIF contains an invalid {coordinate}: {number}")
+                                  if number == 0:
+                                      region[coordinate] = 1
+                  for key, child in value.items():
+                      if key == "artifactLocation":
+                          normalize_artifact_location(child)
+                      elif key == "location" and isinstance(child, dict) and "uri" in child:
+                          normalize_artifact_location(child)
+                      else:
+                          normalize_locations(child)
+              elif isinstance(value, list):
+                  for child in value:
+                      normalize_locations(child)
+
+          normalize_locations(report)
+          try:
+              temporary_path = "staticcheck-normalized.tmp"
+              with open(temporary_path, "w", encoding="utf-8", newline="\n") as sarif_file:
+                  json.dump(report, sarif_file, indent=2)
+                  sarif_file.write("\n")
+              os.replace(temporary_path, "staticcheck.sarif")
+          except (OSError, TypeError, ValueError) as error:
+              fail(f"Unable to write normalized Staticcheck SARIF: {error}")
+
+          print(f"Staticcheck produced valid SARIF 2.1.0 with {finding_count} finding(s) and repository-relative artifact locations")
+          PY
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
