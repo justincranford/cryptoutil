@@ -10,6 +10,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
+
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
 )
 
 // RoleRepository provides CRUD operations for roles.
@@ -244,7 +246,7 @@ func (r *TenantRealmRepositoryImpl) ListByTenant(ctx context.Context, tenantID g
 	query := r.db.WithContext(ctx).Where("tenant_id = ?", tenantID)
 
 	if activeOnly {
-		query = query.Where("active = ?", true)
+		query = query.Where("active = ?", cryptoutilSharedDBTypes.BoolInt(true))
 	}
 
 	if err := query.Order("created_at DESC").Find(&realms).Error; err != nil {

@@ -7,6 +7,8 @@ package repository
 import (
 	"time"
 
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
+
 	googleUuid "github.com/google/uuid"
 )
 
@@ -250,15 +252,15 @@ func (ClientRole) TableName() string {
 // TenantRealm represents a realm configuration for a tenant.
 // Realms define authentication methods and security policies.
 type TenantRealm struct {
-	ID        googleUuid.UUID `gorm:"type:text;primaryKey"`
-	TenantID  googleUuid.UUID `gorm:"type:text;not null;index;uniqueIndex:idx_tenant_realms_tenant_realm"`
-	RealmID   googleUuid.UUID `gorm:"type:text;not null;uniqueIndex:idx_tenant_realms_tenant_realm"` // Unique realm identifier per tenant.
-	Type      string          `gorm:"type:text;not null"`                                            // Realm type: username_password, ldap, oauth2.
-	Config    string          `gorm:"type:text"`                                                     // JSON configuration for realm.
-	Active    bool            `gorm:"not null;default:true;index"`                                   // Active/inactive realm.
-	Source    string          `gorm:"type:text;not null;default:db"`                                 // Source: db or file.
-	CreatedAt time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	ID        googleUuid.UUID                 `gorm:"type:text;primaryKey"`
+	TenantID  googleUuid.UUID                 `gorm:"type:text;not null;index;uniqueIndex:idx_tenant_realms_tenant_realm"`
+	RealmID   googleUuid.UUID                 `gorm:"type:text;not null;uniqueIndex:idx_tenant_realms_tenant_realm"` // Unique realm identifier per tenant.
+	Type      string                          `gorm:"type:text;not null"`                                            // Realm type: username_password, ldap, oauth2.
+	Config    string                          `gorm:"type:text"`                                                     // JSON configuration for realm.
+	Active    cryptoutilSharedDBTypes.BoolInt `gorm:"type:integer;not null;default:1;index"`                         // Active/inactive realm.
+	Source    string                          `gorm:"type:text;not null;default:db"`                                 // Source: db or file.
+	CreatedAt time.Time                       `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time                       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 
 	// Relationship.
 	Tenant *Tenant `gorm:"foreignKey:TenantID;references:ID"`

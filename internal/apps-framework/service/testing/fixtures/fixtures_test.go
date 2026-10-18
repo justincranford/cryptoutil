@@ -58,7 +58,7 @@ func TestCreateTestRealm(t *testing.T) {
 	require.NotEqual(t, googleUuid.Nil, realm.ID, "realm ID should not be zero UUID")
 	require.Equal(t, tenant.ID, realm.TenantID)
 	require.NotEqual(t, googleUuid.Nil, realm.RealmID, "realm RealmID should not be zero UUID")
-	require.True(t, realm.Active, "realm should be active")
+	require.True(t, bool(realm.Active), "realm should be active")
 
 	var found cryptoutilAppsFrameworkServiceServerRepository.TenantRealm
 	require.NoError(t, db.First(&found, "id = ?", realm.ID).Error)

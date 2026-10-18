@@ -85,7 +85,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 
 			if tt.activeOnly {
 				for _, realm := range result {
-					require.True(t, realm.Active)
+					require.True(t, bool(realm.Active))
 
 					if realm.ID == activeRealm.ID {
 						foundActive = true

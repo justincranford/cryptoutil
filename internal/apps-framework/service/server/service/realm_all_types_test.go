@@ -99,7 +99,7 @@ func TestRealmService_CreateMultipleRealms_AllTypes(t *testing.T) {
 			require.NoError(t, err, "CreateRealm should succeed for browser realm: %s", tt.realmType)
 			require.NotNil(t, realm)
 			require.Equal(t, tt.realmType, realm.Type)
-			require.True(t, realm.Active, "Realm should be active after creation")
+			require.True(t, bool(realm.Active), "Realm should be active after creation")
 		})
 	}
 
@@ -132,7 +132,7 @@ func TestRealmService_CreateMultipleRealms_AllTypes(t *testing.T) {
 			require.NoError(t, err, "CreateRealm should succeed for service realm: %s", tt.realmType)
 			require.NotNil(t, realm)
 			require.Equal(t, tt.realmType, realm.Type)
-			require.True(t, realm.Active, "Realm should be active after creation")
+			require.True(t, bool(realm.Active), "Realm should be active after creation")
 		})
 	}
 
@@ -163,17 +163,17 @@ func TestRealmService_ActivateDeactivateAllTypes(t *testing.T) {
 	// Create realm.
 	realm, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeJWESessionCookie), config)
 	require.NoError(t, err)
-	require.True(t, realm.Active, "Realm should be active after creation")
+	require.True(t, bool(realm.Active), "Realm should be active after creation")
 
 	// Deactivate realm.
 	inactive := false
 	updatedRealm, err := svc.UpdateRealm(ctx, tenant.ID, realm.RealmID, config, &inactive)
 	require.NoError(t, err)
-	require.False(t, updatedRealm.Active, "Realm should be inactive after update")
+	require.False(t, bool(updatedRealm.Active), "Realm should be inactive after update")
 
 	// Reactivate realm.
 	active := true
 	reactivatedRealm, err := svc.UpdateRealm(ctx, tenant.ID, realm.RealmID, config, &active)
 	require.NoError(t, err)
-	require.True(t, reactivatedRealm.Active, "Realm should be active after reactivation")
+	require.True(t, bool(reactivatedRealm.Active), "Realm should be active after reactivation")
 }

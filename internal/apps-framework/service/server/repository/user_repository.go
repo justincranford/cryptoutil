@@ -10,6 +10,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
+
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
 )
 
 // UserRepository provides CRUD operations for verified users.
@@ -78,7 +80,7 @@ func (r *UserRepositoryImpl) ListByTenant(ctx context.Context, tenantID googleUu
 	query := r.db.WithContext(ctx).Where("tenant_id = ?", tenantID)
 
 	if activeOnly {
-		query = query.Where("active = ?", true)
+		query = query.Where("active = ?", cryptoutilSharedDBTypes.BoolInt(true))
 	}
 
 	if err := query.Order("created_at DESC").Find(&users).Error; err != nil {
@@ -154,7 +156,7 @@ func (r *ClientRepositoryImpl) ListByTenant(ctx context.Context, tenantID google
 	query := r.db.WithContext(ctx).Where("tenant_id = ?", tenantID)
 
 	if activeOnly {
-		query = query.Where("active = ?", true)
+		query = query.Where("active = ?", cryptoutilSharedDBTypes.BoolInt(true))
 	}
 
 	if err := query.Order("created_at DESC").Find(&clients).Error; err != nil {

@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
 )
 
 // Error summary messages.
@@ -83,7 +84,7 @@ func (r *TenantRepositoryImpl) List(ctx context.Context, activeOnly bool) ([]*Te
 	query := r.db.WithContext(ctx)
 
 	if activeOnly {
-		query = query.Where("active = ?", true)
+		query = query.Where("active = ?", cryptoutilSharedDBTypes.BoolInt(true))
 	}
 
 	if err := query.Order("created_at DESC").Find(&tenants).Error; err != nil {

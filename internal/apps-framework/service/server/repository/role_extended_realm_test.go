@@ -217,7 +217,7 @@ func TestTenantRealmRepository_Update(t *testing.T) {
 
 	result, err := realmRepo.GetByID(ctx, realm.ID)
 	require.NoError(t, err)
-	require.False(t, result.Active)
+	require.False(t, bool(result.Active))
 }
 
 func TestTenantRealmRepository_Delete(t *testing.T) {

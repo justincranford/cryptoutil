@@ -23,6 +23,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilSharedDBTypes "cryptoutil/internal/shared/dbtypes"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -266,7 +267,7 @@ func (s *RealmServiceImpl) UpdateRealm(ctx context.Context, tenantID, realmID go
 	}
 
 	if active != nil {
-		realm.Active = *active
+		realm.Active = cryptoutilSharedDBTypes.BoolInt(*active)
 	}
 
 	if err := s.realmRepo.Update(ctx, realm); err != nil {

@@ -120,7 +120,7 @@ func TestRealmService_CreateRealm_UsernamePassword(t *testing.T) {
 	require.NotNil(t, realm)
 	require.Equal(t, tenant.ID, realm.TenantID)
 	require.Equal(t, string(RealmTypeUsernamePassword), realm.Type)
-	require.True(t, realm.Active)
+	require.True(t, bool(realm.Active))
 	require.Equal(t, "db", realm.Source)
 	require.NotEmpty(t, realm.Config)
 }
@@ -379,13 +379,13 @@ func TestRealmService_UpdateRealm_ActiveFlag(t *testing.T) {
 	config := &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength}
 	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
 	require.NoError(t, err)
-	require.True(t, created.Active)
+	require.True(t, bool(created.Active))
 
 	// Deactivate realm.
 	active := false
 	updated, err := svc.UpdateRealm(ctx, tenant.ID, created.RealmID, nil, &active)
 	require.NoError(t, err)
-	require.False(t, updated.Active)
+	require.False(t, bool(updated.Active))
 }
 
 // TestRealmService_DeleteRealm tests soft deleting a realm.
@@ -408,7 +408,7 @@ func TestRealmService_DeleteRealm(t *testing.T) {
 	// Verify realm is inactive but still exists.
 	retrieved, err := svc.GetRealm(ctx, tenant.ID, created.RealmID)
 	require.NoError(t, err)
-	require.False(t, retrieved.Active)
+	require.False(t, bool(retrieved.Active))
 }
 
 // TestRealmService_GetRealmConfig tests parsing realm configuration.
