@@ -286,6 +286,17 @@ func makeWritableRecursiveWithOps(
 		}
 
 		if d.IsDir() {
+			if relPath == "." {
+				info, infoErr := d.Info()
+				if infoErr != nil {
+					return fmt.Errorf("stat dir %s: %w", walkPath, infoErr)
+				}
+
+				if info.Mode().Perm() == cryptoutilSharedMagic.CICDTempDirPermissions {
+					return nil
+				}
+			}
+
 			if err := root.Chmod(relPath, cryptoutilSharedMagic.CICDTempDirPermissions); err != nil {
 				return fmt.Errorf("chmod dir %s: %w", walkPath, err)
 			}

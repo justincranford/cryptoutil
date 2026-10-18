@@ -205,9 +205,9 @@ jobs:
             category_name[2] = "internal/shared"
             category_name[3] = "internal/apps-framework"
             category_expected[1] = 166
-            category_expected[2] = 29
+            category_expected[2] = 30
             category_expected[3] = 44
-            expected_total_count = 352
+            expected_total_count = 353
             expected_root_pkg_count = 0
             expected_no_test_count = 27
             expected_no_statement_count = 2

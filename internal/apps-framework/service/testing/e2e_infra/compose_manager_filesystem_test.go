@@ -15,12 +15,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const currentDirectory = "."
+
 type testWritableRoot struct {
-	chmodErr error
+	chmodErr   error
+	chmodCalls *[]string
 }
 
-func (root testWritableRoot) Chmod(_ string, _ fs.FileMode) error {
+func (root testWritableRoot) Chmod(name string, _ fs.FileMode) error {
+	if root.chmodCalls != nil {
+		*root.chmodCalls = append(*root.chmodCalls, name)
+	}
+
 	return root.chmodErr
+}
+
+type testFileInfoMode struct {
+	fs.FileInfo
+	mode fs.FileMode
+}
+
+func (info testFileInfoMode) Mode() fs.FileMode {
+	return info.mode
 }
 
 func (testWritableRoot) Close() error {
@@ -124,6 +140,40 @@ func TestComposeManagerFilesystemErrors(t *testing.T) {
 	}
 }
 
+func TestMakeWritableRecursiveWithOpsSkipsRootChmodWhenPermissionsMatch(t *testing.T) {
+	t.Parallel()
+
+	rootPath := t.TempDir()
+	dirInfo, err := os.Stat(rootPath)
+	require.NoError(t, err)
+
+	rootEntry := fs.FileInfoToDirEntry(testFileInfoMode{
+		FileInfo: dirInfo,
+		mode:     fs.ModeDir | cryptoutilSharedMagic.CICDTempDirPermissions,
+	})
+
+	chmodCalls := []string{}
+	root := testWritableRoot{
+		chmodErr:   errors.New("root chmod must not be called"),
+		chmodCalls: &chmodCalls,
+	}
+	err = makeWritableRecursiveWithOps(
+		rootPath,
+		func(string) (writableRoot, error) {
+			return root, nil
+		},
+		func(_ string, walkFn fs.WalkDirFunc) error {
+			return walkFn(rootPath, rootEntry, nil)
+		},
+		func(string, string) (string, error) {
+			return currentDirectory, nil
+		},
+	)
+
+	require.NoError(t, err)
+	require.Empty(t, chmodCalls)
+}
+
 func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 	t.Parallel()
 
@@ -196,7 +246,7 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 						return "", tc.relErr
 					}
 
-					return ".", nil
+					return currentDirectory, nil
 				},
 			)
 			require.ErrorContains(t, err, tc.wantErr)
