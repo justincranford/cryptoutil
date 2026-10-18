@@ -1,6 +1,31 @@
 services:
   postgres-leader:
+    secrets: !override
+      - source: tier-postgres-username.secret
+        target: postgres-username.secret
+      - source: tier-postgres-password.secret
+        target: postgres-password.secret
     volumes:
       - __SUITE__-certs:/mnt/ps-certs-src:ro
 
 __SUITE_POSTGRES_OVERRIDES__
+
+secrets:
+  tier-postgres-username.secret:
+    file: ../__SUITE__/secrets/postgres-username.secret
+  tier-postgres-password.secret:
+    file: ../__SUITE__/secrets/postgres-password.secret
+  tier-postgres-url-sm-kms.secret:
+    file: ./secrets/postgres-url/sm-kms.secret
+  tier-postgres-url-identity-authz.secret:
+    file: ./secrets/postgres-url/identity-authz.secret
+  tier-postgres-url-identity-idp.secret:
+    file: ./secrets/postgres-url/identity-idp.secret
+  tier-postgres-url-identity-rs.secret:
+    file: ./secrets/postgres-url/identity-rs.secret
+  tier-postgres-url-identity-rp.secret:
+    file: ./secrets/postgres-url/identity-rp.secret
+  tier-postgres-url-identity-spa.secret:
+    file: ./secrets/postgres-url/identity-spa.secret
+  tier-postgres-url-skeleton-template.secret:
+    file: ./secrets/postgres-url/skeleton-template.secret

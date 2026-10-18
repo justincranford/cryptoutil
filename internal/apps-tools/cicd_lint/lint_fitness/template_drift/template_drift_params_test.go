@@ -52,6 +52,8 @@ func TestBuildProductParams(t *testing.T) {
 	require.Contains(t, params["__PRODUCT_SERVICE_OVERRIDES__"], "sm-certs:/certs:ro")
 	require.NotContains(t, params["__PRODUCT_SERVICE_OVERRIDES__"], "POSTGRES_REPLICATION_PSIDS")
 	require.Contains(t, params["__PRODUCT_POSTGRES_OVERRIDES__"], "POSTGRES_REPLICATION_PSIDS: sm-kms")
+	require.Contains(t, params["__PRODUCT_POSTGRES_OVERRIDES__"], "secrets: !override")
+	require.Contains(t, params["__PRODUCT_POSTGRES_OVERRIDES__"], "tier-postgres-username.secret")
 }
 
 func TestBuildSuiteParams(t *testing.T) {
@@ -64,6 +66,11 @@ func TestBuildSuiteParams(t *testing.T) {
 	require.NotEmpty(t, params["__SUITE_INIT_PS_ID__"])
 	require.NotContains(t, params["__SUITE_SERVICE_OVERRIDES__"], "POSTGRES_REPLICATION_TIER")
 	require.Contains(t, params["__SUITE_POSTGRES_OVERRIDES__"], "POSTGRES_REPLICATION_TIER: suite")
+	require.Contains(t, params["__SUITE_POSTGRES_OVERRIDES__"], "tier-postgres-username.secret")
+	require.Contains(t, params["__SUITE_POSTGRES_OVERRIDES__"], "sm-kms-app-postgresql-1:")
+	require.Contains(t, params["__SUITE_POSTGRES_OVERRIDES__"], "tier-postgres-url-sm-kms.secret")
+	require.Contains(t, params["__SUITE_POSTGRES_OVERRIDES__"], "skeleton-template-app-postgresql-2:")
+	require.Contains(t, params["__SUITE_POSTGRES_OVERRIDES__"], "tier-postgres-url-skeleton-template.secret")
 }
 
 func TestBuildStaticParams(t *testing.T) {

@@ -1,6 +1,17 @@
 services:
   postgres-leader:
+    secrets: !override
+      - source: tier-postgres-username.secret
+        target: postgres-username.secret
+      - source: tier-postgres-password.secret
+        target: postgres-password.secret
     volumes:
       - __PRODUCT__-certs:/mnt/ps-certs-src:ro
 
 __PRODUCT_POSTGRES_OVERRIDES__
+
+secrets:
+  tier-postgres-username.secret:
+    file: ../__PRODUCT__/secrets/postgres-username.secret
+  tier-postgres-password.secret:
+    file: ../__PRODUCT__/secrets/postgres-password.secret

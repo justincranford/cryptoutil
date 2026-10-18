@@ -1,9 +1,19 @@
 services:
   postgres-leader:
+    secrets: !override
+      - source: tier-postgres-username.secret
+        target: postgres-username.secret
+      - source: tier-postgres-password.secret
+        target: postgres-password.secret
     volumes:
       - cryptoutil-certs:/mnt/ps-certs-src:ro
 
   postgres-follower:
+    secrets: !override
+      - source: tier-postgres-username.secret
+        target: postgres-username.secret
+      - source: tier-postgres-password.secret
+        target: postgres-password.secret
     depends_on:
       pki-init:
         condition: service_completed_successfully
@@ -41,3 +51,163 @@ services:
       POSTGRES_REPLICATION_PSIDS: sm-kms,identity-authz,identity-idp,identity-rs,identity-rp,identity-spa,skeleton-template
     volumes:
       - cryptoutil-certs:/mnt/ps-certs-src:ro
+
+  sm-kms-app-postgresql-1:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-sm-kms.secret
+        target: postgres-url.secret
+
+  sm-kms-app-postgresql-2:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-sm-kms.secret
+        target: postgres-url.secret
+
+  identity-authz-app-postgresql-1:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-authz.secret
+        target: postgres-url.secret
+
+  identity-authz-app-postgresql-2:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-authz.secret
+        target: postgres-url.secret
+
+  identity-idp-app-postgresql-1:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-idp.secret
+        target: postgres-url.secret
+
+  identity-idp-app-postgresql-2:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-idp.secret
+        target: postgres-url.secret
+
+  identity-rs-app-postgresql-1:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-rs.secret
+        target: postgres-url.secret
+
+  identity-rs-app-postgresql-2:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-rs.secret
+        target: postgres-url.secret
+
+  identity-rp-app-postgresql-1:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-rp.secret
+        target: postgres-url.secret
+
+  identity-rp-app-postgresql-2:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-rp.secret
+        target: postgres-url.secret
+
+  identity-spa-app-postgresql-1:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-spa.secret
+        target: postgres-url.secret
+
+  identity-spa-app-postgresql-2:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-identity-spa.secret
+        target: postgres-url.secret
+
+  skeleton-template-app-postgresql-1:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-skeleton-template.secret
+        target: postgres-url.secret
+
+  skeleton-template-app-postgresql-2:
+    secrets: !override
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - source: tier-postgres-url-skeleton-template.secret
+        target: postgres-url.secret
+
+secrets:
+  tier-postgres-username.secret:
+    file: ../cryptoutil/secrets/postgres-username.secret
+  tier-postgres-password.secret:
+    file: ../cryptoutil/secrets/postgres-password.secret
+  tier-postgres-url-sm-kms.secret:
+    file: ./secrets/postgres-url/sm-kms.secret
+  tier-postgres-url-identity-authz.secret:
+    file: ./secrets/postgres-url/identity-authz.secret
+  tier-postgres-url-identity-idp.secret:
+    file: ./secrets/postgres-url/identity-idp.secret
+  tier-postgres-url-identity-rs.secret:
+    file: ./secrets/postgres-url/identity-rs.secret
+  tier-postgres-url-identity-rp.secret:
+    file: ./secrets/postgres-url/identity-rp.secret
+  tier-postgres-url-identity-spa.secret:
+    file: ./secrets/postgres-url/identity-spa.secret
+  tier-postgres-url-skeleton-template.secret:
+    file: ./secrets/postgres-url/skeleton-template.secret

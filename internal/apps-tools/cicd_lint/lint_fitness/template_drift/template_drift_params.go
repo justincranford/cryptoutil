@@ -201,6 +201,7 @@ func buildProductPostgresOverrides(productID string, psIDs []string) string {
 	var sb strings.Builder
 
 	sb.WriteString("  postgres-follower:\n")
+	writeTierPostgresSecretOverrides(&sb)
 	sb.WriteString("    depends_on:\n")
 	sb.WriteString("      pki-init:\n")
 	sb.WriteString("        condition: service_completed_successfully\n")
@@ -303,6 +304,7 @@ func buildSuitePostgresOverrides(suiteID string) string {
 	}
 
 	sb.WriteString("  postgres-follower:\n")
+	writeTierPostgresSecretOverrides(&sb)
 	sb.WriteString("    depends_on:\n")
 	sb.WriteString("      pki-init:\n")
 	sb.WriteString("        condition: service_completed_successfully\n")
@@ -321,7 +323,35 @@ func buildSuitePostgresOverrides(suiteID string) string {
 	sb.WriteString("    volumes:\n")
 	fmt.Fprintf(&sb, "      - %s-certs:/mnt/ps-certs-src:ro\n", suiteID)
 
+	for _, ps := range allPS {
+		for _, instance := range []string{"1", "2"} {
+			fmt.Fprintf(&sb, "\n  %s-app-postgresql-%s:\n", ps.PSID, instance)
+			sb.WriteString("    secrets: !override\n")
+
+			for _, unsealSecret := range []string{
+				"unseal-1of5.secret",
+				"unseal-2of5.secret",
+				"unseal-3of5.secret",
+				"unseal-4of5.secret",
+				"unseal-5of5.secret",
+			} {
+				fmt.Fprintf(&sb, "      - %s\n", unsealSecret)
+			}
+
+			fmt.Fprintf(&sb, "      - source: tier-postgres-url-%s.secret\n", ps.PSID)
+			sb.WriteString("        target: postgres-url.secret\n")
+		}
+	}
+
 	return strings.TrimRight(sb.String(), "\n")
+}
+
+func writeTierPostgresSecretOverrides(sb *strings.Builder) {
+	sb.WriteString("    secrets: !override\n")
+	sb.WriteString("      - source: tier-postgres-username.secret\n")
+	sb.WriteString("        target: postgres-username.secret\n")
+	sb.WriteString("      - source: tier-postgres-password.secret\n")
+	sb.WriteString("        target: postgres-password.secret\n")
 }
 
 // addGoSourceParams injects Go source-code-specific placeholder values into params.

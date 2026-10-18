@@ -1,9 +1,19 @@
 services:
   postgres-leader:
+    secrets: !override
+      - source: tier-postgres-username.secret
+        target: postgres-username.secret
+      - source: tier-postgres-password.secret
+        target: postgres-password.secret
     volumes:
       - sm-certs:/mnt/ps-certs-src:ro
 
   postgres-follower:
+    secrets: !override
+      - source: tier-postgres-username.secret
+        target: postgres-username.secret
+      - source: tier-postgres-password.secret
+        target: postgres-password.secret
     depends_on:
       pki-init:
         condition: service_completed_successfully
@@ -17,3 +27,9 @@ services:
       POSTGRES_REPLICATION_PSIDS: sm-kms
     volumes:
       - sm-certs:/mnt/ps-certs-src:ro
+
+secrets:
+  tier-postgres-username.secret:
+    file: ../sm/secrets/postgres-username.secret
+  tier-postgres-password.secret:
+    file: ../sm/secrets/postgres-password.secret
