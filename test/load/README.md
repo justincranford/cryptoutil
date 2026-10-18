@@ -273,6 +273,32 @@ src/test/java/
 
 All simulations support `profile` (quick/standard/stress), `virtualclients`, and `durationSeconds` system properties. `ServiceApiSimulation` additionally supports `cipher`, `signature`, and `complete` profiles.
 
+For `ServiceApiSimulation`, the profile selects algorithm coverage; `virtualclients` controls how
+many one-time user journeys are injected into each scenario. `durationSeconds` is the ramp window
+for starting those users, not a concurrency limit or a guarantee of total wall-clock runtime. Each
+journey runs the workflow once and then exits. The run first bootstraps one service client and uses
+its service token for the API requests.
+
+| Profile | Scenario coverage | CI defaults | Intended use |
+|---------|-------------------|-------------|--------------|
+| `standard` | One representative encryption algorithm (`A256GCM/A256KW`) with the full key/material-key/encrypt/decrypt/data-key workflow | 50 total users in one scenario, ramped over 120 seconds | Measure one algorithm under a larger stream of workflows |
+| `complete` | All 24 configured encryption algorithms, each using that full workflow | 1 user in each of 24 scenarios (24 total), ramped over 60 seconds | Check algorithm breadth with a small number of workflows |
+
+For example, these commands differ in what they test, not just in how hard they load the service:
+
+```powershell
+.\mvnw.cmd gatling:test -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation -Dprofile=standard -Dvirtualclients=50 -DdurationSeconds=120
+.\mvnw.cmd gatling:test -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation -Dprofile=complete -Dvirtualclients=1 -DdurationSeconds=60
+```
+
+The first starts 50 journeys, all using `A256GCM/A256KW`, spread across a two-minute ramp. The
+second starts one journey for each of the 24 encryption algorithms, spread across a one-minute
+ramp; setting `virtualclients=2` would run 2 × 24 = 48 journeys. Because each journey performs
+multiple API calls and pauses between operations, the simulation can finish after its ramp window.
+Use `standard` to exercise one representative algorithm with more users; use `complete` to exercise
+every configured encryption algorithm. `complete` is not 24 algorithms at 50 users each, does not
+mean 24 simultaneous users, and does not replace `stress`.
+
 ## Creating Custom Simulations
 
 1. Create a new Java class extending `Simulation`

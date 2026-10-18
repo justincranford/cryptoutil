@@ -162,7 +162,7 @@ public class CryptoutiApi {
   // ========================================
 
   /**
-   * Create a new Elastic Key. POST /elastickey
+   * Create a new Elastic Key. POST /elastic-keys
    *
    * @param name Elastic Key name
    * @param description Elastic Key description
@@ -183,7 +183,7 @@ public class CryptoutiApi {
       String saveElasticKeyIdAs) {
     return exec(
         http("Create Elastic Key: " + algorithm)
-            .post("/elastickey")
+            .post("/elastic-keys")
             .header("Authorization", "Bearer #{serviceToken}")
             .body(
                 StringBody(
@@ -202,7 +202,7 @@ public class CryptoutiApi {
   }
 
   /**
-   * Get an Elastic Key by ID. GET /elastickey/{elasticKeyID}
+   * Get an Elastic Key by ID. GET /elastic-keys/{elasticKeyID}
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @return ChainBuilder for getting an Elastic Key
@@ -210,23 +210,23 @@ public class CryptoutiApi {
   public static ChainBuilder getElasticKey(String elasticKeyIdSessionVar) {
     return exec(
         http("Get Elastic Key")
-            .get("/elastickey/#{" + elasticKeyIdSessionVar + "}")
+            .get("/elastic-keys/#{" + elasticKeyIdSessionVar + "}")
             .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200))
             .check(jsonPath("$.elastic_key_id").exists()));
   }
 
   /**
-   * Find Elastic Keys with optional filtering, sorting, and paging. GET /elastickeys
+   * Find Elastic Keys with optional filtering, sorting, and paging. GET /elastic-keys
    *
-   * @param page Page number (0-indexed)
-   * @param size Page size (2-50)
+   * @param page Page number (1-based)
+   * @param size Page size (1-1000)
    * @return ChainBuilder for finding Elastic Keys
    */
   public static ChainBuilder findElasticKeys(int page, int size) {
     return exec(
         http("Find Elastic Keys")
-            .get("/elastickeys?page=" + page + "&size=" + size)
+            .get("/elastic-keys?page=" + page + "&size=" + size)
             .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200)));
   }
@@ -236,7 +236,7 @@ public class CryptoutiApi {
   // ========================================
 
   /**
-   * Generate a new Material Key in an Elastic Key. POST /elastickey/{elasticKeyID}/materialkey
+   * Generate a new Material Key in an Elastic Key. POST /elastic-keys/{elasticKeyID}/material-keys
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @param saveMaterialKeyIdAs Session variable name to save material_key_id
@@ -248,7 +248,7 @@ public class CryptoutiApi {
     ChainBuilder chain =
         exec(
             http("Generate Material Key")
-                .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/materialkey")
+                .post("/elastic-keys/#{" + elasticKeyIdSessionVar + "}/material-keys")
                 .header("Authorization", "Bearer #{serviceToken}")
                 .body(StringBody("{}"))
                 .check(status().is(200))
@@ -270,7 +270,7 @@ public class CryptoutiApi {
   }
 
   /**
-   * Get a Material Key by ID. GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID}
+   * Get a Material Key by ID. GET /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @param materialKeyIdSessionVar Session variable containing material_key_id
@@ -281,9 +281,9 @@ public class CryptoutiApi {
     return exec(
         http("Get Material Key")
             .get(
-                "/elastickey/#{"
+                "/elastic-keys/#{"
                     + elasticKeyIdSessionVar
-                    + "}/materialkey/#{"
+                    + "}/material-keys/#{"
                     + materialKeyIdSessionVar
                     + "}")
             .header("Authorization", "Bearer #{serviceToken}")
@@ -293,7 +293,7 @@ public class CryptoutiApi {
   }
 
   /**
-   * Find Material Keys in an Elastic Key. GET /elastickey/{elasticKeyID}/materialkeys
+   * Find Material Keys in an Elastic Key. GET /elastic-keys/{elasticKeyID}/material-keys
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @param page Page number (0-indexed)
@@ -304,9 +304,9 @@ public class CryptoutiApi {
     return exec(
         http("Find Material Keys")
             .get(
-                "/elastickey/#{"
+                "/elastic-keys/#{"
                     + elasticKeyIdSessionVar
-                    + "}/materialkeys?page="
+                    + "}/material-keys?page="
                     + page
                     + "&size="
                     + size)
@@ -315,16 +315,16 @@ public class CryptoutiApi {
   }
 
   /**
-   * Find all Material Keys across Elastic Keys. GET /materialkeys
+   * Find all Material Keys across Elastic Keys. GET /material-keys
    *
-   * @param page Page number (0-indexed)
-   * @param size Page size (2-50)
+   * @param page Page number (1-based)
+   * @param size Page size (1-1000)
    * @return ChainBuilder for finding all Material Keys
    */
   public static ChainBuilder findAllMaterialKeys(int page, int size) {
     return exec(
         http("Find All Material Keys")
-            .get("/materialkeys?page=" + page + "&size=" + size)
+            .get("/material-keys?page=" + page + "&size=" + size)
             .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200)));
   }
@@ -335,7 +335,7 @@ public class CryptoutiApi {
 
   /**
    * Generate a random key (Secret Key, Key Pair, etc.) encrypted as JWE. POST
-   * /elastickey/{elasticKeyID}/generate
+   * /elastic-keys/{elasticKeyID}/generate
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @param algorithm Generate algorithm (e.g., "RSA/2048", "EC/P256", "oct/256")
@@ -355,7 +355,7 @@ public class CryptoutiApi {
 
     return exec(
         http("Generate Data Key: " + algorithm)
-            .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/generate" + queryParams)
+            .post("/elastic-keys/#{" + elasticKeyIdSessionVar + "}/generate" + queryParams)
             .header("Authorization", "Bearer #{serviceToken}")
             .check(status().is(200))
             .check(bodyString().saveAs(saveJweAs))
@@ -366,7 +366,7 @@ public class CryptoutiApi {
   }
 
   /**
-   * Encrypt clear text data using latest Material Key. POST /elastickey/{elasticKeyID}/encrypt
+   * Encrypt clear text data using latest Material Key. POST /elastic-keys/{elasticKeyID}/encrypt
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @param cleartext Clear text to encrypt
@@ -380,7 +380,7 @@ public class CryptoutiApi {
 
     return exec(
         http("Encrypt")
-            .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/encrypt" + queryParams)
+            .post("/elastic-keys/#{" + elasticKeyIdSessionVar + "}/encrypt" + queryParams)
             .header("Authorization", "Bearer #{serviceToken}")
             .body(StringBody(cleartext))
             .header("Content-Type", "text/plain")
@@ -394,7 +394,7 @@ public class CryptoutiApi {
 
   /**
    * Decrypt JWE message using Material Key identified by kid header. POST
-   * /elastickey/{elasticKeyID}/decrypt
+   * /elastic-keys/{elasticKeyID}/decrypt
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @param ciphertextSessionVar Session variable containing ciphertext JWE
@@ -405,7 +405,7 @@ public class CryptoutiApi {
       String elasticKeyIdSessionVar, String ciphertextSessionVar, String saveDecryptedAs) {
     return exec(
         http("Decrypt")
-            .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/decrypt")
+            .post("/elastic-keys/#{" + elasticKeyIdSessionVar + "}/decrypt")
             .header("Authorization", "Bearer #{serviceToken}")
             .body(StringBody("#{" + ciphertextSessionVar + "}"))
             .header("Content-Type", "text/plain")
@@ -414,7 +414,7 @@ public class CryptoutiApi {
   }
 
   /**
-   * Sign clear text using latest Material Key. POST /elastickey/{elasticKeyID}/sign
+   * Sign clear text using latest Material Key. POST /elastic-keys/{elasticKeyID}/sign
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @param cleartext Clear text to sign
@@ -428,7 +428,7 @@ public class CryptoutiApi {
 
     return exec(
         http("Sign")
-            .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/sign" + queryParams)
+            .post("/elastic-keys/#{" + elasticKeyIdSessionVar + "}/sign" + queryParams)
             .header("Authorization", "Bearer #{serviceToken}")
             .body(StringBody(cleartext))
             .header("Content-Type", "text/plain")
@@ -442,7 +442,7 @@ public class CryptoutiApi {
 
   /**
    * Verify JWS message using Material Key identified by kid header. POST
-   * /elastickey/{elasticKeyID}/verify
+   * /elastic-keys/{elasticKeyID}/verify
    *
    * @param elasticKeyIdSessionVar Session variable containing elastic_key_id
    * @param signatureSessionVar Session variable containing signature JWS
@@ -451,7 +451,7 @@ public class CryptoutiApi {
   public static ChainBuilder verify(String elasticKeyIdSessionVar, String signatureSessionVar) {
     return exec(
         http("Verify")
-            .post("/elastickey/#{" + elasticKeyIdSessionVar + "}/verify")
+            .post("/elastic-keys/#{" + elasticKeyIdSessionVar + "}/verify")
             .header("Authorization", "Bearer #{serviceToken}")
             .body(StringBody("#{" + signatureSessionVar + "}"))
             .header("Content-Type", "text/plain")
@@ -623,6 +623,8 @@ public class CryptoutiApi {
                     "elasticKeyId"))
             .pause(1)
             .exec(generateMaterialKey("elasticKeyId", "materialKeyId1", "clearPublic1"))
+            .exec(findMaterialKeys("elasticKeyId", 1, 50))
+            .exec(findAllMaterialKeys(1, 50))
             .pause(1)
             .exec(encrypt("elasticKeyId", cleartext, null, "ciphertext"))
             .pause(1)
