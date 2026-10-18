@@ -49,5 +49,6 @@ const (
 	testTMd                                      = "t.md"
 	testTargetMd                                 = "target.md"
 	testValid                                    = "valid"
+	testValidChunkIDDocsValidation               = "valid-chunk"
 	testZeroTotal                                = "zero total"
 )

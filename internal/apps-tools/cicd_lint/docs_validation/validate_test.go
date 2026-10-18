@@ -193,7 +193,7 @@ some content
 		{
 			name:       testFiltersInvalidChunkIDS,
 			files:      map[string]string{cryptoutilSharedMagic.CICDDocsHandbookPath: grammarFilterContent},
-			wantChunks: []string{testValidChunkID},
+			wantChunks: []string{testValidChunkIDDocsValidation},
 		},
 		{
 			name:  testEmptyFile,
@@ -286,7 +286,7 @@ b
 			validate: func(t *testing.T, result map[string][]string) {
 				t.Helper()
 				require.Len(t, result, 1)
-				require.Contains(t, result, testValidChunkID)
+				require.Contains(t, result, testValidChunkIDDocsValidation)
 				require.NotContains(t, result, "' CHUNK_ID '")
 			},
 		},
