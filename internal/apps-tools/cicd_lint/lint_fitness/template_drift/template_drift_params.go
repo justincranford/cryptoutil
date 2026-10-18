@@ -64,7 +64,7 @@ func buildProductParams(productID string) map[string]string {
 		valueProductDisplayName:                             displayName,
 		"__PRODUCT_INIT_PS_ID__":                            initPSID,
 		"__PRODUCT_PS_ID_LIST_DISPLAY__":                    buildProductPSIDListDisplay(productID, psIDs),
-		"__PRODUCT_INCLUDE_LIST__":                          buildProductIncludeList(psIDs),
+		"__PRODUCT_INCLUDE_LIST__":                          buildProductIncludeList(productID, psIDs),
 		"__PRODUCT_SERVICE_OVERRIDES__":                     buildProductServiceOverrides(productID, psIDs),
 		"__PRODUCT_POSTGRES_OVERRIDES__":                    buildProductPostgresOverrides(productID, psIDs),
 		cryptoutilSharedMagic.CICDTemplateExpansionKeySuite: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
@@ -85,7 +85,7 @@ func buildSuiteParams(sID string) map[string]string {
 		"__SUITE_UPPER__":              strings.ToUpper(sID),
 		"__SUITE_DISPLAY_NAME__":       displayName,
 		"__SUITE_INIT_PS_ID__":         initPSID,
-		"__SUITE_INCLUDE_LIST__":       buildSuiteIncludeList(products),
+		"__SUITE_INCLUDE_LIST__":       buildSuiteIncludeList(sID, products),
 		"__SUITE_SERVICE_OVERRIDES__":  buildSuiteServiceOverrides(sID),
 		"__SUITE_POSTGRES_OVERRIDES__": buildSuitePostgresOverrides(sID),
 		valueImageTag:                  cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
@@ -144,20 +144,17 @@ func pluralS(n int) string {
 	return "s"
 }
 
-// buildProductIncludeList generates the Docker Compose include entries for a product.
-// Format:
-//
-//	include:
-//	  - path: ../sm-kms/compose-apps.yml
-//	  - path: ../sm-kms/compose-apps.yml
-func buildProductIncludeList(psIDs []string) string {
+// buildProductIncludeList groups product services and the product overlay into one Compose model.
+func buildProductIncludeList(productID string, psIDs []string) string {
 	var sb strings.Builder
 
-	sb.WriteString("include:\n")
+	sb.WriteString("include:\n  - path:\n")
 
 	for _, psID := range psIDs {
-		fmt.Fprintf(&sb, "  - path: ../%s/compose-apps.yml\n", psID)
+		fmt.Fprintf(&sb, "      - ../%s/compose-apps.yml\n", psID)
 	}
+
+	fmt.Fprintf(&sb, "      - ../%s/%s", productID, cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML)
 
 	return strings.TrimRight(sb.String(), "\n")
 }
@@ -225,15 +222,17 @@ func buildProductPostgresOverrides(productID string, psIDs []string) string {
 	return strings.TrimRight(sb.String(), "\n")
 }
 
-// buildSuiteIncludeList generates the Docker Compose include entries for the suite.
-func buildSuiteIncludeList(products []cryptoutilRegistry.Product) string {
+// buildSuiteIncludeList groups product models and the suite overlay into one Compose model.
+func buildSuiteIncludeList(suiteID string, products []cryptoutilRegistry.Product) string {
 	var sb strings.Builder
 
-	sb.WriteString("include:\n")
+	sb.WriteString("include:\n  - path:\n")
 
 	for _, p := range products {
-		fmt.Fprintf(&sb, "  - path: ../%s/compose-apps.yml\n", p.ID)
+		fmt.Fprintf(&sb, "      - ../%s/compose-apps.yml\n", p.ID)
 	}
+
+	fmt.Fprintf(&sb, "      - ../%s/%s", suiteID, cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML)
 
 	return strings.TrimRight(sb.String(), "\n")
 }

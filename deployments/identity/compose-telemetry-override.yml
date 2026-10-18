@@ -1,0 +1,8 @@
+# PRODUCT-level overrides for imported shared telemetry resources.
+services:
+  grafana-otel-lgtm:
+    depends_on:
+      pki-init:
+        condition: service_completed_successfully
+    volumes:
+      - identity-certs:/mnt/ps-certs-src:ro

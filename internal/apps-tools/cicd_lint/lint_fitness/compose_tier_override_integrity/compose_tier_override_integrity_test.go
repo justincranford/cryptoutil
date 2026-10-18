@@ -42,7 +42,7 @@ secrets:
 `
 
 	for _, tier := range []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "sm"} {
-		writeFile(t, filepath.Join(root, "deployments", tier, cryptoutilSharedMagic.COMPOSE_APPS_YML), composeTemplate)
+		writeFile(t, filepath.Join(root, "deployments", tier, cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML), composeTemplate)
 		writeFile(t, filepath.Join(root, "deployments", tier, "secrets", "postgres-username.secret"), tier+"_user")
 		writeFile(t, filepath.Join(root, "deployments", tier, "secrets", "postgres-password.secret"), tier+"_pass")
 		writeFile(t, filepath.Join(root, "deployments", tier, "secrets", "postgres-database.secret"), tier+"_db")
@@ -66,7 +66,7 @@ func TestCheckInDir_ForbiddenBuilderService(t *testing.T) {
 	root := t.TempDir()
 	setupTierFixture(t, root)
 
-	writeFile(t, filepath.Join(root, "deployments", cryptoutilSharedMagic.DefaultOTLPServiceDefault, cryptoutilSharedMagic.COMPOSE_APPS_YML),
+	writeFile(t, filepath.Join(root, "deployments", cryptoutilSharedMagic.DefaultOTLPServiceDefault, cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML),
 		fmt.Sprintf("services:\n  %s: {}\nsecrets:\n  postgres-url.secret: {file: ./secrets/postgres-url.secret}\n  postgres-username.secret: {file: ./secrets/postgres-username.secret}\n  postgres-password.secret: {file: ./secrets/postgres-password.secret}\n  postgres-database.secret: {file: ./secrets/postgres-database.secret}\n", cryptoutilSharedMagic.DockerJobBuilderCryptoutil))
 
 	err := lintFitnessComposeTierOverrideIntegrity.CheckInDir(testLogger(), root)
@@ -80,7 +80,7 @@ func TestCheckInDir_MissingPostgresSecretOverride(t *testing.T) {
 	root := t.TempDir()
 	setupTierFixture(t, root)
 
-	writeFile(t, filepath.Join(root, "deployments", "sm", cryptoutilSharedMagic.COMPOSE_APPS_YML), `services:
+	writeFile(t, filepath.Join(root, "deployments", "sm", cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML), `services:
   app: {}
 secrets:
   postgres-url.secret: {file: ./secrets/postgres-url.secret}
@@ -155,7 +155,7 @@ func TestCheckInDir_ComposeReadFailures(t *testing.T) {
 
 			root := t.TempDir()
 			setupTierFixture(t, root)
-			composePath := filepath.Join(root, "deployments", "sm", cryptoutilSharedMagic.COMPOSE_APPS_YML)
+			composePath := filepath.Join(root, "deployments", "sm", cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML)
 
 			if tt.remove {
 				require.NoError(t, os.Remove(composePath))
@@ -174,7 +174,7 @@ func TestCheckInDir_EmptyComposeMapsAndMissingSecrets(t *testing.T) {
 
 	root := t.TempDir()
 	setupTierFixture(t, root)
-	writeFile(t, filepath.Join(root, "deployments", "sm", cryptoutilSharedMagic.COMPOSE_APPS_YML), "{}\n")
+	writeFile(t, filepath.Join(root, "deployments", "sm", cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML), "{}\n")
 
 	err := lintFitnessComposeTierOverrideIntegrity.CheckInDir(testLogger(), root)
 	require.ErrorContains(t, err, "missing required postgres secret override")

@@ -10,9 +10,10 @@
 #   docker compose -f compose.yml down -v
 #
 include:
-  - path: ./compose-apps.yml
   - path:
+      - ./compose-apps.yml
       - ../shared-postgres/compose.yml
       - ../skeleton-template/compose-postgres.yml
       - ./compose-postgres.yml
+      - ./compose-telemetry.yml
     env_file: ../skeleton-template/.env.postgres

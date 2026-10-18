@@ -2,12 +2,8 @@ package lint_deployments
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"sort"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 // ComposeValidationResult holds the outcome of compose file validation.
@@ -25,49 +21,6 @@ type composeFile struct {
 	Secrets  map[string]composeSecret  `yaml:"secrets"`
 	Networks map[string]any            `yaml:"networks"`
 	Volumes  map[string]any            `yaml:"volumes"`
-}
-
-// composeInclude represents an include directive.
-type composeInclude struct {
-	Path []string `yaml:"path"`
-}
-
-func (include *composeInclude) UnmarshalYAML(node *yaml.Node) error {
-	if node.Kind != yaml.MappingNode {
-		return fmt.Errorf("include must be a mapping")
-	}
-
-	for index := 0; index+1 < len(node.Content); index += 2 {
-		if node.Content[index].Value != "path" {
-			continue
-		}
-
-		pathNode := node.Content[index+1]
-		switch pathNode.Kind {
-		case yaml.ScalarNode:
-			var path string
-			if err := pathNode.Decode(&path); err != nil {
-				return fmt.Errorf("decode include path: %w", err)
-			}
-
-			include.Path = []string{path}
-		case yaml.SequenceNode:
-			for _, includedPathNode := range pathNode.Content {
-				var path string
-				if err := includedPathNode.Decode(&path); err != nil {
-					return fmt.Errorf("decode include path: %w", err)
-				}
-
-				include.Path = append(include.Path, path)
-			}
-		default:
-			return fmt.Errorf("include path must be a string or sequence of strings")
-		}
-
-		return nil
-	}
-
-	return fmt.Errorf("include mapping is missing a path")
 }
 
 // composeService represents a service in a compose file.
@@ -138,148 +91,6 @@ func ValidateComposeFile(composePath string) (*ComposeValidationResult, error) {
 	validateBindMountSecurity(compose, result)
 
 	return result, nil
-}
-
-// parseComposeWithIncludes parses a compose file and merges resources from included files.
-func parseComposeWithIncludes(composePath string) (*composeFile, error) {
-	data, err := os.ReadFile(composePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read compose file %s: %w", composePath, err)
-	}
-
-	var compose composeFile
-	if err := yaml.Unmarshal(data, &compose); err != nil {
-		return nil, fmt.Errorf("YAML parse error in %s: %w", composePath, err)
-	}
-
-	// Resolve includes to merge secrets and services for reference validation.
-	baseDir := filepath.Dir(composePath)
-	setComposeServiceDir(&compose, baseDir)
-
-	includeStack := make(map[string]struct{})
-
-	for _, inc := range compose.Include {
-		for _, includePath := range inc.Path {
-			mergeIncludedFileRecursive(baseDir, includePath, &compose, includeStack)
-		}
-	}
-
-	return &compose, nil
-}
-
-// mergeIncludedFile reads an included compose file and merges its secrets/services.
-func mergeIncludedFile(baseDir string, includePath string, compose *composeFile) {
-	mergeIncludedFileRecursive(baseDir, includePath, compose, make(map[string]struct{}))
-}
-
-func mergeIncludedFileRecursive(baseDir string, includePath string, compose *composeFile, includeStack map[string]struct{}) {
-	if includePath == "" {
-		return
-	}
-
-	fullPath := filepath.Clean(filepath.Join(baseDir, includePath))
-	if _, exists := includeStack[fullPath]; exists {
-		return
-	}
-
-	includeData, err := os.ReadFile(fullPath)
-	if err != nil {
-		return // Include not found is non-blocking.
-	}
-
-	var included composeFile
-	if err := yaml.Unmarshal(includeData, &included); err != nil {
-		return
-	}
-
-	setComposeServiceDir(&included, filepath.Dir(fullPath))
-
-	includeStack[fullPath] = struct{}{}
-	defer delete(includeStack, fullPath)
-
-	includedBaseDir := filepath.Dir(fullPath)
-
-	for _, nestedInclude := range included.Include {
-		for _, nestedIncludePath := range nestedInclude.Path {
-			mergeIncludedFileRecursive(includedBaseDir, nestedIncludePath, &included, includeStack)
-		}
-	}
-
-	if compose.Secrets == nil {
-		compose.Secrets = make(map[string]composeSecret)
-	}
-
-	for name, secret := range included.Secrets {
-		if _, exists := compose.Secrets[name]; !exists {
-			compose.Secrets[name] = secret
-		}
-	}
-
-	if compose.Volumes == nil {
-		compose.Volumes = make(map[string]any)
-	}
-
-	for name, volume := range included.Volumes {
-		if _, exists := compose.Volumes[name]; !exists {
-			compose.Volumes[name] = volume
-		}
-	}
-
-	if compose.Networks == nil {
-		compose.Networks = make(map[string]any)
-	}
-
-	for name, network := range included.Networks {
-		if _, exists := compose.Networks[name]; !exists {
-			compose.Networks[name] = network
-		}
-	}
-
-	if compose.Services == nil {
-		compose.Services = make(map[string]composeService)
-	}
-
-	for name, svc := range included.Services {
-		if existingService, exists := compose.Services[name]; exists {
-			existingService.DependsOn = mergeComposeDependsOn(existingService.DependsOn, svc.DependsOn)
-			compose.Services[name] = existingService
-		} else {
-			compose.Services[name] = svc
-		}
-	}
-}
-
-func setComposeServiceDir(compose *composeFile, dir string) {
-	for name, service := range compose.Services {
-		service.composeDir = dir
-		compose.Services[name] = service
-	}
-}
-
-func mergeComposeDependsOn(existing, included any) any {
-	if existing == nil {
-		return included
-	}
-
-	existingMap, existingIsMap := existing.(map[string]any)
-
-	includedMap, includedIsMap := included.(map[string]any)
-	if !existingIsMap || !includedIsMap {
-		return existing
-	}
-
-	merged := make(map[string]any, len(existingMap)+len(includedMap))
-	for dependency, configuration := range existingMap {
-		merged[dependency] = configuration
-	}
-
-	for dependency, configuration := range includedMap {
-		if _, exists := merged[dependency]; !exists {
-			merged[dependency] = configuration
-		}
-	}
-
-	return merged
 }
 
 // validatePortConflicts checks for duplicate host port bindings across services.

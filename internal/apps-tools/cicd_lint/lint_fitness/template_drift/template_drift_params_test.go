@@ -122,9 +122,10 @@ func TestSubstituteParams(t *testing.T) {
 func TestBuildProductIncludeList(t *testing.T) {
 	t.Parallel()
 
-	list := buildProductIncludeList([]string{cryptoutilSharedMagic.OTLPServiceSMKMS})
+	list := buildProductIncludeList(cryptoutilSharedMagic.SMProductName, []string{cryptoutilSharedMagic.OTLPServiceSMKMS})
 	require.Contains(t, list, "include:")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.OTLPServiceSMKMS+"/compose-apps.yml")
+	require.Contains(t, list, "      - ../"+cryptoutilSharedMagic.OTLPServiceSMKMS+"/compose-apps.yml")
+	require.Contains(t, list, "      - ../"+cryptoutilSharedMagic.SMProductName+"/"+cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML)
 }
 
 func TestBuildProductServiceOverrides(t *testing.T) {
@@ -149,10 +150,11 @@ func TestBuildSuiteIncludeList(t *testing.T) {
 		{ID: cryptoutilSharedMagic.IdentityProductName},
 	}
 
-	list := buildSuiteIncludeList(products)
+	list := buildSuiteIncludeList(cryptoutilSharedMagic.DefaultOTLPServiceDefault, products)
 	require.Contains(t, list, "include:")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.SMProductName+"/compose-apps.yml")
-	require.Contains(t, list, "- path: ../"+cryptoutilSharedMagic.IdentityProductName+"/compose-apps.yml")
+	require.Contains(t, list, "      - ../"+cryptoutilSharedMagic.SMProductName+"/compose-apps.yml")
+	require.Contains(t, list, "      - ../"+cryptoutilSharedMagic.IdentityProductName+"/compose-apps.yml")
+	require.Contains(t, list, "      - ../"+cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/"+cryptoutilSharedMagic.COMPOSE_APPS_OVERRIDES_YML)
 }
 
 func TestBuildSuiteServiceOverrides(t *testing.T) {

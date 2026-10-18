@@ -1,0 +1,5 @@
+# __SUITE_UPPER__ suite telemetry model.
+include:
+  - path:
+      - ../shared-telemetry/compose.yml
+      - ./compose-telemetry-override.yml

@@ -24,9 +24,6 @@
 #   - Public health endpoint: https://localhost:__PS_PUBLIC_PORT_SQLITE_1__/browser/api/v1/health
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
-include:
-  - path: ./compose-telemetry.yml
-
 services:
   # Healthcheck for Docker secrets availability.
   healthcheck-secrets:

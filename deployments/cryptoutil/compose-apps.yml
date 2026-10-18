@@ -13,109 +13,11 @@
 #   docker compose -f compose.yml up -d
 #   docker compose -f compose.yml down
 #
-# Product includes contain application resources only; the suite entrypoint imports the shared PostgreSQL pair once.
+# The include path group combines product services with the suite overrides.
 
 include:
-  - path: ../sm/compose-apps.yml
-  - path: ../identity/compose-apps.yml
-  - path: ../skeleton/compose-apps.yml
-
-services:
-
-  # SUITE-level PKI init (overrides PRODUCT/PS-ID cert material).
-  pki-init:
-    image: cryptoutil-sm-kms:local
-    command:
-      - /bin/sh
-      - -c
-      - |
-        set -eu
-        /app/sm-kms init --domain=cryptoutil --output-dir=/certs
-        chown -R 65532:65532 /certs
-        find /host-certs -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-        cp -a /certs/. /host-certs/
-        for cert_dir in /certs/cryptoutil/public-https-server-entity-*-sqlite-1; do
-          [ -d "$$cert_dir" ] || continue
-          psid=$${cert_dir##*/public-https-server-entity-}
-          psid=$${psid%-sqlite-1}
-          rm -rf "/certs/$$psid"
-          ln -s "cryptoutil" "/certs/$$psid"
-        done
-    volumes:
-      - cryptoutil-certs:/certs:rw
-      - ./certs/:/host-certs/:rw
-    depends_on:
-      builder-sm-kms:
-        condition: service_completed_successfully
-
-  # SM-KMS: PS-PUBLIC 8000-8003 -> SUITE 28000-28003
-  sm-kms-app-sqlite-1: {ports: !override ["28000:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  sm-kms-app-sqlite-2: {ports: !override ["28001:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  sm-kms-app-postgresql-1: {ports: !override ["28002:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  sm-kms-app-postgresql-2: {ports: !override ["28003:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-
-  # IDENTITY-AUTHZ: PS-PUBLIC 8400-8403 -> SUITE 28400-28403
-  identity-authz-app-sqlite-1: {ports: !override ["28400:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-authz-app-sqlite-2: {ports: !override ["28401:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-authz-app-postgresql-1: {ports: !override ["28402:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-authz-app-postgresql-2: {ports: !override ["28403:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-
-  # IDENTITY-IDP: PS-PUBLIC 8500-8503 -> SUITE 28500-28503
-  identity-idp-app-sqlite-1: {ports: !override ["28500:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-idp-app-sqlite-2: {ports: !override ["28501:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-idp-app-postgresql-1: {ports: !override ["28502:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-idp-app-postgresql-2: {ports: !override ["28503:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-
-  # IDENTITY-RS: PS-PUBLIC 8600-8603 -> SUITE 28600-28603
-  identity-rs-app-sqlite-1: {ports: !override ["28600:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-rs-app-sqlite-2: {ports: !override ["28601:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-rs-app-postgresql-1: {ports: !override ["28602:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-rs-app-postgresql-2: {ports: !override ["28603:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-
-  # IDENTITY-RP: PS-PUBLIC 8700-8703 -> SUITE 28700-28703
-  identity-rp-app-sqlite-1: {ports: !override ["28700:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-rp-app-sqlite-2: {ports: !override ["28701:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-rp-app-postgresql-1: {ports: !override ["28702:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-rp-app-postgresql-2: {ports: !override ["28703:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-
-  # IDENTITY-SPA: PS-PUBLIC 8800-8803 -> SUITE 28800-28803
-  identity-spa-app-sqlite-1: {ports: !override ["28800:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-spa-app-sqlite-2: {ports: !override ["28801:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-spa-app-postgresql-1: {ports: !override ["28802:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  identity-spa-app-postgresql-2: {ports: !override ["28803:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-
-  # SKELETON-TEMPLATE: PS-PUBLIC 8900-8903 -> SUITE 28900-28903
-  skeleton-template-app-sqlite-1: {ports: !override ["28900:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  skeleton-template-app-sqlite-2: {ports: !override ["28901:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  skeleton-template-app-postgresql-1: {ports: !override ["28902:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-  skeleton-template-app-postgresql-2: {ports: !override ["28903:8080"], volumes: ["cryptoutil-certs:/certs:ro"]}
-
-  otel-certs-init:
-    volumes:
-      - cryptoutil-certs:/certs-source:ro
-
-  grafana-otel-lgtm:
-    volumes:
-      - cryptoutil-certs:/mnt/ps-certs-src:ro
-
-secrets:
-  unseal-1of5.secret: {file: ./secrets/unseal-1of5.secret}
-  unseal-2of5.secret: {file: ./secrets/unseal-2of5.secret}
-  unseal-3of5.secret: {file: ./secrets/unseal-3of5.secret}
-  unseal-4of5.secret: {file: ./secrets/unseal-4of5.secret}
-  unseal-5of5.secret: {file: ./secrets/unseal-5of5.secret}
-  hash-pepper-v3.secret: {file: ./secrets/hash-pepper-v3.secret}
-  postgres-url.secret: {file: ./secrets/postgres-url.secret}
-  postgres-url-sm-kms.secret: {file: ./secrets/postgres-url/sm-kms.secret}
-  postgres-url-identity-authz.secret: {file: ./secrets/postgres-url/identity-authz.secret}
-  postgres-url-identity-idp.secret: {file: ./secrets/postgres-url/identity-idp.secret}
-  postgres-url-identity-rs.secret: {file: ./secrets/postgres-url/identity-rs.secret}
-  postgres-url-identity-rp.secret: {file: ./secrets/postgres-url/identity-rp.secret}
-  postgres-url-identity-spa.secret: {file: ./secrets/postgres-url/identity-spa.secret}
-  postgres-url-skeleton-template.secret: {file: ./secrets/postgres-url/skeleton-template.secret}
-  postgres-username.secret: {file: ./secrets/postgres-username.secret}
-  postgres-password.secret: {file: ./secrets/postgres-password.secret}
-  postgres-database.secret: {file: ./secrets/postgres-database.secret}
-
-volumes:
-  cryptoutil-certs:
+  - path:
+      - ../sm/compose-apps.yml
+      - ../identity/compose-apps.yml
+      - ../skeleton/compose-apps.yml
+      - ../cryptoutil/compose-apps-overrides.yml

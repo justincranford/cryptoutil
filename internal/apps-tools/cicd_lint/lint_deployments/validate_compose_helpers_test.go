@@ -134,7 +134,7 @@ func TestIsExemptFromHealthcheck(t *testing.T) {
 		{name: "setup suffix", svcName: "migration-setup", svc: composeService{}, expected: true},
 		{name: "init suffix", svcName: "db-init", svc: composeService{}, expected: true},
 		{name: "echo entrypoint", svcName: "init", svc: composeService{Entrypoint: []any{"sh", "-c", "echo done"}}, expected: true},
-		{name: "override-only port service", svcName: cryptoutilSharedMagic.KMSE2ESQLiteContainer, svc: composeService{Ports: []string{"18000:8080"}}, expected: true},
+		{name: "override-only port service", svcName: cryptoutilSharedMagic.KMSE2ESQLiteContainer, svc: composeService{Ports: []string{testProductPortMapping}}, expected: true},
 		{name: "regular service", svcName: testMyapp, svc: composeService{}, expected: false},
 		{name: "non-echo entrypoint", svcName: testMyapp, svc: composeService{Entrypoint: []any{"app", "start"}}, expected: false},
 	}
@@ -268,7 +268,7 @@ services:
 	require.Equal(t, "new:latest", compose.Services["new-svc"].Image)
 }
 
-func TestMergeIncludedFile_OverlappingSecrets(t *testing.T) {
+func TestMergeIncludedFile_OverridesOverlappingResources(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
@@ -294,9 +294,8 @@ services:
 
 	mergeIncludedFile(dir, "include.yml", compose)
 
-	// Existing should NOT be overwritten.
-	require.Equal(t, "./original.secret", compose.Secrets["existing.secret"].File)
-	require.Equal(t, "original:latest", compose.Services["existing-svc"].Image)
+	require.Equal(t, "./secrets/included.secret", compose.Secrets["existing.secret"].File)
+	require.Equal(t, "existing:latest", compose.Services["existing-svc"].Image)
 
 	// New should be added.
 	require.Equal(t, "./secrets/new.secret", compose.Secrets["new.secret"].File)
@@ -360,6 +359,68 @@ services:
 		Target:   certVolumeMountTarget,
 		ReadOnly: true,
 	}}, app.Volumes)
+}
+
+func TestParseComposeWithIncludes_MergesServiceOverridesInPathList(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	baseDir := filepath.Join(dir, "service")
+	overrideDir := filepath.Join(dir, "product")
+
+	require.NoError(t, os.MkdirAll(baseDir, dirPermissions))
+	require.NoError(t, os.MkdirAll(overrideDir, dirPermissions))
+
+	baseCompose := `services:
+  app:
+    image: service:latest
+    ports:
+      - "8000:8080"
+    volumes:
+      - service-certs:/certs:ro
+      - app-data:/data
+`
+	require.NoError(t, os.WriteFile(filepath.Join(baseDir, composeFileName), []byte(baseCompose), filePermissions))
+
+	overrideCompose := `services:
+  app:
+    image: product:latest
+    ports: !override
+      - "` + testProductPortMapping + `"
+    volumes:
+      - product-certs:/certs:ro
+`
+	require.NoError(t, os.WriteFile(filepath.Join(overrideDir, "compose-overrides.yml"), []byte(overrideCompose), filePermissions))
+
+	rootCompose := `include:
+  - path:
+      - service/compose.yml
+      - product/compose-overrides.yml
+`
+	rootPath := filepath.Join(dir, cryptoutilSharedMagic.COMPOSE_YML)
+	require.NoError(t, os.WriteFile(rootPath, []byte(rootCompose), filePermissions))
+
+	compose, err := parseComposeWithIncludes(rootPath)
+	require.NoError(t, err)
+
+	app := compose.Services["app"]
+	require.Equal(t, "product:latest", app.Image)
+	require.Equal(t, []string{testProductPortMapping}, app.Ports)
+	require.Equal(t, []composeVolume{
+		{
+			Raw:      "product-certs:/certs:ro",
+			Type:     cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume,
+			Source:   "product-certs",
+			Target:   certVolumeMountTarget,
+			ReadOnly: true,
+		},
+		{
+			Raw:    "app-data:/data",
+			Type:   cryptoutilSharedMagic.DockerComposeVolumeMountTypeVolume,
+			Source: "app-data",
+			Target: "/data",
+		},
+	}, app.Volumes)
 }
 
 func TestValidateComposeFile_ContainerOnlyPort(t *testing.T) {

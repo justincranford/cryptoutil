@@ -23,8 +23,9 @@
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
-  - path: ./compose-apps.yml
   - path:
+      - ./compose-apps.yml
       - ../shared-postgres/compose.yml
       - ./compose-postgres.yml
+      - ./compose-telemetry.yml
     env_file: .env.postgres

@@ -3,7 +3,7 @@
 # SM Product Docker Compose Configuration
 #
 # PRODUCT application-only model for Secrets Manager.
-# Recursive includes: SM product (1 service: kms) (app-only PS-ID includes; root entrypoint imports shared PostgreSQL once).
+# The include path group combines PS-ID services with the product overrides.
 #
 # Port allocation (PRODUCT level: SERVICE + 10000).
 #
@@ -14,109 +14,6 @@
 #
 
 include:
-  - path: ../sm-kms/compose-apps.yml
-
-services:
-  # PRODUCT-level port overrides: SERVICE ports + 10000.
-  # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID includes.
-
-  # PRODUCT-level PKI init (overrides PS-ID cert material).
-  pki-init:
-    image: cryptoutil-sm-kms:local
-    command:
-      - /bin/sh
-      - -c
-      - |
-        set -eu
-        /app/sm-kms init --domain=sm --output-dir=/certs
-        chown -R 65532:65532 /certs
-        find /host-certs -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-        cp -a /certs/. /host-certs/
-        for cert_dir in /certs/sm/public-https-server-entity-*-sqlite-1; do
-          [ -d "$$cert_dir" ] || continue
-          psid=$${cert_dir##*/public-https-server-entity-}
-          psid=$${psid%-sqlite-1}
-          rm -rf "/certs/$$psid"
-          ln -s "sm" "/certs/$$psid"
-        done
-    volumes:
-      - sm-certs:/certs:rw
-      - ./certs/:/host-certs/:rw
-    depends_on:
-      builder-sm-kms:
-        condition: service_completed_successfully
-
-  sm-kms-app-sqlite-1:
-    ports: !override
-      - "18000:8080"
-    volumes:
-      - sm-certs:/certs:ro
-
-  sm-kms-app-sqlite-2:
-    ports: !override
-      - "18001:8080"
-    volumes:
-      - sm-certs:/certs:ro
-
-  sm-kms-app-postgresql-1:
-    ports: !override
-      - "18002:8080"
-    volumes:
-      - sm-certs:/certs:ro
-
-  sm-kms-app-postgresql-2:
-    ports: !override
-      - "18003:8080"
-    volumes:
-      - sm-certs:/certs:ro
-
-  otel-certs-init:
-    volumes:
-      - sm-certs:/certs-source:ro
-
-  grafana-otel-lgtm:
-    volumes:
-      - sm-certs:/mnt/ps-certs-src:ro
-
-secrets:
-  # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
-  # CRITICAL: ALL SM instances MUST use the SAME unseal secrets
-  # to enable shared encryption/decryption of data in the database.
-  # NEVER create instance-specific or PS-ID-specific secrets.
-  unseal-1of5.secret:
-    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
-  unseal-2of5.secret:
-    file: ./secrets/unseal-2of5.secret
-  unseal-3of5.secret:
-    file: ./secrets/unseal-3of5.secret
-  unseal-4of5.secret:
-    file: ./secrets/unseal-4of5.secret
-  unseal-5of5.secret:
-    file: ./secrets/unseal-5of5.secret
-  hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret
-  postgres-url.secret:
-    file: ./secrets/postgres-url.secret
-  postgres-url-sm-kms.secret:
-    file: ./secrets/postgres-url/sm-kms.secret
-  postgres-url-identity-authz.secret:
-    file: ./secrets/postgres-url/identity-authz.secret
-  postgres-url-identity-idp.secret:
-    file: ./secrets/postgres-url/identity-idp.secret
-  postgres-url-identity-rs.secret:
-    file: ./secrets/postgres-url/identity-rs.secret
-  postgres-url-identity-rp.secret:
-    file: ./secrets/postgres-url/identity-rp.secret
-  postgres-url-identity-spa.secret:
-    file: ./secrets/postgres-url/identity-spa.secret
-  postgres-url-skeleton-template.secret:
-    file: ./secrets/postgres-url/skeleton-template.secret
-  postgres-username.secret:
-    file: ./secrets/postgres-username.secret
-  postgres-password.secret:
-    file: ./secrets/postgres-password.secret
-  postgres-database.secret:
-    file: ./secrets/postgres-database.secret
-
-volumes:
-  sm-certs:
+  - path:
+      - ../sm-kms/compose-apps.yml
+      - ../sm/compose-apps-overrides.yml
