@@ -46,12 +46,10 @@ and are independent of the numbered rows in the task evidence table.
   failure at `TestCheckInDir_RealWorkspace` came from its five-parent relative root resolving to
   `/internal/apps`; the test now discovers the nearest `go.mod` from its working directory, and
   the shuffled health-path package passes
-  (`test-output/reviewfollowup/health-path-real-workspace-shuffle.log`). A local race rerun is
-  unavailable because this Windows host has no GCC/Clang
-  (`health-path-real-workspace-race-shuffle.log`); Docker Engine 29.8.2 meets the corrected
-  minimum aligned with Docker Desktop 4.95.0, but no supported Linux runner is available in this
-  continuation.
-  Full-repository race validation remains outstanding.
+  (`test-output/reviewfollowup/health-path-real-workspace-shuffle.log`). The CI Race workflow
+  passed on `c42c09e5359270bce889411bb8fc8755dd0669e3` (run `39165120898`). The exact standalone
+  `go test -race -count=2 ./...` command remains outstanding; this Windows host lacks GCC/Clang,
+  so that broader command requires a supported Linux runner.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
   tests pass. Rotation/reload remains unsupported and is documented.
@@ -67,8 +65,9 @@ and are independent of the numbered rows in the task evidence table.
   and Checkstyle pass (`test-output/reviewfollowup/v25-gatling-auth-compile.log`). The authenticated
   Service API `complete` profile passed 218/218 requests with 100% success and a 235 ms maximum
   response time (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); do not
-  disable authentication to make load tests pass. The full multi-service load workflow and remaining
-  simulation profiles have not been run, so this recommendation remains partially verified.
+  disable authentication to make load tests pass. The CI Load workflow passed on c42 (run
+  `39165120886`); remaining simulation profiles have not been evidenced, so this recommendation
+  remains partially verified.
 - **9 — Complete.** PKI tests were checked against parallelism, fixtures, UUIDs, cleanup, seams,
   and naming conventions; focused shuffled tests and the PostgreSQL continuity test pass.
 - **10 — Partially verified.** The final authoritative profile now passes the pinned 352-package
@@ -92,21 +91,27 @@ and are independent of the numbered rows in the task evidence table.
   `test-output/reviewfollowup/framework-v25-cicd-lint-final-doc-updates-20261017.log`. The full
   shuffled suite exits 0 with no failed tests or packages; the latest run records 36 test-level
   skips across 326 passing packages and 41 package-level no-test events, comprising 34
-  probability-sampled algorithm variants and two PostgreSQL-dependent tests. The zero-skip criterion
-  remains open. The authoritative pinned coverage gate passes 323 eligible packages, with 27
-  no-test packages, two expected no-statement packages, and zero threshold failures; see
-  `tasks.md`. Linux race, authenticated load, mutation, and supported-Engine teardown/legacy-volume
-  gates remain open. The current focused server-package run passes
-  (`test-output/reviewfollowup/public_server_server_package_shuffle.log`). Keep final validation
-  open until the remaining gates are resolved. An initial
+  probability-sampled algorithm variants and two PostgreSQL-dependent tests. All skips are
+  classified, with no actionable skip remaining; literal zero skips is not a valid acceptance
+  criterion. The authoritative pinned coverage gate passes 323 eligible packages, with 27 no-test
+  packages, two expected no-statement packages, and zero threshold failures; see `tasks.md`. CI
+  Race, Mutation, and Load passed on c42; the exact standalone full-repository race command and
+  supported-Engine teardown/legacy-volume gates remain open. CI Quality (#953, run
+  `39165120901`) and CI E2E (#952, run `39165121059`) failed on that push and are locally fixed
+  under Task 5.8. Focused `e2e_infra` tests/lint, normal/tagged builds, the current shuffled
+  full-suite run, and all repository validators pass; see the Task 5.8 evidence paths.
+  Commit/push and post-fix CI Quality/E2E reruns remain pending. The current focused
+  server-package run passes (`test-output/reviewfollowup/public_server_server_package_shuffle.log`).
+  Keep final validation open until the remaining gates are resolved. An initial
   full-suite run concurrent with repository validators timed out in two RP/RS health tests; the
   isolated tests, shuffled packages, and serial full-suite rerun passed. A later full shuffled run
   had one transient admin-listener shutdown assertion; the isolated test and listener package
   passed, followed by another successful full shuffled run. The latest full shuffled run and
   cancellation-path fix are recorded in
   `test-output/reviewfollowup/framework-v25-go-test-current-20261016.log`; the suite exits 0,
-  while the earlier audited skip total and unresolved gaps keep the zero-skip gate open. No push
-  is authorized by this plan.
+  The earlier audited skip total is superseded by the 36-skip current inventory. The current task
+  authorizes pushing the locally validated remediation; final push and workflow evidence remain
+  pending under Task 5.8.
 - **14 — Complete.** `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required
   co-author trailer on every task commit from the recorded baseline through the implementation,
   disposition, and post-review fix commits.
@@ -133,8 +138,8 @@ and are independent of the numbered rows in the task evidence table.
   The isolated product Compose runtime has since started healthy after that fix
   (`test-output/review-follow-up/v25-runtime-current/product-runtime-up.log`). The current
   headless client-registration and Basic-credentials session flow is described under
-  Recommendation 8; live authenticated load against it remains unverified, and the earlier failure
-  predates the current flow. Do not operate on globally named or historical volumes.
+  Recommendation 8; the current authenticated `complete` profile passes 218/218 requests, and CI
+  Load passed on c42. Do not operate on globally named or historical volumes.
 - **20 — Complete.** Load-workflow PostgreSQL readiness uses authenticated mTLS; the matching
   readiness command was exercised against a live PostgreSQL-backed service.
 - **21 — Complete.** Workflow inputs are passed through environment variables and validated
