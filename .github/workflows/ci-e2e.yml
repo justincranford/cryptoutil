@@ -169,6 +169,9 @@ jobs:
         echo "🛑 Stopping CA and SM services to free ports..."
         (cd ./deployments/sm && docker compose -f compose.yml down -v)
 
+        # Product pki-init preserves UID 65532 in the host certificate bind mount.
+        sudo chown -R "$(id -u):$(id -g)" ./deployments/sm-kms/certs
+
         # Set environment variable to help with debugging
         export E2E_DEBUG=1
 
