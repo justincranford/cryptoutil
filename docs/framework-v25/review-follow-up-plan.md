@@ -96,11 +96,15 @@ and are independent of the numbered rows in the task evidence table.
   criterion. The authoritative pinned coverage gate passes 323 eligible packages, with 27 no-test
   packages, two expected no-statement packages, and zero threshold failures; see `tasks.md`. CI
   Race, Mutation, and Load passed on c42; the exact standalone full-repository race command and
-  supported-Engine teardown/legacy-volume gates remain open. CI Quality (#953, run
-  `39165120901`) and CI E2E (#952, run `39165121059`) failed on that push and are locally fixed
-  under Task 5.8. Focused `e2e_infra` tests/lint, normal/tagged builds, the current shuffled
-  full-suite run, and all repository validators pass; see the Task 5.8 evidence paths.
-  Commit/push and post-fix CI Quality/E2E reruns remain pending. The current focused
+  supported-Engine teardown/legacy-volume gates remain open. The CI Quality (#953, run
+  `39165120901`) and CI E2E (#952, run `39165121059`) failures are fixed locally and pushed in
+  `b0d954d22`, but CI Quality, E2E, Load, Fuzz, Mutation, Race, Benchmark, and Coverage on that
+  revision failed at dependency validation because `go mod tidy` removes an obsolete
+  `grpc-gateway v1.16.0` checksum. The `go.sum` correction passes local module checks; commit/push
+  and post-fix CI reruns remain pending. SAST, DAST, Architecture Fitness, and GitLeaks passed on
+  `b0d954d22`. Focused `e2e_infra` tests/lint, normal/tagged
+  builds, the current shuffled full-suite run, and all repository validators pass; see the Task
+  5.8 evidence paths. The current focused
   server-package run passes (`test-output/reviewfollowup/public_server_server_package_shuffle.log`).
   Keep final validation open until the remaining gates are resolved. An initial
   full-suite run concurrent with repository validators timed out in two RP/RS health tests; the

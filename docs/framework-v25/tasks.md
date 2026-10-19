@@ -14,13 +14,18 @@ validation changes has 352 package results, 27 no-test packages, two expected no
 and 323 eligible packages meeting their thresholds. Its focused ASN.1 package reports 99.1%
 (139 tests). The focused sysinfo profile reports 100.0%, and the fresh CI-mode SM-KMS businesslogic
 profile is 95.4%.
-The historical aggregate comparison was dropped at the user's direction. The latest push to
-`origin/main` is `c42c09e5359270bce889411bb8fc8755dd0669e3`: CI Coverage, Race, Mutation, and Load
-passed, but CI Quality (#953, run `39165120901`) and CI E2E (#952, run `39165121059`) failed.
-Focused local fixes are present in the worktree; validation, commit/push, and post-push reruns are
-tracked under Task 5.8. No unexplained test skips remain; exact full-repository race, Docker
-lifecycle, and legacy-volume provenance gates remain separately open.
-**Last Updated**: 2026-10-18
+The historical aggregate comparison was dropped at the user's direction. The latest push to `origin/main` is `b0d954d22da1ca89485bb9a0b0efa1488a507ece`. CI Quality
+(run `39313432333`), CI E2E (`39313431964`), Load (`39313432373`), Fuzz (`39313432061`),
+Mutation (`39313432206`), Race (`39313432140`), Benchmark (`39313431956`), and Coverage
+(`39313431971`) failed at dependency validation because `go mod tidy` removes a stale
+`github.com/grpc-ecosystem/grpc-gateway v1.16.0` checksum from `go.sum`. SAST (`39313433004`),
+Architecture Fitness (`39313431990`), GitLeaks (`39313431966`), and DAST (`39313432013`) passed.
+The checksum is corrected locally and `go mod tidy -diff`, `go mod verify`, `lint-go-mod`, and
+`git diff --check` pass. The failed workflows did not reach their tests, lint, or runtime checks,
+so the original workflow remediations still need post-fix CI evidence. Task 5.8 tracks the fix and
+reruns. No unexplained test skips remain; the exact full-repository race, Docker lifecycle, and
+legacy-volume provenance gates remain separately open.
+**Last Updated**: 2026-10-19
 **Created**: 2026-05-25
 
 ---
@@ -1496,9 +1501,10 @@ do not establish a coverage pass.
 
 ### Task 5.8: Remediating Latest-Push Workflow Failures
 
-- **Status**: IN PROGRESS — both failures from push `c42c09e5359270bce889411bb8fc8755dd0669e3`
-  are diagnosed and locally fixed. Focused tests/lint, normal/tagged builds, the shuffled suite,
-  and repository validators pass; commit/push and post-fix CI reruns remain required.
+- **Status**: IN PROGRESS — the original CI Quality/E2E failures are fixed and pushed in
+  `b0d954d22da1ca89485bb9a0b0efa1488a507ece`. Eight workflows on that push then failed before
+  their substantive checks because `go mod tidy` removes a stale `go.sum` entry. The checksum
+  correction is local and module validation passes; commit/push and CI reruns remain required.
 - **Owner**: LLM Agent
 - **Dependencies**: Tasks 5.3 and 5.5
 - **Symptoms and root causes**:
@@ -1513,13 +1519,24 @@ do not establish a coverage pass.
     container-owned UID/GID 65532 on the host bind mount; the non-root workflow runner cannot
     unlink those files. The workflow now restores runner ownership with `sudo chown -R` after
     Compose teardown and before E2E cleanup.
+  - On follow-up push `b0d954d22da1ca89485bb9a0b0efa1488a507ece`, CI Quality (`39313432333`),
+    CI E2E (`39313431964`), Load (`39313432373`), Fuzz (`39313432061`), Mutation (`39313432206`),
+    Race (`39313432140`), Benchmark (`39313431956`), and Coverage (`39313431971`) failed at
+    `Set up Go and validate dependencies`; the tests, lint, and runtime steps were skipped. The
+    common cause is a stale `github.com/grpc-ecosystem/grpc-gateway v1.16.0` content checksum in
+    `go.sum` that `go mod tidy` removes. Removing that obsolete checksum locally makes
+    `go mod tidy -diff` clean. SAST (`39313433004`), DAST (`39313432013`), Architecture Fitness
+    (`39313431990`), and GitLeaks (`39313431966`) passed.
 - **Acceptance Criteria**:
   - [x] Both latest-push failure symptoms and root causes are recorded above.
   - [x] The repeated Docker command test literals use named constants.
   - [x] The E2E workflow restores ownership of the generated certificate bind mount before cleanup.
   - [x] Focused `e2e_infra` shuffled tests (90 tests) and pinned golangci-lint v2.14.0 pass.
   - [x] Normal/tagged builds, `go test ./... -shuffle=on`, and all 14 repository validators pass.
-  - [ ] Commit and push the validated changes, then verify the new CI Quality and CI E2E runs pass.
+  - [x] Remove the stale checksum and verify `go mod tidy -diff`, `go mod verify`,
+    `lint-go-mod`, and `git diff --check`.
+  - [ ] Commit and push the checksum correction, then verify all affected workflow reruns pass
+    and the original Quality/E2E remediations are exercised.
   - [ ] Update the final status here and in `lessons.md` from actual post-push evidence.
 - **Local validation evidence**:
   - `test-output/reviewfollowup/framework-v25-workflow-fix-build.log` — normal and
@@ -1533,10 +1550,14 @@ do not establish a coverage pass.
     exceeded its 10 MiB filter limit.
   - `test-output/reviewfollowup/framework-v25-workflow-fix-repository-lints.log` — all 14 requested
     repository validators exit 0.
-- **Current workflow evidence**: CI Coverage (run `39165121125`), CI Race (run
-  `39165120898`), CI Mutation (run `39165121009`), and CI Load (run `39165120886`) passed on
-  c42. The two failing runs above must be rerun after the local fixes; no post-fix workflow result
-  is yet available.
+  - `test-output/reviewfollowup/framework-v25-go-mod-tidy-fix-validation.log` — `go mod tidy -diff`,
+    `go mod verify`, `lint-go-mod -q`, and `git diff --check` exit 0 against the corrected `go.sum`.
+- **Current workflow evidence**: On `c42c09e5359270bce889411bb8fc8755dd0669e3`, CI Coverage
+  (`39165121125`), Race (`39165120898`), Mutation (`39165121009`), and Load (`39165120886`)
+  passed; CI Quality and CI E2E failed for the causes recorded above. On `b0d954d22`, SAST,
+  Architecture Fitness, DAST, and GitLeaks passed; the eight workflows listed above failed before
+  substantive checks due to `go.sum` drift. Post-fix CI reruns are required; no successful post-fix
+  workflow result is yet available.
 
 ## Phase 6: Knowledge Propagation
 
@@ -1774,21 +1795,21 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 3 | Complete | `durable-sqlite-compose-health.log` records healthy Compose startup; `durable-sqlite-authenticated-readiness.log` records authenticated admin readiness HTTP 200; `final-repository-validators.log` passes deployment validation. | None. |
 | 4 | Complete | The baseline-maintenance procedure is in `docs/ENG-HANDBOOK.md` §10.2.3 and `.github/instructions/03-02.testing.instructions.md`; `coverage-baseline-docs.log`, `coverage-baseline-workflow.log`, and `coverage-baseline-text.log` pass. Both inventories are uploaded by the workflow. | None. |
 | 5 | Complete within the accepted scope | The latest profile-driven gate after ECDH changes passes all 352 pinned package results, 27 no-test packages, two expected no-statement packages, and all 323 threshold-eligible packages with zero threshold failures. Aggregate coverage is informational. Evidence: `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out`, its complete package log, and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. | None. The historical aggregate comparison was dropped at the user's direction; keep inventory and thresholds unchanged. |
-| 6 | Partially verified | `test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log` records the focused shuffled Linux race run; CI Race passed on `c42c09e5359270bce889411bb8fc8755dd0669e3` (run `39165120898`). An earlier standalone full-repository run failed at `TestCheckInDir_RealWorkspace`; that finding is historical. | Complete the exact standalone `go test -race -count=2 ./...` gate on a supported CGO-enabled host. |
+| 6 | Partially verified | `test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log` records the focused shuffled Linux race run; CI Race passed on `c42c09e5359270bce889411bb8fc8755dd0669e3` (run `39165120898`). The `b0d954d22` CI Race run (`39313432140`) failed during dependency validation before executing race tests because of the stale `go.sum` checksum. | Push the checksum correction and complete the exact standalone `go test -race -count=2 ./...` gate on a supported CGO-enabled host. |
 | 7 | Complete | `final-focused-tests.log` passes TLS publication and failure-path tests; `docs/tls-structure.md` documents initialization-only behavior and Compose activation gating. | None; rotation/reload remains unsupported. |
-| 8 | Partially verified | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and CI Load passed on c42 (run `39165120886`). | Remaining simulation profiles have not been evidenced. |
+| 8 | Partially verified | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and CI Load passed on c42 (run `39165120886`). The b0 Load run (`39313432373`) failed during dependency validation before running load tests due to the stale checksum. | Push the checksum correction, rerun CI Load, and evidence the remaining simulation profiles. |
 | 9 | Complete | PKI test conventions were audited; `final-focused-tests.log` passes the relevant shuffled PKI packages and `postgres-continuity-restart.log` passes the PostgreSQL continuity test. | None. |
 | 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
 | 11 | Partially verified | `postgres-continuity-restart.log` verifies PostgreSQL restart continuity for certificate, encrypted-key envelope, and revocation state; this is not an existing-volume upgrade test. | Execute the data-preserving upgrade against an existing PostgreSQL volume and retain a named upgrade artifact. |
-| 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` records the current skip policy and latest workflow failures; `review-follow-up-plan.md` aligns its dispositions. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `lint-docs -q` passing. | Phase 5 remains open pending post-fix Quality/E2E results, the exact standalone race gate, and Docker lifecycle/legacy-volume validation. |
-| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 14 repository validators, the full shuffled suite, and all 323 coverage thresholds pass. On `c42c09e5359270bce889411bb8fc8755dd0669e3`, CI Coverage, Race, Mutation, and Load passed; CI Quality #953 (`39165120901`) and CI E2E #952 (`39165121059`) failed. | Task 5.8 tracks the local fixes and required reruns. The exact standalone full-repository race command, Docker lifecycle, remaining load profiles, and legacy-volume provenance remain open. The task authorizes the remediation push. |
+| 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` records the current skip policy and latest workflow failures; `review-follow-up-plan.md` aligns its dispositions. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `lint-docs -q` passing. | Phase 5 remains open pending successful post-fix workflow reruns, the exact standalone race gate, and Docker lifecycle/legacy-volume validation. |
+| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 14 repository validators, the full shuffled suite, and all 323 coverage thresholds pass. On `c42c09e5359270bce889411bb8fc8755dd0669e3`, CI Coverage, Race, Mutation, and Load passed; CI Quality #953 (`39165120901`) and CI E2E #952 (`39165121059`) failed. On `b0d954d22`, eight workflows failed before substantive checks due to the stale checksum; SAST, DAST, Architecture Fitness, and GitLeaks passed. The local module correction passes all focused dependency checks. | Task 5.8 tracks the checksum push and all affected reruns. The exact standalone full-repository race command, Docker lifecycle, remaining load profiles, and legacy-volume provenance remain open. |
 | 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on every task commit from the recorded baseline through the implementation, disposition, and post-review fix commits. | None. |
 | 15 | Partially verified | The application-role access check is described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving application-role access. |
 | 16 | Partially verified | Ownership normalization and malformed-publication rejection are described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving ownership normalization and malformed-publication rejection. |
 | 17 | Partially verified | The PostgreSQL 18 upgrade and subsequent deployment validation are described in `test-output/review-followup/postgres-existing-volume-upgrade.log` and `test-output/review-followup/tracking-deploy-validation.log`; the cited upgrade artifact is not retained. | Re-run the PostgreSQL 18 existing-volume upgrade and retain both the upgrade log and post-upgrade deployment validation. |
 | 18 | Complete | `durable-sqlite-pki-init.log`, `durable-sqlite-runtime.log`, `durable-sqlite-compose-health.log`, and `durable-sqlite-authenticated-readiness.log` exercise initialization and runtime behavior against the image. | None. |
 | 19 | Partially verified | `durable-sqlite-compose-parity.log` verifies distinct PS-ID/instance data volumes and project scoping for all 14 SQLite instances. `product-compose-config-services.log` and `suite-compose-config-services.log` record successful static Compose service resolution. | Product/suite runtime stacks remain unverified. Active globally named stacks and the recorded volume incident make unisolated Docker lifecycle operations unsafe; run runtime verification in an isolated environment. |
-| 20 | Partially verified | `ci-load.yml` uses certificate-authenticated PostgreSQL readiness; `postgres-authenticated-readiness.log` records a live HTTP 200 response. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and the multi-service CI Load workflow passed on c42 (run `39165120886`). | Remaining simulation profiles have not been evidenced. |
+| 20 | Partially verified | `ci-load.yml` uses certificate-authenticated PostgreSQL readiness; `postgres-authenticated-readiness.log` records a live HTTP 200 response. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and the multi-service CI Load workflow passed on c42 (run `39165120886`). The b0 Load run (`39313432373`) stopped at dependency validation before exercising those flows. | Push the checksum correction, rerun CI Load, and evidence the remaining simulation profiles. |
 | 21 | Complete | `ci-load.yml` passes inputs through environment variables and validates numeric ranges; `final-repository-validators.log` passes workflow lint. | None. |
 | 22 | Complete | `final-focused-tests.log` passes staged publication and rollback tests; `docs/tls-structure.md` documents the Compose activation gate and unsupported rotation behavior. | None. |
 | 23 | Complete | `final-focused-tests.log` passes deterministic filesystem failure-path and platform permission tests. | None. |

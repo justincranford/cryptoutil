@@ -1,8 +1,8 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Implementation phases 1–4 are complete; Phase 5 quality-gate acceptance remains in progress. Phase 6 knowledge propagation is complete. The prior push milestone at `e3c9c60ce` is historical; `origin/main` points to `c42c09e5359270bce889411bb8fc8755dd0669e3`, whose CI Quality and CI E2E runs failed. The local fixes now pass normal/tagged builds, the shuffled full test run, all repository validators, and focused E2E-infrastructure tests/lint. Commit/push and post-fix workflow verification remain tracked in Task 5.8 of `tasks.md`; the exact full-repository race and runtime gates also remain open, so Phase 5 is not complete.
+**Status**: Implementation phases 1–4 are complete; Phase 5 quality-gate acceptance remains in progress. Phase 6 knowledge propagation is complete. `origin/main` points to `b0d954d22da1ca89485bb9a0b0efa1488a507ece`. The original CI Quality/E2E fixes are pushed, but eight workflows on that revision failed during dependency validation because `go mod tidy` removes a stale `grpc-gateway v1.16.0` checksum from `go.sum`. The checksum is corrected locally; `go mod tidy -diff`, `go mod verify`, `lint-go-mod`, and `git diff --check` pass. Commit/push and follow-up workflow verification remain tracked in Task 5.8 of `tasks.md`; the exact full-repository race and runtime gates also remain open, so Phase 5 is not complete.
 **Created**: 2026-05-25
-**Last Updated**: 2026-10-18
+**Last Updated**: 2026-10-19
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
 pki-ca APIs into sm-kms under a `/pki/` path prefix, then deleting pki-ca, the pki product,
 and all associated deployment artifacts.
