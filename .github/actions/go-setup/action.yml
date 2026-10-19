@@ -33,11 +33,26 @@ runs:
         echo "⬇️ Running 'go mod download'..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        go mod download
+        max_attempts=3
+        retry_delay_seconds=10
+        attempt=1
+        while true; do
+          if go mod download; then
+            break
+          fi
+          if [ "$attempt" -ge "$max_attempts" ]; then
+            echo "::error::go mod download failed after ${attempt} attempts."
+            exit 1
+          fi
+          delay=$((retry_delay_seconds * attempt))
+          echo "::warning::go mod download attempt ${attempt}/${max_attempts} failed; retrying in ${delay}s."
+          sleep "$delay"
+          attempt=$((attempt + 1))
+        done
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Run 'go mod download' completed in: ${DURATION}s"
+        echo "⏱️ Run 'go mod download' completed in: ${DURATION}s after ${attempt} attempt(s)"
 
     - name: Run "go mod verify"
       if: inputs.go-mod-verify == 'true'
