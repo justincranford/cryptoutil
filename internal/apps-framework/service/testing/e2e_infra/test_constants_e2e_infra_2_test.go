@@ -6,6 +6,8 @@ const (
 	testComposeDown                = "down"
 	testComposeUp                  = "up"
 	testCreateDirectory            = "create directory"
+	testDockerCp                   = "cp"
+	testPkiInitCertsSource         = "test-service-pki-init-1:/certs/."
 	testMalformedContainerEntry    = "malformed container entry"
 	testRemovePath                 = "remove path"
 	testStatPath                   = "stat path"

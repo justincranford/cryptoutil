@@ -207,7 +207,7 @@ func TestComposeManagerSyncCertOutputDirFromPkiInit(t *testing.T) {
 
 	require.NoError(t, cm.SyncCertOutputDirFromPkiInit(context.Background(), hostCACertPath))
 	require.Equal(t, "docker", command)
-	require.Equal(t, []string{"cp", "test-service-pki-init-1:/certs/.", hostCertsDir}, gotArgs)
+	require.Equal(t, []string{testDockerCp, testPkiInitCertsSource, hostCertsDir}, gotArgs)
 	_, err := os.Stat(filepath.Join(hostCertsDir, "stale.pem"))
 	require.ErrorIs(t, err, os.ErrNotExist)
 }
@@ -275,7 +275,7 @@ func TestComposeManagerSyncCertOutputDirFromPkiInitMakesHostCertTreeWritableBefo
 	}
 	cm.runCommandFn = func(_ context.Context, command string, args ...string) error {
 		require.Equal(t, "docker", command)
-		require.Equal(t, []string{"cp", "test-service-pki-init-1:/certs/.", hostCertsDir}, args)
+		require.Equal(t, []string{testDockerCp, testPkiInitCertsSource, hostCertsDir}, args)
 
 		return nil
 	}
