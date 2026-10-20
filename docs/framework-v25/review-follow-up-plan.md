@@ -75,7 +75,7 @@ and are independent of the numbered rows in the task evidence table.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
   tests pass. Rotation/reload remains unsupported and is documented.
-- **8 — Partially verified.** The load workflow uses authenticated mTLS readiness; live authenticated
+- **8 — Complete.** The load workflow uses authenticated mTLS readiness; live authenticated
   readiness and workflow validation pass. An earlier `ServiceApiSimulation` `complete` profile
   attempt, before the current headless registration/Basic-credentials flow, failed all 24
   key-creation requests because the simulation supplied no authorization token
@@ -90,11 +90,12 @@ and are independent of the numbered rows in the task evidence table.
   disable authentication to make load tests pass. CI Load run `39361288540` passed quick, standard,
   and stress. The full-module Race matrix run `39362007528` passed; all six jobs succeeded. All 368
   integration-tagged package paths were proven covered exactly once across its six roots. The profile gate is
-  complete; this recommendation remains partially verified pending Docker lifecycle and
-  legacy-volume evidence.
+  complete; load/profile and product/suite runtime acceptance is complete. The persistent
+  migration-1006 legacy-schema follower upgrade remains separately tracked under Recommendation
+  38 and Task 5.6.
 - **9 — Complete.** PKI tests were checked against parallelism, fixtures, UUIDs, cleanup, seams,
   and naming conventions; focused shuffled tests and the PostgreSQL continuity test pass.
-- **10 — Partially verified.** The final authoritative profile now passes the pinned 352-package
+- **10 — Complete within the accepted scope.** The final authoritative profile now passes the pinned 352-package
   inventory gate: 27 no-test packages and two expected no-statement packages match, and all 323
   threshold-eligible packages pass with no threshold failures. Aggregate coverage is 81.6%
   (informational). The current scoped results for PKI, framework/shared, fitness, remaining
@@ -123,7 +124,9 @@ and are independent of the numbered rows in the task evidence table.
   accepted as passing evidence. Latest Load run `39361288540` passed all three profiles.
   Full-module Race run `39362007528` passed all six jobs on commit `2557168fd`; its package set is
   covered exactly once.
-  Supported-Engine teardown and legacy-volume gates remain open. The CI Quality (#953, run
+  Only the persistent migration-1006 legacy-schema follower upgrade remains open under Task 5.6
+  and Recommendation 38; historical-volume provenance remains excluded and fail-closed under
+  Recommendation 28. The CI Quality (#953, run
   `39165120901`) and CI E2E (#952, run `39165121059`) failures are fixed locally and pushed in
   `b0d954d22`, but CI Quality, E2E, Load, Fuzz, Mutation, Race, Benchmark, and Coverage on that
   revision failed at dependency validation because `go mod tidy` removes an obsolete
@@ -150,7 +153,9 @@ and are independent of the numbered rows in the task evidence table.
   `e819239de` triggered the corrected blocking Race, Quality, and E2E runs. Quality and E2E
   passed; Race was cancelled at the 30-minute job timeout and is not passing evidence.
   Full-module Race run `39362007528` passed all six jobs on commit `2557168fd`. The monolithic
-  local race attempt is superseded by this six-partition matrix; runtime gates remain open. The post-fix Linux
+  local race attempt is superseded by this six-partition matrix; only the persistent legacy-schema
+  follower upgrade remains open. Historical-volume provenance is excluded and fail-closed under
+  Recommendation 28. The post-fix Linux
   CI-equivalent race run across `./internal/...` with the integration tag and `-count=2` passes
   (`test-output/reviewfollowup/framework-v25-full-ci-race-internal-after-shared-tenant-fix-20261019.log`);
   the standalone `./...` race run was stopped before completion due to high resource use after
@@ -169,7 +174,7 @@ and are independent of the numbered rows in the task evidence table.
   psql invocation, and required role privileges.
 - **18 — Complete.** Durable SQLite overrides were exercised against the application image,
   including initialization, runtime identity, file creation, and authenticated readiness.
-- **19 — Partially verified.** All 14 SQLite instances have distinct PS-ID/instance data volumes
+- **19 — Complete.** All 14 SQLite instances have distinct PS-ID/instance data volumes
   and distinct service/product/suite project scoping. Product and suite Compose configurations
   parse successfully (`product-compose-config-services.log` and `suite-compose-config-services.log`).
   The isolated suite runtime now has 28 healthy app containers and healthy PostgreSQL leader and
@@ -182,7 +187,8 @@ and are independent of the numbered rows in the task evidence table.
   (`test-output/review-follow-up/v25-runtime-current/product-runtime-up.log`). The current
   headless client-registration and Basic-credentials session flow is described under
   Recommendation 8; the current authenticated `complete` profile passes 218/218 requests, and CI
-  Load passed on c42. Do not operate on globally named or historical volumes.
+  Load run `39361288540` passed quick, standard, and stress. Do not operate on globally named or
+  historical volumes; Recommendation 28 remains excluded and fail-closed.
 - **20 — Complete.** Load-workflow PostgreSQL readiness uses authenticated mTLS; the matching
   readiness command was exercised against a live PostgreSQL-backed service.
 - **21 — Complete.** Workflow inputs are passed through environment variables and validated
@@ -346,9 +352,9 @@ in `tasks.md`.
   declared by typed application errors. Missing session authorization returns HTTP 401 rather than
   Fiber's default HTTP 500. Regression coverage passes in the focused server tests and the shuffled
   server subtree (2,216 tests across 17 packages); evidence is recorded in
-  `test-output/reviewfollowup/public-server-server-package-shuffle.log`. Repository-wide final
-  validation remains open under Recommendation 13.
-- **F-10 - Static validation passes; live authenticated load remains unverified.**
+- `test-output/reviewfollowup/public-server-server-package-shuffle.log`. The separate persistent
+  legacy-schema follower upgrade remains open under Task 5.6; this focused fix is complete.
+- **F-10 — Complete.**
   The current headless service flow registers a client and exchanges HTTP Basic credentials for a
   service session; the Gatling scenario attaches that session to cryptographic requests.
   `ServiceApiSimulation` explicitly handles the CI `standard` and `stress` profiles and rejects
@@ -356,8 +362,8 @@ in `tasks.md`.
   PostgreSQL-1 on port 8002, matching its readiness target. Forced clean Maven compilation,
   Spotless, and Checkstyle pass in
   `test-output/reviewfollowup/v25-gatling-auth-compile.log`; workflow and text validation pass in
-  `test-output/reviewfollowup/v25-load-workflow-validation.log`. The retained 48/48 live failure
-  predates the current auth flow and is not evidence that the current routes are absent or that the
-  current workload fails. Run and retain the authenticated `complete` profile against the isolated
-  product runtime; keep F-10 open until the configured success-rate threshold passes. Evidence for
-  the earlier attempt is `test-output/review-follow-up/v25-runtime-current/gatling-complete-retry1.log`.
+  `test-output/reviewfollowup/v25-load-workflow-validation.log`.   The authenticated `complete` profile passed 218/218 requests with 100% success and a 235 ms
+  maximum response time (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`),
+  and CI Load run `39361288540` passed quick, standard, and stress. The retained 48/48 live failure
+  predates the current auth flow and is not evidence against the current workload
+  (`test-output/review-follow-up/v25-runtime-current/gatling-complete-retry1.log`).

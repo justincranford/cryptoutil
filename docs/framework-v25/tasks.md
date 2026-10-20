@@ -32,8 +32,10 @@ dubious ownership while `go list` queried VCS metadata; after adding `/workspace
 container's system `safe.directory`, `git status` and `go list ./...` pass as UID 65534. The
 corrected full race run was stopped before completion after monitoring showed it consuming 43% CPU
 and about 1.5 GiB; the orphaned in-container test processes and task-specific validation container
-were stopped. Its partial log is not a passing result. The corrected blocking GitHub Race rerun,
-Docker lifecycle, and legacy-volume provenance gates remain open.
+were stopped. Its partial log is not a passing result. The hosted six-partition Race matrix passed.
+Isolated product/suite runtime and PostgreSQL existing-volume upgrade checks are recorded below;
+the persistent legacy-schema follower upgrade remains open, and historical-volume provenance
+remains fail-closed under Recommendation 28.
 **Last Updated**: 2026-10-20
 **Created**: 2026-05-25
 
@@ -43,8 +45,9 @@ Docker lifecycle, and legacy-volume provenance gates remain open.
 execution; the task statuses and acceptance checkboxes below have been selectively reconciled
 against source, test, config, and retained-artifact evidence. Unchecked criteria remain unverified.
 Earlier coverage collections and the 30-versus-27 no-test mismatch are historical and superseded
-by the final pinned-gate result recorded under Task 5.4. External runtime and historical-volume
-provenance remain open below. The exact standalone race command was stopped and superseded by the
+by the final pinned-gate result recorded under Task 5.4. The persistent legacy-schema follower
+upgrade remains open below; historical-volume provenance remains fail-closed under Recommendation
+28. The exact standalone race command was stopped and superseded by the
 passing six-partition matrix; skips are accepted only when classified and justified under Task 5.3.
 
 ## Quality Mandate - MANDATORY
@@ -497,7 +500,7 @@ all 18 operation tests, the package coverage threshold, and the current shuffled
 ### Task 2.5: Implement PKI StrictServer Interface in sm-kms
 
 - **Status**: Complete — the generated PKI StrictServer interface is implemented and all 18
-  generated operations have focused tests. The Phase 2 quality and coverage gates remain open
+  generated operations have focused tests. Phase 2 build, lint, test, and coverage gates passed
   under Task 2.8.
 - **Owner**: LLM Agent
 - **Estimated**: 2h
@@ -937,10 +940,11 @@ threshold gate passes. The 11 non-Race workflows passed on prior push `7ef7c857`
 race defects and correction. The fixes were pushed in `e819239de`; Race run `39356665257` was
 cancelled at its 30-minute job timeout after about 29 minutes of test execution, while Quality
 run `39356665316`, Load run `39356665340`, and E2E run `39356665264` passed. The post-fix Linux
-CI-equivalent full internal race run passes twice with the integration tag. Phase 5 also remains
-open for the corrected blocking race gate,
-the exact full-repository race command, and separately listed Docker lifecycle/legacy-volume
-validation. Literal zero skips is not a valid acceptance criterion
+CI-equivalent full internal race run passes twice with the integration tag. Phase 5 remains open
+only for the persistent legacy-schema follower upgrade. The corrected blocking six-partition Race
+matrix passed and supersedes the stopped monolithic full-repository race command; isolated
+product/suite runtime and existing-volume upgrade checks are recorded below. Literal zero skips is
+not a valid acceptance criterion
 for probability-sampled tests; use the documented skip inventory in Task 5.3. The historical
 aggregate comparison was dropped at the user's direction.
 
@@ -964,19 +968,23 @@ actionable test-gap skip; the accepted skip inventory is recorded under Task 5.3
 the 27-package no-test baseline, both expected no-statement packages, and all 323 eligible
 coverage thresholds; the latest pinned profile reports 81.7% aggregate coverage
 (36,747/44,983 statements, informational). The isolated suite runtime is healthy and PostgreSQL logical replication passed. An isolated
-upgrade simulation preserved its sentinel, but does not verify an upgrade against an existing
-legacy volume. The 11 non-Race workflows passed on `7ef7c857`; CI Race run `39321755986` is not
+existing-volume upgrade preserved its sentinel across restart and repaired ownership, but does not
+verify migration-1006 legacy-schema reconciliation on a persistent follower. The 11 non-Race
+workflows passed on `7ef7c857`; CI Race run `39321755986` is not
 accepted as a pass because its failing test step was tolerated. The corrected blocking full-module
-Race matrix run `39362007528` completed successfully across all six jobs. Docker teardown and
-legacy-volume validation remain open. The
+Race matrix run `39362007528` completed successfully across all six jobs. Isolated product/suite
+runtime and PostgreSQL existing-volume upgrade checks pass; only the persistent legacy-schema
+follower upgrade remains open. Historical-volume provenance remains fail-closed under Recommendation
+28. The
 monolithic standalone race run was superseded by the exact-once six-partition matrix. The startup benchmark and
 detached-HEAD comparison are statistically inconclusive. Headless client
 registration and the Basic client-credentials exchange for a service session are implemented and
 compiled; the authenticated `complete` profile passed 218/218 requests, and CI Load passed on
 `7ef7c857`. Recommendation 28 remains pending/fail-closed because historical volume contents and
 provenance are unknown. The workflow remediation is pushed in `2557168fd`, and its blocking
-matrix run passed across all six jobs. Task 5.8 and Phase 5 remain open for the outstanding runtime
-gates.
+matrix run passed across all six jobs. Task 5.8 is complete. Phase 5 remains open only for the
+persistent legacy-schema follower upgrade; historical-volume provenance is excluded and
+fail-closed.
 
 **Fresh framework/shared coverage evidence**: The consolidated shuffled run
 `test-output/coverage-analysis/framework-shared-final-20261016.log` passed all 68 coverage-eligible
@@ -1055,18 +1063,16 @@ improvement or regression claim.
 
 ### Task 5.3: Full Test Suite Verification
 
-- **Status**: Partially verified — the latest default-concurrency shuffled full-tree run exits 0
-  with 326 passing packages, 17,736 passing test events, 36 classified test-level skips, and 41
-  package-level no-test events. There are no failing test or package events and no unexplained
-  skips. CI Race run `39321755986` had a green workflow conclusion but its race-test failure was
-  tolerated by `continue-on-error`; do not count it as a pass. The post-fix Linux
-  CI-equivalent full internal race run passes with the integration tag and `-count=2`. The first
-  standalone non-root attempt failed because Git rejected the root-owned `/workspace` checkout as
-  dubious ownership while `go list` queried VCS metadata. After adding `/workspace` to the
-  disposable container's system `safe.directory`, `git status` and `go list ./...` pass as UID
-  65534; the corrected standalone full-repository race run was stopped before completion after
-  resource monitoring showed 43% CPU and about 1.5 GiB use. Its partial log is not a passing result.
-  The corrected blocking CI Race rerun still needs post-push evidence.
+- **Status**: Complete within the accepted scope — the latest default-concurrency shuffled
+  full-tree run exits 0 with 326 passing packages, 17,736 passing test events, 36 classified
+  test-level skips, and 41 package-level no-test events. There are no failing test or package
+  events and no unexplained skips. CI Race run `39321755986` had a green conclusion but its
+  race-test failure was tolerated by `continue-on-error`; do not count it as a pass. The post-fix
+  Linux CI-equivalent internal race run passes with the integration tag and `-count=2`. The
+  corrected blocking hosted full-module Race matrix `39362007528` passed all six jobs and covers
+  all 368 integration-tagged package paths exactly once. The standalone monolithic race command
+  was stopped under resource monitoring and is superseded by that matrix; its partial log is not
+  passing evidence and no repeat is required.
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.2
@@ -1115,14 +1121,16 @@ improvement or regression claim.
   `test-output/reviewfollowup/health-path-workspace-root-tests.log`. This host result does not
   replace Linux race validation. `test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log`
   passes its targeted Authz, IDP, RS, framework-listener, and shared utility packages only;
-  full-repository race acceptance remains open. A newer current-tree SM-KMS run,
+  the hosted full-module matrix supplies the accepted full-module race result under Task 5.8.
+  A newer current-tree SM-KMS run,
   `test-output/reviewfollowup/framework-v25-sm-kms-race-20261018.log`, passes all 28 packages
   with `-race -count=2` in Linux Go 1.27.2 on Docker Engine 29.8.2, which meets the corrected
   minimum. It remains supplemental because it is package-scoped, not a full-repository race run.
   The current CI-equivalent Linux race run uses
   `-race -mod=readonly -tags=integration -timeout=25m -count=2 ./internal/...`; it is scoped to
-  the workflow's internal packages, not the standalone `./...` gate. Retain its final output
-  before updating Task 5.8. The Authz cleanup-worker lifecycle change is tested, but is not
+  the workflow's internal packages, not the standalone `./...` command. Its passing output is
+  retained under Task 5.8; the hosted partitioned matrix is the resource-safe full-module gate.
+  The Authz cleanup-worker lifecycle change is tested, but is not
   claimed as the cause of any earlier race timeout.
 - **Full-suite readiness and health-timeout regressions resolved**: The framework repository
   server tests now poll for the dynamically assigned listener port instead of treating fixed
@@ -1192,8 +1200,10 @@ improvement or regression claim.
   this continuation.
   The earlier full-repository race run failed at `TestCheckInDir_RealWorkspace`, while a targeted
   race run passed selected packages only. The later SM-KMS-only Linux race run passes all 28
-  packages on Engine 29.8.2, which meets the corrected minimum. The full-repository Linux race
-  criterion remains open because no complete supported Linux run is available.
+  packages on Engine 29.8.2, which meets the corrected minimum. Hosted Race run `39362007528`
+  supplies the accepted full-module Linux race result: all six jobs passed and all 368
+  integration-tagged package paths are covered exactly once. The standalone monolithic local
+  command remains unrun to avoid repeating its resource-intensive partial attempt.
 
 ---
 
@@ -1422,9 +1432,10 @@ do not establish a coverage pass.
     schema; verify both renamed columns and continued replication. Docker Engine 29.8.2 meets the
     corrected minimum aligned with Docker Desktop 4.95.0, so this remains an outstanding runtime
     check rather than a version blocker. Do not claim the live upgrade path passes.
-  - [x] The isolated upgrade simulation preserved its sentinel across restart and normalized
-    database ownership (`test-output/review-follow-up/v25-runtime-20261016-0130/runtime-summary.log`).
-    This isolated simulation is not evidence of an upgrade against a historical/legacy volume.
+  - [x] The isolated existing-volume upgrade repaired database/publication ownership and preserved
+    its sentinel across a PostgreSQL restart (`test-output/review-follow-up/v25-runtime-resume-20261016-0740/upgrade-persistence-before.log`,
+    `upgrade-apply.log`, and `upgrade-verify.log`). This does not exercise migration-1006 legacy
+    schema reconciliation on a persistent follower; that separate test remains unchecked above.
   - [x] Typed application errors now preserve their declared HTTP status; missing session
     authorization returns 401 instead of 500. The shuffled server package suite passed 2,216
     tests across 17 packages (`test-output/reviewfollowup/public-server-server-package-shuffle.log`).
@@ -1442,8 +1453,8 @@ do not establish a coverage pass.
 
 ### Task 5.7: Investigating and Cleaning Task-Owned Stale Containers
 
-- **Status**: The Testcontainers partial-startup leak fix and focused validation are complete;
-  repository-wide validation remains open under Task 5.6. Later read-only inventories verify that
+- **Status**: COMPLETE within the safe task-owned cleanup and teardown scope. The Testcontainers
+  partial-startup leak fix and focused validation pass. Later read-only inventories verify that
   the containers shown in the user's later Docker Desktop screenshot were no longer present: the
   screenshot showed 13 Postgres entries and an active product-retest Compose project, while
   successive fresh inventories, including 20:49 and 21:03 local, found no containers or Compose
@@ -1451,7 +1462,10 @@ do not establish a coverage pass.
   their removal to this session. A later read-only inventory on 2026-10-17 found two running act-CI-Coverage-Collection
   containers (Ubuntu and PostgreSQL) with no Compose project/service labels; their relationship to
   the stale-container findings is unknown. No Docker resources were changed. All 11 tracked named
-  volumes remain present in the 21:03 inventory.
+  volumes remain present in the 21:03 inventory. Historical disappearance provenance and the
+  later Created Testcontainers containers with unknown ownership remain unassigned; no resources
+  were changed based on inference. The historical-volume question remains excluded and fail-closed
+  under Recommendation 28.
 - **Root cause and fix status**: A partial Testcontainers `GenericContainer`/Postgres `Run` result
   can contain a container even when startup returns an error; callers must terminate that partial
   result. The shared container wrapper now cleans partial startup results, and
@@ -1546,7 +1560,7 @@ do not establish a coverage pass.
 
 ### Task 5.8: Remediating Latest-Push Workflow Failures
 
-- **Status**: IN PROGRESS — the original CI Quality/E2E failures were fixed and pushed in
+- **Status**: COMPLETE — the original CI Quality/E2E failures were fixed and pushed in
   `b0d954d22`; the stale `go.sum` checksum was corrected and pushed in `45c2757`; and bounded
   retries for transient module-download errors were pushed in `7ef7c857`. The 11 non-Race
   workflows passed on that push. CI Race run `39321755986` had a success conclusion only because
@@ -1557,8 +1571,8 @@ do not establish a coverage pass.
   `39356665264` passed. The post-fix Linux CI-equivalent internal race run passes twice. The
   full-module Race matrix covers all 368 integration-tagged packages across six non-overlapping
   roots; run `39362007528` for commit `2557168fd` completed successfully across all six jobs. The
-  resource-intensive monolithic local race attempt is superseded by this matrix.
-  Remaining runtime gates are tracked separately.
+  resource-intensive monolithic local race attempt is superseded by this matrix. The remaining
+  persistent legacy-follower runtime check is tracked separately under Task 5.6.
 - **Owner**: LLM Agent
 - **Dependencies**: Tasks 5.3 and 5.5
 - **Symptoms and root causes**:
@@ -1672,7 +1686,7 @@ ENG-HANDBOOK.md, agents, skills, instructions, and active docs. Remove stale pki
 from current project documentation while retaining migration history where it is relevant.
 Verify propagation integrity.
 
-**Status**: Phase 6 documentation and propagation work and the earlier local-code commit/push milestone are complete. Phase 5 remains open for the listed Docker lifecycle/legacy-volume validation. The local CI-equivalent full internal race run and hosted full-module Race matrix (run `39362007528`, all six jobs successful) pass; the monolithic standalone race attempt is superseded by the six-partition matrix, and Task 5.8 remains open for the runtime acceptance gates.
+**Status**: Phase 6 documentation and propagation work and the earlier local-code commit/push milestone are complete. Phase 5 remains open for the persistent legacy-schema follower upgrade. Isolated product/suite runtime, PostgreSQL existing-volume upgrade, and teardown evidence is recorded below; historical-volume provenance remains fail-closed and excluded under Recommendation 28. The local CI-equivalent full internal race run and hosted full-module Race matrix (run `39362007528`, all six jobs successful) pass; the monolithic standalone race attempt is superseded by the six-partition matrix. Task 5.8 is complete.
 
 ---
 
@@ -1876,21 +1890,21 @@ validation is not a claim that the full repository suite or Docker/PostgreSQL de
 | # | Disposition | Evidence | Remaining verification |
 |---|---|---|---|
 | 1 | Coverage gate fails closed on inventory, parser, or result errors; enforces infrastructure thresholds (`414688e8b`). | Workflow lint; normal/tagged builds. | CI runner not rerun locally. |
-| 2 | Product/suite databases are isolated by PS-ID; KMS capabilities remain together in `sm-kms`; committed as `dd5520c`. | Deployment lint. | No live product/suite stack run. |
-| 3 | Durable SQLite variants use file-backed databases and persistent volumes; memory variants are disposable; committed as `e3a8a67`. | Deployment lint. | No live container restart test. |
+| 2 | Product/suite databases are isolated by PS-ID; KMS capabilities remain together in `sm-kms`; committed as `dd5520c`. | Deployment lint; healthy product startup (`test-output/review-follow-up/v25-runtime-current/product-runtime-up.log`) and suite runtime/replication (`test-output/review-follow-up/v25-replication-current/runtime-health-current.log`, `validation-results.txt`). | None for product/suite startup and database isolation. |
+| 3 | Durable SQLite variants use file-backed databases and persistent volumes; memory variants are disposable; committed as `e3a8a67`. | Deployment lint; `durable-sqlite-runtime.log` records container recreation, healthy startup, an existing root key loaded, and no replacement key created. | None for the validated persistent SQLite restart/reopen path. |
 | 4 | CRL/OCSP publication and lookup are issuer-wide and do not require a tenant session. | Focused PKI tests and persistence integration log. | PostgreSQL multi-instance runtime not exercised. |
 | 5 | CRL numbers allocate atomically in storage by issuer key ID. | Persistence integration verifies sequence after reopen. | PostgreSQL multi-instance runtime untested. |
-| 6 | Ordinary certificate updates cannot restore revoked records or erase revocation metadata. | Focused PKI tests. | Full repository suite not run. |
+| 6 | Ordinary certificate updates cannot restore revoked records or erase revocation metadata. | Focused PKI tests and the current shuffled full-tree suite (`framework-v25-full-suite-skip-inventory-20261018.log`: 17,736 passing test events, no failures). | None for the repository-suite gate; see rows 4, 5, and 10 for PostgreSQL multi-instance behavior. |
 | 7 | Shutdown-request state is separate from shutdown execution; HTTP shutdown performs the drain and listener close. | Focused listener tests. | No separate live-listener end-to-end test. |
 | 8 | `pki-init` stages and validates material before publication, rolls back partial publication, and refuses rotation of existing material. | Focused TLS tests; `docs/tls-structure.md` describes initialization-only behavior. | No live consumer reload/rotation test; rotation is unsupported. |
-| 9 | Compose readiness requires completed initialization jobs and authenticated readiness instead of matching `"healthy"` or ignoring host-check failures; committed as `3d2cc7b04`. | Workflow lint. | No live Compose stack run. |
+| 9 | Compose readiness requires completed initialization jobs and authenticated readiness instead of matching `"healthy"` or ignoring host-check failures; committed as `3d2cc7b04`. | Workflow lint and live isolated product/suite startup with healthy services (`product-runtime-up.log`, `runtime-health-current.log`). | None for the exercised product/suite Compose readiness paths. |
 | 10 | Production migrations, barrier encryption, file-backed SQLite reopen, revocation, CRL/OCSP continuity, and historical issuer publication are exercised together. | `pki-persistence-integration.log`. | PostgreSQL cross-instance issuance/revocation remains unverified. |
-| 11 | Existing PostgreSQL volumes have a data-preserving, idempotent database upgrade path; committed as `0132019`. | Deployment lint. | Upgrade procedure not executed against an existing PostgreSQL volume. |
-| 12 | Enrollment status uses tenant-scoped persistence as authority; the process-local tracker no longer leaks status across tenants. | Focused PKI tests. | Full repository suite not run. |
+| 11 | Existing PostgreSQL volumes have a data-preserving, idempotent database upgrade path; committed as `0132019`. | Deployment lint and the isolated named-volume upgrade/restart evidence under `test-output/review-follow-up/v25-runtime-resume-20261016-0740/`. | Persistent migration-1006 legacy-schema follower reconciliation remains unverified; see Task 5.6. |
+| 12 | Enrollment status uses tenant-scoped persistence as authority; the process-local tracker no longer leaks status across tenants. | Focused PKI tests and the current shuffled full-tree suite (`framework-v25-full-suite-skip-inventory-20261018.log`: 17,736 passing test events, no failures). | None for the repository-suite gate. |
 | 13 | Tenant-scoped request IDs have a unique database constraint, with duplicate errors mapped consistently; migration 2013 fails closed on legacy nonzero duplicates. | `internal/apps/sm-kms/server/repository/migrated_ca_items_test.go::TestRequestUniqueMigration_DuplicateRowsPreserveExistingIndex` asserts the migration error, preserves both rows, and retains the existing index; focused `runTests` passed (1 passed, 0 failed). | Automatic deduplication is not authorized; remediation depends on resolving legacy-volume data and provenance. |
-| 14 | Listener shutdown completion waits are bounded and report timeout errors. | Focused listener tests include shutdown/startup paths. | Full race suite not run. |
+| 14 | Listener shutdown completion waits are bounded and report timeout errors. | Focused listener tests include shutdown/startup paths; hosted full-module Race run `39362007528` passed all six jobs, covering all 368 integration-tagged packages exactly once. | None for the hosted race gate; row 7's separate live-listener E2E remains unverified. |
 | 15 | Authority configuration, active validity checks, historical issuer restoration, and a persisted stable authority ID on new certificate records are covered. | Focused PKI tests and `pki-persistence-integration.log`. | Renewal/rollover operations remain initialization-only; no live PostgreSQL test. |
-| 16 | Partially verified | Tracking updates separate historical claims from current evidence. The latest default-concurrency full-tree run `test-output/reviewfollowup/framework-v25-full-suite-skip-inventory-20261018.log` records 17,736 passing test events, 36 explained skips, 326 passing packages, 41 no-test-file events, and no failures. It verifies the listener-readiness and RP/RS/SPA health-timeout fixes and includes ECDH round trips with no Go issue #71919 skips. The post-ECDH full-inventory profile and threshold summary are `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out` and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. The full-module Race matrix run `39362007528` completed successfully across all six jobs. | Docker/PostgreSQL lifecycle and legacy-volume provenance remain open; the matrix supersedes the stopped monolithic local race command. Expected skips are classified under Task 5.3. |
+| 16 | Partially verified | Tracking updates separate historical claims from current evidence. The latest default-concurrency full-tree run `test-output/reviewfollowup/framework-v25-full-suite-skip-inventory-20261018.log` records 17,736 passing test events, 36 explained skips, 326 passing packages, 41 no-test-file events, and no failures. It verifies the listener-readiness and RP/RS/SPA health-timeout fixes and includes ECDH round trips with no Go issue #71919 skips. The post-ECDH full-inventory profile and threshold summary are `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out` and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. The full-module Race matrix run `39362007528` completed successfully across all six jobs. | The persistent legacy-schema follower upgrade remains open; historical-volume provenance is excluded and fail-closed under Recommendation 28. The matrix supersedes the stopped monolithic local race command. Expected skips are classified under Task 5.3. |
 
 ## Review Follow-Up Recommendation Disposition and Evidence
 
@@ -1902,24 +1916,24 @@ describe their original status snapshots.
 
 | Recommendation | Disposition | Evidence | Remaining work |
 |---|---|---|---|
-| 2 | Partially verified | SQLite migration tests and `postgres-migrations-2012-2015.log` cover migration behavior; `test-output/reviewfollowup/postgres-migrations-runner.log` records `TestPKIMigrations_PostgreSQLUpgradeAndRollback` passing against an isolated testcontainers PostgreSQL container and that container terminating. | No Compose product/suite runtime was exercised; keep that runtime gate open until a fresh isolated stack test is retained. |
+| 2 | Complete | SQLite migration tests and `postgres-migrations-2012-2015.log` cover migration behavior; `test-output/reviewfollowup/postgres-migrations-runner.log` records `TestPKIMigrations_PostgreSQLUpgradeAndRollback` passing against an isolated testcontainers PostgreSQL container. Product Compose startup completed with healthy services (`test-output/review-follow-up/v25-runtime-current/product-runtime-up.log`); the suite runtime has 28 healthy app containers and healthy PostgreSQL leader/follower (`test-output/review-follow-up/v25-replication-current/runtime-health-current.log`) with successful replication validation (`validation-results.txt`). | None for this recommendation; the persistent legacy-schema follower test remains open under Task 5.6. |
 | 3 | Complete | `durable-sqlite-compose-health.log` records healthy Compose startup; `durable-sqlite-authenticated-readiness.log` records authenticated admin readiness HTTP 200; `final-repository-validators.log` passes deployment validation. | None. |
 | 4 | Complete | The baseline-maintenance procedure is in `docs/ENG-HANDBOOK.md` §10.2.3 and `.github/instructions/03-02.testing.instructions.md`; `coverage-baseline-docs.log`, `coverage-baseline-workflow.log`, and `coverage-baseline-text.log` pass. Both inventories are uploaded by the workflow. | None. |
 | 5 | Complete within the accepted scope | The latest profile-driven gate after ECDH changes passes all 352 pinned package results, 27 no-test packages, two expected no-statement packages, and all 323 threshold-eligible packages with zero threshold failures. Aggregate coverage is informational. Evidence: `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out`, its complete package log, and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. | None. The historical aggregate comparison was dropped at the user's direction; keep inventory and thresholds unchanged. |
 | 6 | Complete | `test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log` records the focused shuffled Linux race run; CI Race run `39321755986` had a success conclusion because its failing test step was tolerated by `continue-on-error`, so it is not a pass. The stale checksum was corrected and bounded module-download retries were pushed. The test failures and fail-open workflow are corrected and pushed. Full-module six-partition Race run `39362007528` completed successfully on commit `2557168fd`; its exact-once package-set comparison covers all 368 integration-tagged packages. | None; the local monolithic race command is superseded due to high resource use. |
 | 7 | Complete | `final-focused-tests.log` passes TLS publication and failure-path tests; `docs/tls-structure.md` documents initialization-only behavior and Compose activation gating. | None; rotation/reload remains unsupported. |
-| 8 | Partially verified | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); CI Load run `39361288540` passed quick, standard, and stress. | Load-profile acceptance is complete; execute the data-preserving Docker lifecycle and legacy-volume checks in an isolated environment. |
+| 8 | Complete | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); CI Load run `39361288540` passed quick, standard, and stress. Isolated product/suite runtime and named-volume restart evidence is recorded under `test-output/review-follow-up/`. | None for load or product/suite runtime. The separate persistent legacy-schema follower upgrade remains tracked under Task 5.6. |
 | 9 | Complete | PKI test conventions were audited; `final-focused-tests.log` passes the relevant shuffled PKI packages and `postgres-continuity-restart.log` passes the PostgreSQL continuity test. | None. |
 | 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
-| 11 | Partially verified | `postgres-continuity-restart.log` verifies PostgreSQL restart continuity for certificate, encrypted-key envelope, and revocation state; this is not an existing-volume upgrade test. | Execute the data-preserving upgrade against an existing PostgreSQL volume and retain a named upgrade artifact. |
-| 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` records the current skip policy and workflow results; `review-follow-up-plan.md` aligns its dispositions. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `lint-docs -q` passing. Load run `39361288540` passed all three Gatling profiles. Race workflow run `39362007528` for commit `2557168fd` passed with all six jobs successful; the exact package-set comparison passed. | Phase 5 remains open for Docker lifecycle/legacy-volume validation. The full-module matrix is the resource-safe replacement for rerunning the interrupted monolithic local race command. |
-| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 14 repository validators, the full shuffled suite, and all 323 coverage thresholds pass. CI Quality #953 (`39165120901`) and CI E2E #952 (`39165121059`) failed on `c42c09e5359270bce889411bb8fc8755dd0669e3`; the repeated-literal and certificate-ownership fixes were pushed in `b0d954d22`. The stale checksum was fixed in `45c2757`, and bounded proxy retries were pushed in `7ef7c857`. The 11 non-Race workflows passed on that push. CI Race `39321755986` had a success conclusion but its test failure was tolerated; the test and workflow fixes were pushed in `e819239de`. Blocking Race run `39356665257` was cancelled at the 30-minute job timeout; Quality run `39356665316` and E2E run `39356665264` passed. Latest Load run `39361288540` passed quick, standard, and stress. Full-module Race run `39362007528` passed all six jobs on commit `2557168fd`. | Task 5.8 race acceptance is complete. The local monolithic race command is superseded by the six-partition matrix; Docker lifecycle and legacy-volume provenance remain open. |
+| 11 | Complete | `postgres-continuity-restart.log` verifies PostgreSQL restart continuity for certificate, encrypted-key envelope, and revocation state. The named-volume upgrade/restart preserved its sentinel and normalized ownership (`test-output/review-follow-up/v25-runtime-resume-20261016-0740/upgrade-persistence-before.log`, `upgrade-apply.log`, and `upgrade-verify.log`). | None; persistent legacy-follower schema reconciliation remains open under Task 5.6. |
+| 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` records the current skip policy and workflow results; `review-follow-up-plan.md` aligns its dispositions. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `lint-docs -q` passing. Load run `39361288540` passed all three Gatling profiles. Race workflow run `39362007528` for commit `2557168fd` passed with all six jobs successful; the exact package-set comparison passed. | Phase 5 remains open only for the persistent legacy-schema follower upgrade. The full-module matrix is the resource-safe replacement for rerunning the interrupted monolithic local race command; historical-volume provenance remains excluded and fail-closed. |
+| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 14 repository validators, the full shuffled suite, and all 323 coverage thresholds pass. CI Quality #953 (`39165120901`) and CI E2E #952 (`39165121059`) failed on `c42c09e5359270bce889411bb8fc8755dd0669e3`; the repeated-literal and certificate-ownership fixes were pushed in `b0d954d22`. The stale checksum was fixed in `45c2757`, and bounded proxy retries were pushed in `7ef7c857`. The 11 non-Race workflows passed on that push. CI Race `39321755986` had a success conclusion but its test failure was tolerated; the test and workflow fixes were pushed in `e819239de`. Blocking Race run `39356665257` was cancelled at the 30-minute job timeout; Quality run `39356665316` and E2E run `39356665264` passed. Latest Load run `39361288540` passed quick, standard, and stress. Full-module Race run `39362007528` passed all six jobs on commit `2557168fd`. | Task 5.8 race acceptance and product/suite Docker lifecycle acceptance are complete. Phase 5 remains open only for the persistent legacy-schema follower upgrade in Task 5.6; historical-volume provenance remains excluded and fail-closed under Recommendation 28. |
 | 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on every task commit from the recorded baseline through the implementation, disposition, and post-review fix commits. | None. |
-| 15 | Partially verified | The application-role access check is described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving application-role access. |
-| 16 | Partially verified | Ownership normalization and malformed-publication rejection are described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving ownership normalization and malformed-publication rejection. |
-| 17 | Partially verified | The PostgreSQL 18 upgrade and subsequent deployment validation are described in `test-output/review-followup/postgres-existing-volume-upgrade.log` and `test-output/review-followup/tracking-deploy-validation.log`; the cited upgrade artifact is not retained. | Re-run the PostgreSQL 18 existing-volume upgrade and retain both the upgrade log and post-upgrade deployment validation. |
+| 15 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` records the PostgreSQL 18 upgrade run as `sm_database_user`, verifies it is not a superuser for the application-DDL check, and confirms DDL succeeds after grants. The named-volume run is also retained in `test-output/review-follow-up/v25-runtime-resume-20261016-0740/upgrade-apply.log` and `upgrade-verify.log`. | None. |
+| 16 | Complete | `test-output/review-followup/postgres-existing-volume-upgrade.log` records deliberate malformed-publication rejection, correction, and idempotent success. The persistent named-volume run records database/publication owner drift and repair in `test-output/review-follow-up/v25-runtime-resume-20261016-0740/upgrade-owner-drift.log`, `upgrade-apply.log`, and `upgrade-verify.log`. | None; persistent legacy-follower schema reconciliation remains open under Task 5.6. |
+| 17 | Complete | The PostgreSQL 18 upgrade and post-upgrade deployment validation are retained in `test-output/review-followup/postgres-existing-volume-upgrade.log` and `test-output/review-followup/tracking-deploy-validation.log`; persistent named-volume restart and sentinel checks are retained under `test-output/review-follow-up/v25-runtime-resume-20261016-0740/`. | None; the remaining follower test targets the legacy schema, not the existing-volume upgrade SQL. |
 | 18 | Complete | `durable-sqlite-pki-init.log`, `durable-sqlite-runtime.log`, `durable-sqlite-compose-health.log`, and `durable-sqlite-authenticated-readiness.log` exercise initialization and runtime behavior against the image. | None. |
-| 19 | Partially verified | `durable-sqlite-compose-parity.log` verifies distinct PS-ID/instance data volumes and project scoping for all 14 SQLite instances. `product-compose-config-services.log` and `suite-compose-config-services.log` record successful static Compose service resolution. | Product/suite runtime stacks remain unverified. Active globally named stacks and the recorded volume incident make unisolated Docker lifecycle operations unsafe; run runtime verification in an isolated environment. |
+| 19 | Complete | `durable-sqlite-compose-parity.log` verifies distinct PS-ID/instance data volumes and project scoping for all 14 SQLite instances. Product Compose startup completed with healthy services (`test-output/review-follow-up/v25-runtime-current/product-runtime-up.log`); the suite runtime has 28 healthy app containers and healthy PostgreSQL leader/follower (`test-output/review-follow-up/v25-replication-current/runtime-health-current.log`) with 7/7 subscriptions, 146/146 ready relations, and sentinel insert/delete replication (`validation-results.txt`). The product runtime was stopped cleanly (`test-output/review-follow-up/v25-runtime-resume-20261016-0740/product-stop.log`). | None for product/suite runtime. Do not operate on globally named or historical volumes; Recommendation 28 remains excluded and fail-closed. |
 | 20 | Complete | `ci-load.yml` uses certificate-authenticated PostgreSQL readiness; `postgres-authenticated-readiness.log` records a live HTTP 200 response. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and CI Load run `39361288540` passed quick, standard, and stress. | None for the configured CI Load profiles. |
 | 21 | Complete | `ci-load.yml` passes inputs through environment variables and validates numeric ranges; `final-repository-validators.log` passes workflow lint. | None. |
 | 22 | Complete | `final-focused-tests.log` passes staged publication and rollback tests; `docs/tls-structure.md` documents the Compose activation gate and unsupported rotation behavior. | None. |
@@ -1953,7 +1967,7 @@ Finding identifiers F-1 and F-2 are distinct from review recommendation numbers.
 | F-7 | Complete | `post-review-compose-target-interpolation-tests.log` passes the shuffled deployment-linter suite, including short/long syntax and mount-target normalization: trailing-slash aliases are accepted for the expected named volume; overlapping bind mounts and ancestor/descendant paths are rejected; a non-overlapping sibling remains allowed. `post-review-compose-target-interpolation-validation.log` passes deployment validation, Go, Go-test, lint-fitness, lint-docs, and lint-text; `post-review-compose-target-interpolation-builds.log` and `post-review-compose-target-interpolation-golangci.log` pass normal/tagged builds and lint. | None. |
 | F-8 | Complete | `post-review-compose-target-interpolation-tests.log` passes braced, unbraced, and defaulted short-syntax and long-syntax unresolved-target rejection cases; source interpolation at a known target and escaped dollar literals remain accepted. `post-review-compose-target-interpolation-validation.log` passes deployment validation, Go, Go-test, lint-fitness, lint-docs, and lint-text; `post-review-compose-target-interpolation-builds.log` and `post-review-compose-target-interpolation-golangci.log` pass normal/tagged builds and lint. CO-21 and the F-7 disposition now match the tested normalization and fail-closed behavior. | None. |
 
-| F-9 | Complete | `public_server_server_package_shuffle.log` verifies the typed application-error mapping and missing-authorization regression across the shuffled server subtree (2,216 tests in 17 packages). | None for the focused fix; complete current repository-wide validation remains open under Task 5.6. |
+| F-9 | Complete | `public_server_server_package_shuffle.log` verifies the typed application-error mapping and missing-authorization regression across the shuffled server subtree (2,216 tests in 17 packages). | None for this focused fix; the separate persistent legacy-schema follower upgrade remains open under Task 5.6. |
 | F-10 | Complete | Gatling uses unique service users; quick, standard, and stress profiles execute explicitly and unsupported profiles fail closed; `ci-load.yml` targets PostgreSQL-1 on port 8002. `v25-gatling-auth-compile.log` passes forced clean compilation, Spotless, and Checkstyle; `v25-load-workflow-validation.log` passes workflow and text validation. The authenticated `complete` profile passed 218/218 requests with 100% success in `test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`; CI Load run `39361288540` passed all configured profiles. | None for the configured load profiles. |
 
 ## Recommendation 28: Legacy Volume Incident Disposition

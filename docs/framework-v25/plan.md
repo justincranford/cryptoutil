@@ -13,8 +13,9 @@ passed the quick, standard, and stress profiles. The Race workflow now partition
 integration-tagged package set as 337 internal + 31 API/command packages = 368; the set comparison
 found no missing, extra, or overlapping packages. Hosted Race run `39362007528` completed
 successfully on commit `2557168fd`, with all six matrix jobs passing. The monolithic standalone race
-attempt is superseded by the partitioned matrix. Docker lifecycle, persistent legacy-follower
-upgrade, and legacy-volume provenance remain open.
+attempt is superseded by the partitioned matrix. Phase 5 remains open only for the persistent
+legacy-schema follower upgrade. Historical-volume provenance remains excluded and fail-closed
+under Recommendation 28; it is not represented as completed validation.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
