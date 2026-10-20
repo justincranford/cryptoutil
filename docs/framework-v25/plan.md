@@ -7,7 +7,7 @@ The earlier Race run `39321755986` is not accepted as a pass because `continue-o
 tolerated a failing test step. The full standalone repository race run was stopped before
 completion under high resource use, so it is not passing evidence. Docker lifecycle and legacy
 volume provenance validation remain open. `origin/main` points to
-`e819239dea4f9abcb08ab18bae1c5373e1b9d64e`.
+`f651f468f`.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
