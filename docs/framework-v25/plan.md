@@ -8,10 +8,13 @@ reported `identity/mfa` at 1199.098 seconds and `identity-authz/clientauth` at 3
 before cancellation; this is not passing evidence.
 The earlier Race run `39321755986` is not accepted as a pass because `continue-on-error`
 tolerated a failing test step. The full standalone repository race run was stopped before
-completion under high resource use, so it is not passing evidence. The quick and stress Gatling
-profiles, Docker lifecycle, and legacy-volume provenance validation remain open. The workflow/code
-fixes were pushed in `e819239de`;
-the status below reflects the latest observed results for that commit.
+completion under high resource use, so it is not passing evidence. CI Load run `39361288540`
+passed the quick, standard, and stress profiles. The Race workflow now partitions the full
+integration-tagged package set as 337 internal + 31 API/command packages = 368; the set comparison
+found no missing, extra, or overlapping packages. Its hosted run `39362007528` is queued, so it is
+not passing evidence yet. The monolithic standalone race attempt is superseded by the partitioned
+matrix. The hosted Race result, Docker lifecycle, persistent legacy-follower upgrade, and
+legacy-volume provenance remain open.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging

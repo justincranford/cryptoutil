@@ -85,11 +85,11 @@ and are independent of the numbered rows in the task evidence table.
   and Checkstyle pass (`test-output/reviewfollowup/v25-gatling-auth-compile.log`). The authenticated
   Service API `complete` profile passed 218/218 requests with 100% success and a 235 ms maximum
   response time (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); do not
-  disable authentication to make load tests pass. The CI Load workflow passed on c42 (run
-  `39165120886`), prior push `7ef7c857` (run `39321756107`), and latest push `e819239de`
-  (run `39356665340`); the `quick` and `stress` profiles
-  have not been evidenced, so this recommendation
-  remains partially verified.
+  disable authentication to make load tests pass. CI Load run `39361288540` passed quick, standard,
+  and stress. The full-module Race matrix run `39362007528` is queued; all 368 integration-tagged
+  package paths were proven covered exactly once across its six roots. The profile gate is
+  complete; this recommendation remains partially verified pending hosted Race and Docker lifecycle
+  / legacy-volume evidence.
 - **9 — Complete.** PKI tests were checked against parallelism, fixtures, UUIDs, cleanup, seams,
   and naming conventions; focused shuffled tests and the PostgreSQL continuity test pass.
 - **10 — Partially verified.** The final authoritative profile now passes the pinned 352-package
@@ -118,8 +118,9 @@ and are independent of the numbered rows in the task evidence table.
   criterion. The authoritative pinned coverage gate passes 323 eligible packages, with 27 no-test
   packages, two expected no-statement packages, and zero threshold failures; see `tasks.md`. CI
   Mutation and Load passed on c42; the Race workflow had a success conclusion but its test step was
-  non-blocking, so race-test success is unverified. The exact standalone full-repository race
-  command and supported-Engine teardown/legacy-volume gates remain open. The CI Quality (#953, run
+  non-blocking, so race-test success is unverified. Latest Load run `39361288540` passed all three
+  profiles. Full-module Race run `39362007528` is queued; its package set is covered exactly once.
+  Supported-Engine teardown and legacy-volume gates remain open. The CI Quality (#953, run
   `39165120901`) and CI E2E (#952, run `39165121059`) failures are fixed locally and pushed in
   `b0d954d22`, but CI Quality, E2E, Load, Fuzz, Mutation, Race, Benchmark, and Coverage on that
   revision failed at dependency validation because `go mod tidy` removes an obsolete
@@ -145,7 +146,8 @@ and are independent of the numbered rows in the task evidence table.
   conclusion despite a tolerated failing test step and is not accepted as passing. Push
   `e819239de` triggered the corrected blocking Race, Quality, and E2E runs. Quality and E2E
   passed; Race was cancelled at the 30-minute job timeout and is not passing evidence.
-  The exact standalone race and runtime gates remain open. The post-fix Linux
+  Full-module Race run `39362007528` is queued and has not passed yet. The monolithic local race
+  attempt is superseded by this six-partition matrix; runtime gates remain open. The post-fix Linux
   CI-equivalent race run across `./internal/...` with the integration tag and `-count=2` passes
   (`test-output/reviewfollowup/framework-v25-full-ci-race-internal-after-shared-tenant-fix-20261019.log`);
   the standalone `./...` race run was stopped before completion due to high resource use after
