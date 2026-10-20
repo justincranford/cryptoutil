@@ -4,8 +4,8 @@
 # WORKFLOW: Race Condition Detection
 # PURPOSE: Detect race conditions using Go's ThreadSanitizer via -race flag
 # DEPENDENCIES: None (standalone workflow, no external services required)
-# EXPECTED DURATION: 15-17min (race detector adds ~10x overhead to test execution)
-# TIMEOUT: 30min (allows 2x expected duration for shared CPU latency + race detector overhead)
+# EXPECTED DURATION: Unmeasured per partition (run 39356665257 was cancelled at the 30min limit with packages still running)
+# TIMEOUT: 90min per partition (four-way exact-once matrix; below GitHub-hosted 360min maximum)
 # CRITICAL PATH: go test -race (slowest step due to ThreadSanitizer instrumentation)
 
 name: CI - Race Condition Detection
@@ -67,9 +67,17 @@ env:
 
 jobs:
   race-condition-detection:
-    name: Race Condition Detection
+    name: Race Condition Detection (${{ matrix.package_root }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        package_root:
+          - apps
+          - apps-framework
+          - apps-tools
+          - shared
 
     services:
       postgres:
@@ -111,8 +119,9 @@ jobs:
       - name: Run race condition detection tests
         working-directory: .
         run: |
-          echo "::group::go test -race"
-          go test -race -tags integration -timeout=25m -count=2 ./internal/...
+          partition="./internal/${{ matrix.package_root }}/..."
+          echo "::group::go test -race ${partition}"
+          go test -race -tags integration -timeout=25m -count=2 "${partition}"
           echo "::endgroup::"
 
       - name: Race condition detection test summary
@@ -121,10 +130,12 @@ jobs:
             >> $GITHUB_STEP_SUMMARY
           echo "Race condition tests completed successfully." \
             >> $GITHUB_STEP_SUMMARY
-          echo "- Package scope: ./internal/..." >> $GITHUB_STEP_SUMMARY
+          echo "- Full package scope: ./internal/..." >> $GITHUB_STEP_SUMMARY
+          echo "- Matrix partition: ./internal/${{ matrix.package_root }}/..." >> $GITHUB_STEP_SUMMARY
           echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
-          echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
-          echo "- Timeout: 25 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- Test repetitions: 2" >> $GITHUB_STEP_SUMMARY
+          echo "- Go test timeout: 25 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- Job timeout: 90 minutes" >> $GITHUB_STEP_SUMMARY
 
       - name: Race summary
         if: always()
