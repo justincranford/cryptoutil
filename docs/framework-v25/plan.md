@@ -1,13 +1,13 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
 **Status**: Implementation phases 1–4 and Phase 6 are complete. Phase 5 remains in progress:
-CI Quality (run `39356665316`) and CI Load (run `39356665340`) passed on `e819239de`; the
-corrected blocking CI Race (`39356665257`) and CI E2E (`39356665264`) runs remain in progress.
+CI Quality (run `39356665316`), CI Load (run `39356665340`), and CI E2E (run `39356665264`)
+passed on `e819239de`; the corrected blocking CI Race run (`39356665257`) remains in progress.
 The earlier Race run `39321755986` is not accepted as a pass because `continue-on-error`
 tolerated a failing test step. The full standalone repository race run was stopped before
 completion under high resource use, so it is not passing evidence. Docker lifecycle and legacy
-volume provenance validation remain open. `origin/main` points to
-`f651f468f`.
+volume provenance validation remain open. The workflow/code fixes were pushed in `e819239de`;
+the status below reflects the latest observed results for that commit.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging

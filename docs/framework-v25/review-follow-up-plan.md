@@ -67,8 +67,8 @@ and are independent of the numbered rows in the task evidence table.
   processes and task-specific validation container were stopped. Its partial output is retained at
   `test-output/reviewfollowup/framework-v25-linux-standalone-race-safe-directory-20261020.log`;
   it is not a passing result. The corrected blocking GitHub Race run `39356665257`, Quality run
-  `39356665316`, and E2E run `39356665264` were triggered by push `e819239de`. Quality passed;
-  Race and E2E remain in progress.
+  `39356665316`, and E2E run `39356665264` were triggered by push `e819239de`. Quality and E2E
+  passed; Race remains in progress.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
   tests pass. Rotation/reload remains unsupported and is documented.
@@ -142,8 +142,8 @@ and are independent of the numbered rows in the task evidence table.
   The earlier audited skip total is superseded by the 36-skip current inventory. Task 5.8 records
   the 11 passing non-Race workflows on prior push `7ef7c857`; CI Race run `39321755986` had a success
   conclusion despite a tolerated failing test step and is not accepted as passing. Push
-  `e819239de` triggered the corrected blocking Race, Quality, and E2E runs. Quality passed;
-  Race and E2E remain in progress.
+  `e819239de` triggered the corrected blocking Race, Quality, and E2E runs. Quality and E2E
+  passed; Race remains in progress.
   The exact standalone race and runtime gates remain open. The post-fix Linux
   CI-equivalent race run across `./internal/...` with the integration tag and `-count=2` passes
   (`test-output/reviewfollowup/framework-v25-full-ci-race-internal-after-shared-tenant-fix-20261019.log`);
