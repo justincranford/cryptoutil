@@ -932,8 +932,9 @@ failures. The latest full run has 36 explained test-level skips and 41 package-l
 the skip audit found no remaining actionable test-gap skip. The pinned 352-package coverage
 threshold gate passes. The 11 non-Race workflows passed on prior push `7ef7c857`; Race run
 `39321755986` had a green conclusion despite its tolerated test failure. Task 5.8 records the
-race defects and correction. The fixes were pushed in `e819239de`; Race run `39356665257` and E2E
-run `39356665264` are in progress, while Quality run `39356665316` passed. The post-fix Linux
+race defects and correction. The fixes were pushed in `e819239de`; Race run `39356665257` was
+cancelled at its 30-minute job timeout after about 29 minutes of test execution, while Quality
+run `39356665316`, Load run `39356665340`, and E2E run `39356665264` passed. The post-fix Linux
 CI-equivalent full internal race run passes twice with the integration tag. Phase 5 also remains
 open for the corrected blocking race gate,
 the exact full-repository race command, and separately listed Docker lifecycle/legacy-volume
@@ -945,7 +946,9 @@ aggregate comparison was dropped at the user's direction.
 and `e2e` workflows are available. The 11 non-Race workflows passed on prior push `7ef7c857`; Race
 (`39321755986`) is not accepted as passing because its test step was tolerated after failure.
 The corrected fail-closed race workflow and tests were pushed in `e819239de`; its Race run
-`39356665257` is in progress. The Windows host has no GCC/Clang, so the plan's exact standalone
+`39356665257` was cancelled at the configured 30-minute job timeout, so it is not passing evidence.
+The test step reported `identity/mfa` at 1199.098 seconds and `identity-authz/clientauth` at
+311.174 seconds before cancellation. The Windows host has no GCC/Clang, so the plan's exact standalone
 `go test -race -count=2 ./...` command still needs a
 supported Linux runner if retained as a separate gate. The current Docker Engine is 29.8.2,
 meeting the corrected minimum aligned with Docker Desktop 4.95.0.
@@ -1545,7 +1548,8 @@ do not establish a coverage pass.
   workflows passed on that push. CI Race run `39321755986` had a success conclusion only because
   its failing test step was tolerated by `continue-on-error`; its result was incorrectly treated
   as a pass. Race-test and workflow defects were fixed and pushed in `e819239de`. The blocking
-  GitHub Race run `39356665257` is in progress; Quality run `39356665316` and E2E run
+  GitHub Race run `39356665257` was cancelled at the 30-minute job timeout; Quality run
+  `39356665316` and E2E run
   `39356665264` passed. The post-fix Linux
   CI-equivalent internal race run passes twice. The exact standalone full-repository race run was
   stopped before completion because it reached high resource use; it is not a passing result.
@@ -1585,7 +1589,8 @@ do not establish a coverage pass.
     `no packages to test`). The workflow now targets `./internal/...` only, removes the
     fail-open behavior, and gives the race job an enforced timeout. The local CI-equivalent
     internal race run passes; the exact standalone race was stopped before completion. The
-    corrected blocking GitHub run `39356665257` is in progress, so its result is not yet known.
+    corrected blocking GitHub run `39356665257` was cancelled at its 30-minute job timeout and is
+    not passing evidence.
   - The first corrected Linux `./internal/...` run exposed another shared SQLite fixture race in
     `registration_integration_list_test.go`: two parallel tests called `FirstOrCreate` for the
     same TestMain tenant ID before that tenant existed, so both attempted the same primary-key
@@ -1617,7 +1622,9 @@ do not establish a coverage pass.
     retained; the corrected non-root run after fixing the container's Git safe-directory
     configuration was interrupted before completion due to high resource use. Its partial output
     is not a passing result; do not close this criterion.
-  - [ ] Verify the post-fix workflow results and update this task, `plan.md`, and `lessons.md`.
+  - [x] Verify the completed Quality, Load, and E2E results and update this task, `plan.md`, and
+    `lessons.md`; keep Race acceptance open because run `39356665257` was cancelled at the job
+    timeout and did not pass.
 - **Local validation evidence**:
   - `test-output/reviewfollowup/framework-v25-workflow-fix-build.log` — normal and
     `e2e,integration` builds exit 0.
@@ -1647,7 +1654,8 @@ do not establish a coverage pass.
   tolerated by `continue-on-error`; it is not counted as a pass. Its test failures and the invalid
   `./scripts/...` package selector were fixed and pushed in `e819239de`. The fail-closed
   `./internal/...` workflow correction passes `lint-workflow -q`. On current push `e819239de`, the
-  blocking Race run `39356665257` is in progress; Quality run `39356665316` and E2E run
+  blocking Race run `39356665257` was cancelled at the 30-minute job timeout; Quality run
+  `39356665316` and E2E run
   `39356665264` passed.
 
 ## Phase 6: Knowledge Propagation
@@ -1657,7 +1665,7 @@ ENG-HANDBOOK.md, agents, skills, instructions, and active docs. Remove stale pki
 from current project documentation while retaining migration history where it is relevant.
 Verify propagation integrity.
 
-**Status**: Phase 6 documentation and propagation work and the earlier local-code commit/push milestone are complete. Phase 5 remains open for the corrected blocking Race rerun, the exact standalone race gate, and the listed Docker lifecycle/legacy-volume validation. The local CI-equivalent full internal race run passes, but Task 5.8 remains in progress until the standalone gate and post-push GitHub Race test step are verified.
+**Status**: Phase 6 documentation and propagation work and the earlier local-code commit/push milestone are complete. Phase 5 remains open for a completed corrected blocking Race run, the exact standalone race gate, and the listed Docker lifecycle/legacy-volume validation. The local CI-equivalent full internal race run passes, but Task 5.8 remains in progress until the standalone gate and post-push GitHub Race test step are verified.
 
 ---
 
@@ -1889,19 +1897,19 @@ Recommendation numbers below refer to `review-follow-up-plan.md`, not to the his
 | 5 | Complete within the accepted scope | The latest profile-driven gate after ECDH changes passes all 352 pinned package results, 27 no-test packages, two expected no-statement packages, and all 323 threshold-eligible packages with zero threshold failures. Aggregate coverage is informational. Evidence: `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out`, its complete package log, and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. | None. The historical aggregate comparison was dropped at the user's direction; keep inventory and thresholds unchanged. |
 | 6 | Partially verified | `test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log` records the focused shuffled Linux race run; CI Race run `39321755986` had a success conclusion because its failing test step was tolerated by `continue-on-error`, so it is not a pass. The stale checksum was corrected and bounded module-download retries were pushed. The test failures and fail-open workflow are corrected locally. | Pass the corrected blocking CI Race rerun and complete the exact standalone `go test -race -count=2 ./...` gate on Linux; the post-fix CI-equivalent internal race run passes (see its Task 5.8 evidence), while the corrected standalone run was stopped before completion due to high resource use. |
 | 7 | Complete | `final-focused-tests.log` passes TLS publication and failure-path tests; `docs/tls-structure.md` documents initialization-only behavior and Compose activation gating. | None; rotation/reload remains unsupported. |
-| 8 | Partially verified | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and CI Load passed on `e819239de` (run `39356665340`). | Evidence the remaining Gatling simulation profiles; the `complete` profile and CI Load workflow are green. |
+| 8 | Partially verified | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and CI Load passed on `e819239de` (run `39356665340`). | Evidence the remaining `quick` and `stress` Gatling profiles; the `complete` profile and standard CI Load workflow are green. |
 | 9 | Complete | PKI test conventions were audited; `final-focused-tests.log` passes the relevant shuffled PKI packages and `postgres-continuity-restart.log` passes the PostgreSQL continuity test. | None. |
 | 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
 | 11 | Partially verified | `postgres-continuity-restart.log` verifies PostgreSQL restart continuity for certificate, encrypted-key envelope, and revocation state; this is not an existing-volume upgrade test. | Execute the data-preserving upgrade against an existing PostgreSQL volume and retain a named upgrade artifact. |
-| 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` records the current skip policy and workflow results; `review-follow-up-plan.md` aligns its dispositions. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `lint-docs -q` passing. The 11 non-Race workflows passed on prior push `7ef7c857`; CI Race run `39321755986` had a success conclusion despite a tolerated test failure. Push `e819239de` triggered corrected Race, Quality, and E2E runs; Quality and E2E passed, while Race remains in progress. | Phase 5 remains open pending the blocking Race result, the exact standalone race gate, and Docker lifecycle/legacy-volume validation. |
-| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 14 repository validators, the full shuffled suite, and all 323 coverage thresholds pass. CI Quality #953 (`39165120901`) and CI E2E #952 (`39165121059`) failed on `c42c09e5359270bce889411bb8fc8755dd0669e3`; the repeated-literal and certificate-ownership fixes were pushed in `b0d954d22`. The stale checksum was fixed in `45c2757`, and bounded proxy retries were pushed in `7ef7c857`. The 11 non-Race workflows passed on that push. CI Race `39321755986` had a success conclusion but its test failure was tolerated; the test and workflow fixes were pushed in `e819239de`. Blocking Race run `39356665257` remains in progress; Quality run `39356665316` and E2E run `39356665264` passed. | Task 5.8 remains in progress until the blocking Race result is verified. The exact standalone full-repository race command, Docker lifecycle, remaining load profiles, and legacy-volume provenance remain open. |
+| 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` records the current skip policy and workflow results; `review-follow-up-plan.md` aligns its dispositions. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `lint-docs -q` passing. The 11 non-Race workflows passed on prior push `7ef7c857`; CI Race run `39321755986` had a success conclusion despite a tolerated test failure. Push `e819239de` triggered corrected Race, Quality, and E2E runs; Quality and E2E passed, while Race was cancelled at the 30-minute job timeout. | Phase 5 remains open pending a passing blocking Race result, the exact standalone race gate, the quick/stress Gatling profiles, and Docker lifecycle/legacy-volume validation. |
+| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 14 repository validators, the full shuffled suite, and all 323 coverage thresholds pass. CI Quality #953 (`39165120901`) and CI E2E #952 (`39165121059`) failed on `c42c09e5359270bce889411bb8fc8755dd0669e3`; the repeated-literal and certificate-ownership fixes were pushed in `b0d954d22`. The stale checksum was fixed in `45c2757`, and bounded proxy retries were pushed in `7ef7c857`. The 11 non-Race workflows passed on that push. CI Race `39321755986` had a success conclusion but its test failure was tolerated; the test and workflow fixes were pushed in `e819239de`. Blocking Race run `39356665257` was cancelled at the 30-minute job timeout; Quality run `39356665316` and E2E run `39356665264` passed. | Task 5.8 remains in progress until a blocking Race run passes. The exact standalone full-repository race command, quick/stress Gatling profiles, Docker lifecycle, and legacy-volume provenance remain open. |
 | 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on every task commit from the recorded baseline through the implementation, disposition, and post-review fix commits. | None. |
 | 15 | Partially verified | The application-role access check is described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving application-role access. |
 | 16 | Partially verified | Ownership normalization and malformed-publication rejection are described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving ownership normalization and malformed-publication rejection. |
 | 17 | Partially verified | The PostgreSQL 18 upgrade and subsequent deployment validation are described in `test-output/review-followup/postgres-existing-volume-upgrade.log` and `test-output/review-followup/tracking-deploy-validation.log`; the cited upgrade artifact is not retained. | Re-run the PostgreSQL 18 existing-volume upgrade and retain both the upgrade log and post-upgrade deployment validation. |
 | 18 | Complete | `durable-sqlite-pki-init.log`, `durable-sqlite-runtime.log`, `durable-sqlite-compose-health.log`, and `durable-sqlite-authenticated-readiness.log` exercise initialization and runtime behavior against the image. | None. |
 | 19 | Partially verified | `durable-sqlite-compose-parity.log` verifies distinct PS-ID/instance data volumes and project scoping for all 14 SQLite instances. `product-compose-config-services.log` and `suite-compose-config-services.log` record successful static Compose service resolution. | Product/suite runtime stacks remain unverified. Active globally named stacks and the recorded volume incident make unisolated Docker lifecycle operations unsafe; run runtime verification in an isolated environment. |
-| 20 | Partially verified | `ci-load.yml` uses certificate-authenticated PostgreSQL readiness; `postgres-authenticated-readiness.log` records a live HTTP 200 response. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and the multi-service CI Load workflow passed on `e819239de` (run `39356665340`). | Evidence the remaining simulation profiles; the checksum correction and CI Load rerun are complete. |
+| 20 | Partially verified | `ci-load.yml` uses certificate-authenticated PostgreSQL readiness; `postgres-authenticated-readiness.log` records a live HTTP 200 response. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`), and the multi-service CI Load workflow passed on `e819239de` (run `39356665340`). | Evidence the remaining `quick` and `stress` profiles; the checksum correction and CI Load rerun are complete. |
 | 21 | Complete | `ci-load.yml` passes inputs through environment variables and validates numeric ranges; `final-repository-validators.log` passes workflow lint. | None. |
 | 22 | Complete | `final-focused-tests.log` passes staged publication and rollback tests; `docs/tls-structure.md` documents the Compose activation gate and unsupported rotation behavior. | None. |
 | 23 | Complete | `final-focused-tests.log` passes deterministic filesystem failure-path and platform permission tests. | None. |

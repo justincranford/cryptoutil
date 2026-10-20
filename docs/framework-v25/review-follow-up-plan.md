@@ -68,7 +68,8 @@ and are independent of the numbered rows in the task evidence table.
   `test-output/reviewfollowup/framework-v25-linux-standalone-race-safe-directory-20261020.log`;
   it is not a passing result. The corrected blocking GitHub Race run `39356665257`, Quality run
   `39356665316`, and E2E run `39356665264` were triggered by push `e819239de`. Quality and E2E
-  passed; Race remains in progress.
+  passed; Race was cancelled at its 30-minute job timeout after reporting `identity/mfa` at
+  1199.098 seconds and `identity-authz/clientauth` at 311.174 seconds.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
   tests pass. Rotation/reload remains unsupported and is documented.
@@ -86,7 +87,7 @@ and are independent of the numbered rows in the task evidence table.
   response time (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); do not
   disable authentication to make load tests pass. The CI Load workflow passed on c42 (run
   `39165120886`), prior push `7ef7c857` (run `39321756107`), and latest push `e819239de`
-  (run `39356665340`); remaining simulation profiles
+  (run `39356665340`); the `quick` and `stress` profiles
   have not been evidenced, so this recommendation
   remains partially verified.
 - **9 — Complete.** PKI tests were checked against parallelism, fixtures, UUIDs, cleanup, seams,
@@ -143,7 +144,7 @@ and are independent of the numbered rows in the task evidence table.
   the 11 passing non-Race workflows on prior push `7ef7c857`; CI Race run `39321755986` had a success
   conclusion despite a tolerated failing test step and is not accepted as passing. Push
   `e819239de` triggered the corrected blocking Race, Quality, and E2E runs. Quality and E2E
-  passed; Race remains in progress.
+  passed; Race was cancelled at the 30-minute job timeout and is not passing evidence.
   The exact standalone race and runtime gates remain open. The post-fix Linux
   CI-equivalent race run across `./internal/...` with the integration tag and `-count=2` passes
   (`test-output/reviewfollowup/framework-v25-full-ci-race-internal-after-shared-tenant-fix-20261019.log`);
