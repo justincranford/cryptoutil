@@ -98,14 +98,6 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Use testTenantID since the auth middleware sets tenant_id from this global.
-	// Create tenant if it doesn't exist (FirstOrCreate handles both cases).
-	tenant := &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
-		ID:   testTenantID,
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
-	}
-	require.NoError(t, testDB.WithContext(ctx).Where("id = ?", testTenantID).FirstOrCreate(tenant).Error)
-
 	// Create join request with unique ID.
 	userID := googleUuid.New()
 	joinReq := &cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest{
@@ -157,7 +149,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 			foundOurRequest = true
 
 			require.Equal(t, testJoinRequestPendingStatus, reqMap[cryptoutilSharedMagic.StringStatus])
-			require.Equal(t, tenant.ID.String(), reqMap["tenant_id"])
+			require.Equal(t, testTenantID.String(), reqMap["tenant_id"])
 
 			break
 		}
@@ -171,14 +163,6 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-
-	// Create or find existing tenant using the same tenant ID from auth middleware.
-	tenant := &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
-		ID:   testTenantID,
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
-	}
-	dbResult := testDB.Where("id = ?", testTenantID).FirstOrCreate(tenant)
-	require.NoError(t, dbResult.Error)
 
 	// Create join request with ALL optional fields populated.
 	userID := googleUuid.New()

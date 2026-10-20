@@ -69,6 +69,7 @@ jobs:
   race-condition-detection:
     name: Race Condition Detection
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -107,15 +108,11 @@ jobs:
           go-mod-verify: true
           go-mod-tidy: true
 
-      - name: Run race condition detection tests (informational)
-        # continue-on-error: true is intentional — known DATA RACE in crypto/certificate and shared/pool
-        # Tracking: remove when races are fixed (https://github.com/justincranford/cryptoutil/issues/TBD)
-        continue-on-error: true
+      - name: Run race condition detection tests
         working-directory: .
         run: |
           echo "::group::go test -race"
-          echo "Note: Known DATA RACE issues in crypto/certificate and shared/pool packages"
-          go test -race -tags integration -timeout=25m -count=2 ./internal/... ./scripts/...
+          go test -race -tags integration -timeout=25m -count=2 ./internal/...
           echo "::endgroup::"
 
       - name: Race condition detection test summary
@@ -124,11 +121,10 @@ jobs:
             >> $GITHUB_STEP_SUMMARY
           echo "Race condition tests completed successfully." \
             >> $GITHUB_STEP_SUMMARY
-          echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
+          echo "- Package scope: ./internal/..." >> $GITHUB_STEP_SUMMARY
           echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
           echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
           echo "- Timeout: 25 minutes" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
 
       - name: Race summary
         if: always()

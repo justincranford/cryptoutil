@@ -285,9 +285,6 @@ func TestRepository_GormErrors(t *testing.T) {
 	elasticID := googleUuid.Must(googleUuid.NewV7())
 	itemID := googleUuid.Must(googleUuid.NewV7())
 	requestID := googleUuid.Must(googleUuid.NewV7()).String()
-	elastic := newRepositoryTestElasticJWK(tenantID)
-	material := newRepositoryTestMaterial(elasticID, true)
-	auditConfig := &cryptoutilAppsSmKmsModel.AuditConfig{TenantID: tenantID, Operation: testOperationSign}
 	auditLog := &cryptoutilAppsSmKmsModel.AuditLogEntry{ID: itemID, TenantID: tenantID, Operation: testOperationSign, RequestID: requestID}
 	message := &cryptoutilAppsSmKmsModel.Message{ID: itemID}
 	recipient := &cryptoutilAppsSmKmsModel.MessageRecipientJWK{ID: itemID}
@@ -306,7 +303,11 @@ func TestRepository_GormErrors(t *testing.T) {
 
 			return err
 		}},
-		{name: "audit config upsert", call: func() error { return NewAuditConfigRepository(db).Upsert(ctx, auditConfig) }},
+		{name: "audit config upsert", call: func() error {
+			config := &cryptoutilAppsSmKmsModel.AuditConfig{TenantID: tenantID, Operation: testOperationSign}
+
+			return NewAuditConfigRepository(db).Upsert(ctx, config)
+		}},
 		{name: "audit config delete", call: func() error { return NewAuditConfigRepository(db).Delete(ctx, tenantID, testOperationSign) }},
 		{name: "audit config should audit", call: func() error {
 			_, err := NewAuditConfigRepository(db).ShouldAudit(ctx, tenantID, testOperationSign)
@@ -339,7 +340,9 @@ func TestRepository_GormErrors(t *testing.T) {
 
 			return err
 		}},
-		{name: "elastic create", call: func() error { return NewElasticJWKRepository(db).Create(ctx, elastic) }},
+		{name: "elastic create", call: func() error {
+			return NewElasticJWKRepository(db).Create(ctx, newRepositoryTestElasticJWK(tenantID))
+		}},
 		{name: "elastic get", call: func() error {
 			_, err := NewElasticJWKRepository(db).Get(ctx, tenantID, "kid")
 
@@ -355,11 +358,15 @@ func TestRepository_GormErrors(t *testing.T) {
 
 			return err
 		}},
-		{name: "elastic update", call: func() error { return NewElasticJWKRepository(db).Update(ctx, elastic) }},
+		{name: "elastic update", call: func() error {
+			return NewElasticJWKRepository(db).Update(ctx, newRepositoryTestElasticJWK(tenantID))
+		}},
 		{name: "elastic delete", call: func() error { return NewElasticJWKRepository(db).Delete(ctx, elasticID) }},
 		{name: "elastic increment", call: func() error { return NewElasticJWKRepository(db).IncrementMaterialCount(ctx, elasticID) }},
 		{name: "elastic decrement", call: func() error { return NewElasticJWKRepository(db).DecrementMaterialCount(ctx, elasticID) }},
-		{name: "material create", call: func() error { return NewMaterialJWKRepository(db).Create(ctx, material) }},
+		{name: "material create", call: func() error {
+			return NewMaterialJWKRepository(db).Create(ctx, newRepositoryTestMaterial(elasticID, true))
+		}},
 		{name: "material get by kid", call: func() error {
 			_, err := NewMaterialJWKRepository(db).GetByMaterialKID(ctx, "kid")
 
@@ -380,7 +387,9 @@ func TestRepository_GormErrors(t *testing.T) {
 
 			return err
 		}},
-		{name: "material rotate", call: func() error { return NewMaterialJWKRepository(db).RotateMaterial(ctx, elasticID, material) }},
+		{name: "material rotate", call: func() error {
+			return NewMaterialJWKRepository(db).RotateMaterial(ctx, elasticID, newRepositoryTestMaterial(elasticID, true))
+		}},
 		{name: "material retire", call: func() error { return NewMaterialJWKRepository(db).RetireMaterial(ctx, itemID) }},
 		{name: "material delete", call: func() error { return NewMaterialJWKRepository(db).Delete(ctx, itemID) }},
 		{name: "material count", call: func() error {

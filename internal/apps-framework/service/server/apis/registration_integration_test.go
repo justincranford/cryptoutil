@@ -270,7 +270,19 @@ func TestMain(m *testing.M) {
 
 	// Create test authentication middleware that sets tenant_id and user_id.
 	// In production, this would be set by JWT/session validation middleware.
-	testTenantID = googleUuid.New()
+	testTenantID, err = googleUuid.NewV7()
+	if err != nil {
+		panic(fmt.Sprintf("failed to generate shared tenant ID: %v", err))
+	}
+
+	testTenant := &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
+		ID:   testTenantID,
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
+	}
+	if err := testDB.Create(testTenant).Error; err != nil {
+		panic(fmt.Sprintf("failed to create shared integration tenant: %v", err))
+	}
+
 	testUserID = googleUuid.New()
 	testRealmID := googleUuid.New() // Create realm ID for mock validator
 	authMiddleware := func(c *fiber.Ctx) error {
@@ -406,8 +418,9 @@ func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
 	// Create separate Fiber app with low rate limit for testing.
 	app := fiber.New()
 
-	// Create custom rate limiter with 3 requests/min and burst 3 (so exactly 3 requests allowed).
-	rateLimiter := NewRateLimiter(3, 3)
+	// Disable refill so this test isolates burst exhaustion from request processing time.
+	rateLimiter := NewRateLimiter(0, 3)
+	t.Cleanup(rateLimiter.Stop)
 
 	// Rate limit middleware.
 	rateLimitMiddleware := func(c *fiber.Ctx) error {
@@ -426,6 +439,7 @@ func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
 	app.Post("/browser/api/v1/auth/register", rateLimitMiddleware, handlers.HandleRegisterUser)
 
 	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
+	tenantNamePrefix := googleUuid.Must(googleUuid.NewV7()).String()
 
 	// Make 4 requests quickly (should exceed limit).
 	for i := 0; i < 4; i++ {
@@ -433,7 +447,7 @@ func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
 			Username:     fmt.Sprintf("%s_%d", username, i),
 			Password:     testIntegrationPassword,
 			Email:        fmt.Sprintf("%s_%d@example.com", username, i),
-			TenantName:   fmt.Sprintf("tenant_%d", i),
+			TenantName:   fmt.Sprintf("tenant_%s_%d", tenantNamePrefix, i),
 			CreateTenant: true,
 		}
 		bodyBytes, _ := json.Marshal(reqBody) //nolint:gosec // G117: test fixture marshaling registration request; password is a test placeholder

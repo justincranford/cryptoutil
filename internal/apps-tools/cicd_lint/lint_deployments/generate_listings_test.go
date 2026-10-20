@@ -184,7 +184,8 @@ func TestGenerateDeploymentsListing(t *testing.T) {
 	t.Run("nonexistent directory", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := GenerateDeploymentsListing("/nonexistent")
+		missingDir := filepath.Join(t.TempDir(), "missing-deployments")
+		_, err := GenerateDeploymentsListing(missingDir)
 		require.Error(t, err, "expected error for nonexistent directory")
 	})
 }
@@ -285,7 +286,8 @@ func TestWriteListingFile(t *testing.T) {
 	t.Run("nonexistent base directory", func(t *testing.T) {
 		t.Parallel()
 
-		err := WriteListingFile("/nonexistent", "/tmp/output.json")
+		missingDir := filepath.Join(t.TempDir(), "missing-base")
+		err := WriteListingFile(missingDir, filepath.Join(missingDir, "output.json"))
 		require.Error(t, err, "expected error for nonexistent directory")
 	})
 }
@@ -320,7 +322,8 @@ func createTestDir(t *testing.T, dir string, name string) {
 func TestGenerateConfigsListing_Error(t *testing.T) {
 	t.Parallel()
 
-	_, err := GenerateConfigsListing("/nonexistent-configs-dir-xyz")
+	missingDir := filepath.Join(t.TempDir(), "missing-configs")
+	_, err := GenerateConfigsListing(missingDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate configs listing")
 }
@@ -335,7 +338,7 @@ func TestWriteListingFile_WriteError(t *testing.T) {
 	createTestFile(t, tmpDir, testTestYml, "content")
 
 	// Use a directory path that doesn't exist for output.
-	badOutput := filepath.Join("/nonexistent-dir-xyz", "output.json")
+	badOutput := filepath.Join(t.TempDir(), "missing-output-dir", "output.json")
 	err := WriteListingFile(tmpDir, badOutput)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to write listing file")

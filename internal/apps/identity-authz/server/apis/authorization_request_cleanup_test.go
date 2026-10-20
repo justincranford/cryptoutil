@@ -55,3 +55,32 @@ func TestInMemoryAuthorizationRequestStore_CleanupExpired(t *testing.T) {
 	require.NotContains(t, store.requestCodeIndex, expiredRequestID)
 	require.NotContains(t, store.requestCodeIndex, expiredUniqueCodeRequestID)
 }
+
+func TestInMemoryAuthorizationRequestStore_CleanupLifecycle(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		start bool
+	}{
+		{name: "started worker", start: true},
+		{name: "worker not started"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			store := NewInMemoryAuthorizationRequestStore()
+			t.Cleanup(store.Close)
+
+			if tc.start {
+				store.StartCleanup()
+				store.StartCleanup()
+			}
+
+			store.Close()
+			store.Close()
+		})
+	}
+}

@@ -12,7 +12,7 @@ after each phase's quality gates pass.
 2. [Phase 2](#phase-2-extend-sm-kms-api-with-pki-endpoints): All 18 PKI routes are registered under both public API prefixes; OpenAPI and handler tests pass.
 3. [Phase 3](#phase-3-delete-pki-ca-service-artifacts): The standalone pki-ca service artifacts are absent and normal/tagged builds pass.
 4. [Phase 4](#phase-4-delete-pki-product-and-update-registry): The canonical registry, runtime registry, and fitness validation reflect 3 products and 7 PS-IDs.
-5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds; skips are classified under the repository's probability-based policy. Coverage, Race, Mutation, and Load passed on push `c42c09e5359270bce889411bb8fc8755dd0669e3`; Quality and E2E failed and local fixes await post-push verification. The exact standalone full-repository race, Docker lifecycle, and legacy-volume provenance gates remain open.
+5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds; skips are classified under the repository's probability-based policy. Coverage, Mutation, and Load passed on push `c42c09e5359270bce889411bb8fc8755dd0669e3`; Quality and E2E failed there, and their fixes were pushed in `b0d954d22`. The 11 non-Race workflows passed on latest push `7ef7c857`, but CI Race run `39321755986` is a false green because its failing test step was non-blocking. The corrected blocking Race rerun, exact standalone full-repository race, Docker lifecycle, and legacy-volume provenance gates remain open.
 6. [Phase 6](#phase-6-knowledge-propagation): README and handbook topology documentation are reconciled, lessons are recorded, and docs propagation validation passes.
 
 ---
@@ -121,7 +121,7 @@ Treat the machine-readable registry as the source of truth, validate all derived
 
 ### What Worked
 
-Recorded normal/tagged builds, the default-concurrency shuffled full suite, normal/tagged golangci-lint, and applicable cicd-lint checks passed. The latest detailed full run has 17,736 passing test events, no failures, 36 explained skips, and 41 packages without test files. The current pinned coverage profile passes all 323 eligible thresholds; the focused sysinfo profile reaches 100.0%. The local workflow fixes pass normal/tagged builds, a fresh shuffled full-suite run, all 14 repository validators, and focused E2E-infrastructure tests/lint (evidence is recorded under Task 5.8). The original fixes were pushed, but eight workflows on `b0d954d22` failed at dependency validation because `go mod tidy` removes a stale `grpc-gateway v1.16.0` content checksum. Removing the obsolete checksum locally makes `go mod tidy -diff`, `go mod verify`, and `lint-go-mod` pass; CI reruns are still required to verify both the checksum correction and the earlier Quality/E2E fixes. The standalone `go test -race -count=2 ./...` plus runtime gates remain open.
+Recorded normal/tagged builds, the default-concurrency shuffled full suite, normal/tagged golangci-lint, and applicable cicd-lint checks passed. The latest detailed full run has 17,736 passing test events, no failures, 36 explained skips, and 41 packages without test files. The current pinned coverage profile passes all 323 eligible thresholds; the focused sysinfo profile reaches 100.0%. The local workflow fixes pass normal/tagged builds, a fresh shuffled full-suite run, all 14 repository validators, and focused E2E-infrastructure tests/lint (evidence is recorded under Task 5.8). The original Quality/E2E fixes were pushed in `b0d954d22`; the stale checksum correction was pushed in `45c2757`; bounded retries for transient module-download failures were pushed in `7ef7c857`. The 11 non-Race workflows passed on the latest push. CI Race run `39321755986` had a success conclusion because its test failure was tolerated by `continue-on-error`; it is not accepted as passing. The fail-closed Race workflow and test fixes pass the post-fix Linux CI-equivalent full internal race run (`-tags=integration -count=2`). The initial standalone root run failed chmod-based permission tests; the first non-root run failed because Git rejected the root-owned `/workspace` checkout as dubious ownership while `go list` collected VCS metadata. Adding `/workspace` to the disposable container's system `safe.directory` made `git status` and `go list ./...` pass as UID 65534. The corrected full standalone race run was stopped before completion after resource monitoring showed 43% CPU and about 1.5 GiB; its partial output is not a passing result. The corrected blocking GitHub Race rerun and runtime gates remain open.
 
 ### What Didn't Work
 
@@ -129,11 +129,19 @@ Push `c42c09e5359270bce889411bb8fc8755dd0669e3` exposed two issues: CI Quality #
 (`39165120901`) reported `goconst` for repeated `"cp"` and
 `"test-service-pki-init-1:/certs/."` literals in the E2E infrastructure test; CI E2E #952
 (`39165121059`) could not remove the generated certificate bind mount because files retained
-container ownership. These fixes were pushed in `b0d954d22`, but eight workflows on that revision
+container ownership. These fixes were pushed in `b0d954d22`. Eight workflows on that revision then
 failed before their substantive steps because `go.sum` retained an unused
 `github.com/grpc-ecosystem/grpc-gateway v1.16.0` content checksum that `go mod tidy` deletes.
-This was reproduced with `go mod tidy -diff` and corrected locally; post-fix CI must verify the
-entire workflow chain. The earlier CI-equivalent coverage baseline reported 152/320 executable
+The checksum correction was pushed in `45c2757`; transient proxy HTTP/2 failures prompted bounded
+module-download retries in `7ef7c857`. The 11 non-Race workflows passed on that push, but CI Race
+run `39321755986` was a false green: its test step was non-blocking and reported test failures.
+GORM error-path tests shared mutable fixtures across parallel subtests; JWT claim error tests
+computed expirations before delayed parallel execution; and registration rate-limit tests reused
+tenant identifiers and depended on token-bucket refill timing under race instrumentation. These
+test defects were fixed. A local CI-equivalent run then exposed that `./scripts/...` matches no Go
+packages and makes `go test` exit 1; the workflow now targets `./internal/...` only, fails closed,
+and has an enforced timeout. The corrected blocking run is pending.
+The earlier CI-equivalent coverage baseline reported 152/320 executable
 packages meeting thresholds and 168/320 below (71.5% aggregate statement coverage); this is
 historical and superseded by the pinned 352-package profile, which now passes all thresholds. The
 user explicitly dropped the historical aggregate comparison, so it will not be pursued; the
@@ -144,7 +152,33 @@ was parsed as an extra package.
 
 ### Root Causes
 
-The original coverage gate pinned a stale no-test inventory and the initial profile did not pass package thresholds; after reconciliation, the current pinned gate validates 352 packages and all 323 eligible thresholds. The Quality failure came from repeated literals in an expected command argument list. The E2E failure came from `cp -a` preserving UID/GID 65532 on a host bind mount that the runner later removes. The follow-up failures share a separate cause: an unused grpc-gateway v1.16.0 content checksum remained in `go.sum`, so CI's `go mod tidy` check failed before test, lint, and runtime steps. The local fixes name the repeated literals, restore runner ownership after Compose teardown, and remove the obsolete checksum; post-fix workflow runs are required to establish closure. Go's race detector requires CGO and a C compiler; the Windows host has neither, so the exact standalone full-repository race command requires a supported Linux runner. A quoted coverage-profile path is required by the Windows shell invocation.
+The original coverage gate pinned a stale no-test inventory and the initial profile did not pass
+package thresholds; after reconciliation, the current pinned gate validates 352 packages and all
+323 eligible thresholds. The Quality failure came from repeated literals in an expected command
+argument list. The E2E failure came from `cp -a` preserving UID/GID 65532 on a host bind mount that
+the runner later removes. The follow-up failures share a separate cause: an unused grpc-gateway
+v1.16.0 content checksum remained in `go.sum`, so CI's `go mod tidy` check failed before test,
+lint, and runtime steps. The repeated literals, runner ownership, and stale checksum were
+corrected; bounded retries now handle transient module proxy HTTP/2 failures.
+
+The prior CI Race workflow conclusion did not prove a passing test: `continue-on-error` masked
+race-test failures. The failing tests shared mutable GORM fixtures, used stale JWT expiration
+values in delayed parallel subtests, and reused rate-limit tenant names while relying on refill
+timing. Isolate mutable fixtures, compute time inside each parallel subtest, and use unique tenant
+IDs with a non-refilling limiter. Race workflows must not tolerate test failures, and package
+selectors must match actual Go packages (`./internal/...`, not the empty `./scripts/...`). The
+first Linux non-root standalone rerun also exposed an environment issue: Git refused the
+root-owned mounted checkout as dubious ownership, causing `go list` VCS metadata collection to
+fail. Adding the checkout to the disposable container's system `safe.directory` made the direct
+Git and `go list` checks pass. The corrected full run was then stopped before completion after it
+consumed 43% CPU and about 1.5 GiB; interrupting the PowerShell client alone left test processes
+running inside the container, so those exact processes and the task-specific validation container
+were explicitly stopped. A separate existing `sm` PostgreSQL app container was observed in an
+on-failure restart loop (333 restarts) because `shared-postgres-leader` and the OTel collector did
+not resolve in its Compose network; it was left untouched. Go's race detector requires CGO and a C
+compiler; the Windows host has neither, so the exact standalone full-repository race command
+requires a supported Linux runner. A quoted coverage-profile path is required by the Windows shell
+invocation.
 
 ### Patterns for Future Phases
 

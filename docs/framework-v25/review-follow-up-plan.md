@@ -47,9 +47,26 @@ and are independent of the numbered rows in the task evidence table.
   `/internal/apps`; the test now discovers the nearest `go.mod` from its working directory, and
   the shuffled health-path package passes
   (`test-output/reviewfollowup/health-path-real-workspace-shuffle.log`). The CI Race workflow
-  passed on `c42c09e5359270bce889411bb8fc8755dd0669e3` (run `39165120898`). The exact standalone
-  `go test -race -count=2 ./...` command remains outstanding; this Windows host lacks GCC/Clang,
-  so that broader command requires a supported Linux runner.
+  concluded successfully on `c42c09e5359270bce889411bb8fc8755dd0669e3` (run `39165120898`), but
+  its test step was configured non-blocking. CI Race on latest push `7ef7c857` also concluded
+  successfully (run `39321755986`) despite tolerated race-test failures; neither conclusion is
+  accepted as proof of a passing race gate. The test and workflow defects are corrected locally;
+  the first corrected full internal race attempt then exposed parallel `FirstOrCreate` calls
+  colliding on a shared SQLite tenant fixture. TestMain now seeds that tenant before parallel
+  tests; the focused shuffled race rerun passes twice in
+  `test-output/reviewfollowup/framework-v25-registration-list-race-isolated-20261019.log`. The
+  full Linux CI-equivalent internal race rerun passes twice with the integration tag
+  (`test-output/reviewfollowup/framework-v25-full-ci-race-internal-after-shared-tenant-fix-20261019.log`).
+  The exact standalone `go test -race -count=2 ./...` rerun is in progress as UID 65534 in the
+  isolated Go 1.27.2 Linux container. The initial root run failed chmod-based permission tests;
+  the first non-root run then failed because Git rejected the root-owned `/workspace` checkout as
+  dubious ownership while `go list` collected VCS metadata. Adding `/workspace` to the disposable
+  container's system `safe.directory` made `git status` and `go list ./...` pass as UID 65534.
+  The corrected full run was started after fixing safe-directory configuration but stopped before
+  completion after resource monitoring showed 43% CPU and about 1.5 GiB use. The in-container test
+  processes and task-specific validation container were stopped. Its partial output is retained at
+  `test-output/reviewfollowup/framework-v25-linux-standalone-race-safe-directory-20261020.log`;
+  it is not a passing result. The corrected blocking GitHub Race rerun remains pending a push.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
   tests pass. Rotation/reload remains unsupported and is documented.
@@ -66,7 +83,8 @@ and are independent of the numbered rows in the task evidence table.
   Service API `complete` profile passed 218/218 requests with 100% success and a 235 ms maximum
   response time (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); do not
   disable authentication to make load tests pass. The CI Load workflow passed on c42 (run
-  `39165120886`); remaining simulation profiles have not been evidenced, so this recommendation
+  `39165120886`) and on latest push `7ef7c857` (run `39321756107`); remaining simulation profiles
+  have not been evidenced, so this recommendation
   remains partially verified.
 - **9 — Complete.** PKI tests were checked against parallelism, fixtures, UUIDs, cleanup, seams,
   and naming conventions; focused shuffled tests and the PostgreSQL continuity test pass.
@@ -95,14 +113,19 @@ and are independent of the numbered rows in the task evidence table.
   classified, with no actionable skip remaining; literal zero skips is not a valid acceptance
   criterion. The authoritative pinned coverage gate passes 323 eligible packages, with 27 no-test
   packages, two expected no-statement packages, and zero threshold failures; see `tasks.md`. CI
-  Race, Mutation, and Load passed on c42; the exact standalone full-repository race command and
-  supported-Engine teardown/legacy-volume gates remain open. The CI Quality (#953, run
+  Mutation and Load passed on c42; the Race workflow had a success conclusion but its test step was
+  non-blocking, so race-test success is unverified. The exact standalone full-repository race
+  command and supported-Engine teardown/legacy-volume gates remain open. The CI Quality (#953, run
   `39165120901`) and CI E2E (#952, run `39165121059`) failures are fixed locally and pushed in
   `b0d954d22`, but CI Quality, E2E, Load, Fuzz, Mutation, Race, Benchmark, and Coverage on that
   revision failed at dependency validation because `go mod tidy` removes an obsolete
-  `grpc-gateway v1.16.0` checksum. The `go.sum` correction passes local module checks; commit/push
-  and post-fix CI reruns remain pending. SAST, DAST, Architecture Fitness, and GitLeaks passed on
-  `b0d954d22`. Focused `e2e_infra` tests/lint, normal/tagged
+  `grpc-gateway v1.16.0` checksum. The checksum correction and bounded retry for transient module
+  download errors are pushed in `45c2757` and `7ef7c857`. On `7ef7c857`, CI Quality
+  (`39321756161`), E2E (`39321755975`), Load (`39321756107`), Fuzz (`39321756169`), Mutation
+  (`39321756166`), Benchmark (`39321756007`), Coverage (`39321756223`), SAST (`39321756064`),
+  DAST (`39321756241`), GitLeaks (`39321756357`), and Architecture Fitness (`39321755969`) passed.
+  CI Race (`39321755986`) had a success conclusion but its test failure was tolerated. Focused
+  `e2e_infra` tests/lint, normal/tagged
   builds, the current shuffled full-suite run, and all repository validators pass; see the Task
   5.8 evidence paths. The current focused
   server-package run passes (`test-output/reviewfollowup/public_server_server_package_shuffle.log`).
@@ -112,10 +135,15 @@ and are independent of the numbered rows in the task evidence table.
   had one transient admin-listener shutdown assertion; the isolated test and listener package
   passed, followed by another successful full shuffled run. The latest full shuffled run and
   cancellation-path fix are recorded in
-  `test-output/reviewfollowup/framework-v25-go-test-current-20261016.log`; the suite exits 0,
-  The earlier audited skip total is superseded by the 36-skip current inventory. The current task
-  authorizes pushing the locally validated remediation; final push and workflow evidence remain
-  pending under Task 5.8.
+  `test-output/reviewfollowup/framework-v25-go-test-current-20261016.log`; the suite exits 0.
+  The earlier audited skip total is superseded by the 36-skip current inventory. Task 5.8 records
+  the 11 passing non-Race workflows on the latest push; CI Race run `39321755986` had a success
+  conclusion despite a tolerated failing test step and is not accepted as passing. The corrected
+  blocking Race rerun, exact standalone race, and runtime gates remain open. The post-fix Linux
+  CI-equivalent race run across `./internal/...` with the integration tag and `-count=2` passes
+  (`test-output/reviewfollowup/framework-v25-full-ci-race-internal-after-shared-tenant-fix-20261019.log`);
+  the standalone `./...` race run was stopped before completion due to high resource use after
+  correcting the disposable container's Git safe-directory configuration.
 - **14 — Complete.** `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required
   co-author trailer on every task commit from the recorded baseline through the implementation,
   disposition, and post-review fix commits.
@@ -197,8 +225,16 @@ and are independent of the numbered rows in the task evidence table.
   the previously deleted historical global volumes have unknown contents and provenance.
   `test-output/reviewfollowup/legacy-volume-readonly-inventory.log` shows the three known historical
   global volume names absent from the current Docker inventory, but cannot recover deleted contents
-  or establish the state of other deployments. The user's later Docker Desktop screenshot showed
-  13 Postgres entries and an active `v25runtime20261016productretest` Compose project. The earlier
+  or establish the state of other deployments.
+  **Current inventory update (2026-10-19):** The latest read-only inventory
+  `test-output/reviewfollowup/framework-v25-docker-inventory-20261019.log` finds the leader and
+  follower PostgreSQL volume names present and the Grafana volume name absent. Docker metadata
+  associates the two present volumes with the existing `sm` Compose project and shows
+  2026-10-18 creation timestamps; the `sm-kms` app container is restarting and the follower is
+  Created. This establishes names and metadata only, not volume contents, data continuity, or
+  provenance. No Docker resources were changed during this inventory; do not stop or modify the
+  existing project or its volumes. The user's later Docker Desktop screenshot showed 13 Postgres
+  entries and an active `v25runtime20261016productretest` Compose project. The earlier
   `docker-created-postgres-follow-up-20261016.log` says 12 Testcontainers-labelled Postgres
   candidates and that project remained present, with no Docker resources changed. The
   `docker-container-cleanup-20261016-1148.log` records removal of 64 containers from two other

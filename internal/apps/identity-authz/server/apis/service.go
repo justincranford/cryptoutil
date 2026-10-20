@@ -82,6 +82,8 @@ func (s *Service) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to ping database during startup: %w", err)
 	}
 
+	s.authReqStore.StartCleanup()
+
 	return nil
 }
 
@@ -90,6 +92,8 @@ func (s *Service) Start(ctx context.Context) error {
 // Closing the database here would break parallel test execution where multiple
 // services share the same in-memory database connection pool.
 func (s *Service) Stop(ctx context.Context) error {
+	defer s.authReqStore.Close()
+
 	// Clean up expired tokens.
 	tokenRepo := s.repoFactory.TokenRepository()
 

@@ -1,8 +1,8 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Implementation phases 1–4 are complete; Phase 5 quality-gate acceptance remains in progress. Phase 6 knowledge propagation is complete. `origin/main` points to `b0d954d22da1ca89485bb9a0b0efa1488a507ece`. The original CI Quality/E2E fixes are pushed, but eight workflows on that revision failed during dependency validation because `go mod tidy` removes a stale `grpc-gateway v1.16.0` checksum from `go.sum`. The checksum is corrected locally; `go mod tidy -diff`, `go mod verify`, `lint-go-mod`, and `git diff --check` pass. Commit/push and follow-up workflow verification remain tracked in Task 5.8 of `tasks.md`; the exact full-repository race and runtime gates also remain open, so Phase 5 is not complete.
+**Status**: Implementation phases 1–4 are complete; Phase 5 quality-gate acceptance remains in progress. Phase 6 knowledge propagation is complete. `origin/main` points to `7ef7c857ffffdce5c260b81bd42541434ab8cd0e`. The original CI Quality/E2E fixes were pushed in `b0d954d22`; the stale `grpc-gateway v1.16.0` checksum correction was pushed in `45c2757`; and bounded retries for transient `go mod download` failures were pushed in `7ef7c857`. Although all 12 workflows had a success conclusion on that push, CI Race run `39321755986` tolerated a failing race-test step with `continue-on-error`; it is not accepted as passing. The fail-closed Race workflow and test fixes pass the post-fix Linux CI-equivalent full internal race run (`-tags=integration -count=2`). The first standalone race attempt as root failed chmod-based permission tests; the subsequent non-root attempt failed because Git rejected the root-owned `/workspace` checkout as dubious ownership while `go list` collected VCS metadata. Adding `/workspace` to the disposable container's system `safe.directory` made `git status` and `go list ./...` pass as UID 65534. The corrected standalone run was started but stopped before completion after resource monitoring showed 43% container CPU and about 1.5 GiB memory; the in-container test processes and task-specific validation container were stopped. Its partial log is `test-output/reviewfollowup/framework-v25-linux-standalone-race-safe-directory-20261020.log`; it is not a pass. The post-push blocking GitHub Race test result and runtime gates also remain open, so Phase 5 is not complete.
 **Created**: 2026-05-25
-**Last Updated**: 2026-10-19
+**Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
 pki-ca APIs into sm-kms under a `/pki/` path prefix, then deleting pki-ca, the pki product,
 and all associated deployment artifacts.
@@ -388,7 +388,8 @@ golangci-lint, unit/integration tests, coverage, cicd-lint suite.
 - `go test ./...` passes without failures; all skips are classified and justified under Task 5.3 of `tasks.md` in accordance with the repository's probability-based test policy
 - Coverage â‰¥95% for all PKI packages with executable statements; verify existing sm-kms coverage does not regress
 - `go run ./cmd/cicd-lint lint-text lint-go lint-go-test lint-go-mod lint-fitness lint-deployments lint-openapi` passes
-- `go test -race -count=2 ./internal/apps/sm-kms/...` passes
+- `go test -race -tags integration -timeout=25m -count=2 ./internal/...` passes
+- `go test -race -count=2 ./...` passes as the standalone full-repository race gate
 
 **Success**: All CI/CD gates green; zero new linting violations; coverage maintained or improved.
 **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned â€” what worked,
@@ -406,7 +407,7 @@ and docs where warranted.
 - Update agents and skills where pki-ca references remain
 - Update docs/ENG-HANDBOOK.md service catalog (remove pki-ca, update sm-kms API list)
 - Verify propagation: `go run ./cmd/cicd-lint lint-docs`
-- Commit all artifact updates with separate semantic commits per artifact type; not executed under the inherited instruction prohibiting staging, committing, and pushing
+- Phase 6 artifact changes are present in the pushed history through `7ef7c857`; current review-follow-up tracker reconciliation is handled separately under Phase 5.
 
 **Success**: `go run ./cmd/cicd-lint lint-docs` passes; all handbook references to pki-ca removed.
 **Post-Mortem**: Final lessons captured in lessons.md Executive Summary and Actions sections.

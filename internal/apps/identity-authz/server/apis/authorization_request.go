@@ -63,6 +63,12 @@ type AuthorizationRequestStore interface {
 
 	// Delete deletes an authorization request.
 	Delete(ctx context.Context, requestID googleUuid.UUID) error
+
+	// StartCleanup starts periodic removal of expired authorization requests.
+	StartCleanup()
+
+	// Close stops periodic cleanup and waits for its worker to exit.
+	Close()
 }
 
 // InMemoryAuthorizationRequestStore implements AuthorizationRequestStore using in-memory storage.
@@ -71,6 +77,11 @@ type InMemoryAuthorizationRequestStore struct {
 	requests         map[googleUuid.UUID]*AuthorizationRequest
 	codeIdx          map[string]googleUuid.UUID // Index by authorization code.
 	requestCodeIndex map[googleUuid.UUID]string // Tracks each request's indexed code.
+	cleanupMu        sync.Mutex
+	cleanupCancel    context.CancelFunc
+	cleanupDone      chan struct{}
+	cleanupStarted   bool
+	cleanupClosed    bool
 }
 
 // NewInMemoryAuthorizationRequestStore creates a new in-memory authorization request store.
@@ -81,10 +92,45 @@ func NewInMemoryAuthorizationRequestStore() *InMemoryAuthorizationRequestStore {
 		requestCodeIndex: make(map[googleUuid.UUID]string),
 	}
 
-	// Start cleanup goroutine.
-	go store.cleanup()
-
 	return store
+}
+
+// StartCleanup starts the expired-request cleanup worker once.
+func (s *InMemoryAuthorizationRequestStore) StartCleanup() {
+	s.cleanupMu.Lock()
+	defer s.cleanupMu.Unlock()
+
+	if s.cleanupStarted || s.cleanupClosed {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	s.cleanupCancel = cancel
+	s.cleanupDone = make(chan struct{})
+	s.cleanupStarted = true
+
+	go func() {
+		defer close(s.cleanupDone)
+
+		s.cleanup(ctx)
+	}()
+}
+
+// Close stops the expired-request cleanup worker and waits for it to exit.
+func (s *InMemoryAuthorizationRequestStore) Close() {
+	s.cleanupMu.Lock()
+	cancel := s.cleanupCancel
+	done := s.cleanupDone
+	s.cleanupClosed = true
+	s.cleanupMu.Unlock()
+
+	if cancel != nil {
+		cancel()
+	}
+
+	if done != nil {
+		<-done
+	}
 }
 
 // Store stores an authorization request.
@@ -186,12 +232,17 @@ func (s *InMemoryAuthorizationRequestStore) removeCodeIndex(requestID googleUuid
 }
 
 // cleanup removes expired authorization requests.
-func (s *InMemoryAuthorizationRequestStore) cleanup() {
+func (s *InMemoryAuthorizationRequestStore) cleanup(ctx context.Context) {
 	ticker := time.NewTicker(cryptoutilSharedMagic.ChallengeCleanupInterval)
 	defer ticker.Stop()
 
-	for range ticker.C {
-		s.cleanupExpired(time.Now().UTC())
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			s.cleanupExpired(time.Now().UTC())
+		}
 	}
 }
 
