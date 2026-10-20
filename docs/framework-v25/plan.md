@@ -1,23 +1,13 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Implementation phases 1–4 and Phase 6 are complete. Phase 5 remains in progress:
-CI Quality (run `39356665316`), CI Load (run `39356665340`), and CI E2E (run `39356665264`)
-completed successfully on `e819239de`; the corrected blocking CI Race run (`39356665257`) was
-cancelled when its 30-minute job timeout expired. Its test step ran for about 29 minutes and
-reported `identity/mfa` at 1199.098 seconds and `identity-authz/clientauth` at 311.174 seconds
-before cancellation; this is not passing evidence.
-The earlier Race run `39321755986` is not accepted as a pass because `continue-on-error`
-tolerated a failing test step. The full standalone repository race run was stopped before
-completion under high resource use, so it is not passing evidence. CI Load run `39361288540`
-passed the quick, standard, and stress profiles. The Race workflow now partitions the full
-integration-tagged package set as 337 internal + 31 API/command packages = 368; the set comparison
-found no missing, extra, or overlapping packages. Hosted Race run `39362007528` completed
-successfully on commit `2557168fd`, with all six matrix jobs passing. The monolithic standalone race
-attempt is superseded by the partitioned matrix. The persistent legacy-schema follower upgrade
-now passes; its test exposed and fixed a secret-backed PostgreSQL role omission in the follower
-setup script. Phase 5 remains open only for hosted workflow validation of that fix.
-Historical-volume provenance remains excluded and fail-closed under Recommendation 28; it is not
-represented as completed validation.
+**Status**: Implementation phases 1–6 and Phase 5 quality-gate acceptance are complete. All 12
+required hosted workflows passed on code commit `53d4d2be`; Race run `39373113751` completed
+successfully across all six jobs, covering the 368 integration-tagged packages exactly once.
+The earlier monolithic local race attempt remains superseded by this resource-safe hosted matrix.
+The persistent legacy-schema follower upgrade and its secret-backed PostgreSQL role fix are
+verified. Recommendation 28 remains excluded and fail-closed because historical volume contents
+and provenance cannot be established; this is a documented data-safety exception, not an open
+Phase 5 gate.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
@@ -393,7 +383,7 @@ lint_fitness entity registry and lint_ports to remove pki-ca references.
 what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix
 tasks immediately.
 
-### Phase 5: Quality Gates (0.5d) [Status: IN PROGRESS]
+### Phase 5: Quality Gates (0.5d) [Status: COMPLETE]
 
 **Objective**: Verify all quality gates pass end-to-end. Full build (with and without E2E tags),
 golangci-lint, unit/integration tests, coverage, cicd-lint suite.
@@ -424,7 +414,7 @@ and docs where warranted.
 - Update agents and skills where pki-ca references remain
 - Update docs/ENG-HANDBOOK.md service catalog (remove pki-ca, update sm-kms API list)
 - Verify propagation: `go run ./cmd/cicd-lint lint-docs`
-- Phase 6 artifact changes are present in the pushed history through `7ef7c857`; current review-follow-up tracker reconciliation is handled separately under Phase 5.
+- Phase 6 artifact changes are committed and pushed; final review-follow-up tracker reconciliation is complete as part of Phase 5 closeout.
 
 **Success**: `go run ./cmd/cicd-lint lint-docs` passes; all handbook references to pki-ca removed.
 **Post-Mortem**: Final lessons captured in lessons.md Executive Summary and Actions sections.
@@ -539,11 +529,11 @@ sm-kms already has its own pki-init via `sm init pki-init`. No new routing is ne
 ## Success Criteria
 
 - [x] Implementation Phases 1-4 and 6 have recorded implementation evidence
-- [ ] Phase 5 quality-gate acceptance has fresh passing evidence
+- [x] Phase 5 quality-gate acceptance has fresh passing evidence
 - [x] sm-kms registers all 18 PKI endpoints under `/service/api/v1/pki/` and `/browser/api/v1/pki/`
 - [x] Standalone pki-ca and pki product artifacts are absent
 - [x] Registry reflects 3 products / 7 PS-IDs
-- [ ] All required quality gates pass with current evidence
+- [x] All required quality gates pass with current evidence
 - [x] `go run ./cmd/cicd-lint lint-fitness` passes for the 3-product / 7-PS-ID registry
 - [x] No live pki-ca product/service imports or registrations remain; retired-ID constants and their regression tests are intentionally retained
 - [x] Documentation updated and propagation validation passes
