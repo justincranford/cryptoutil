@@ -37,6 +37,7 @@ type AdminServer struct {
 	tlsMaterial     *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
 	listenFn        func(ctx context.Context, network, address string) (net.Listener, error)
 	appListenerFn   func(app *fiber.App, ln net.Listener) error
+	shutdownDelayFn func()
 	mu              sync.RWMutex
 	ready           bool
 	shutdown        bool
@@ -100,9 +101,12 @@ func newAdminHTTPServerInternal(
 		tlsMaterial:   tlsMaterial,
 		listenFn:      listenFn,
 		appListenerFn: appListenerFn,
-		ready:         false,
-		shutdown:      false,
-		shutdownDone:  make(chan struct{}),
+		shutdownDelayFn: func() {
+			time.Sleep(cryptoutilSharedMagic.DefaultAdminServerShutdownDelay)
+		},
+		ready:        false,
+		shutdown:     false,
+		shutdownDone: make(chan struct{}),
 	}
 
 	// Create Fiber app with minimal configuration.
@@ -207,7 +211,7 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	// Trigger shutdown in background to avoid blocking response.
 	go func() {
 		// Wait for response to be sent.
-		time.Sleep(cryptoutilSharedMagic.DefaultAdminServerShutdownDelay)
+		s.shutdownDelayFn()
 
 		// Shutdown server gracefully.
 		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)

@@ -23,7 +23,7 @@ import (
 
 // startAdminServerWithClient creates an admin server, starts it, and returns
 // the server, an HTTPS client, the port, cancel func, and completion channel.
-func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, *http.Client, int, context.CancelFunc, <-chan error) {
+func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, *http.Client, int, context.CancelFunc, <-chan error, chan struct{}) {
 	t.Helper()
 
 	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
@@ -31,6 +31,12 @@ func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceSe
 
 	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), settings, tlsCfg)
 	require.NoError(t, err)
+
+	shutdownDelayDone := make(chan struct{})
+
+	cryptoutilAppsFrameworkServiceServerListener.ExportedSetAdminServerShutdownDelayFn(server, func() {
+		<-shutdownDelayDone
+	})
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -57,7 +63,7 @@ func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsFrameworkServiceSe
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	return server, client, port, cancel, startErr
+	return server, client, port, cancel, startErr, shutdownDelayDone
 }
 
 func requireAdminServerStoppedOnShutdown(t *testing.T, startErr <-chan error) {
@@ -74,9 +80,10 @@ func requireAdminServerStoppedOnShutdown(t *testing.T, startErr <-chan error) {
 // Sequential: starts a real HTTPS server (port reuse issues).
 func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 	// NOT parallel: starts admin server.
-	_, client, port, cancel, startErr := startAdminServerWithClient(t)
+	_, client, port, cancel, startErr, shutdownDelayDone := startAdminServerWithClient(t)
 
 	defer func() {
+		close(shutdownDelayDone)
 		cancel()
 		requireAdminServerStoppedOnShutdown(t, startErr)
 	}()
@@ -110,9 +117,10 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 // Sequential: starts a real HTTPS server (port reuse issues).
 func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
 	// NOT parallel: starts admin server.
-	server, client, port, cancel, startErr := startAdminServerWithClient(t)
+	server, client, port, cancel, startErr, shutdownDelayDone := startAdminServerWithClient(t)
 
 	defer func() {
+		close(shutdownDelayDone)
 		cancel()
 		requireAdminServerStoppedOnShutdown(t, startErr)
 	}()

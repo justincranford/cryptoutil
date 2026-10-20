@@ -406,7 +406,7 @@ golangci-lint, unit/integration tests, coverage, cicd-lint suite.
 - Coverage â‰¥95% for all PKI packages with executable statements; verify existing sm-kms coverage does not regress
 - `go run ./cmd/cicd-lint lint-text lint-go lint-go-test lint-go-mod lint-fitness lint-deployments lint-openapi` passes
 - `go test -race -tags integration -timeout=25m -count=2 ./internal/...` passes
-- `go test -race -count=2 ./...` passes as the standalone full-repository race gate
+- Hosted six-partition Race workflow passes on the complete integration-tagged package set, with every package path covered exactly once (see Task 5.8 in `tasks.md`)
 
 **Success**: All CI/CD gates green; zero new linting violations; coverage maintained or improved.
 **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned â€” what worked,
