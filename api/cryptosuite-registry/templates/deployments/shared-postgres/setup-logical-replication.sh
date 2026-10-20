@@ -80,6 +80,7 @@ for psid in "${psids[@]}"; do
     psql \
         -v ON_ERROR_STOP=1 \
         -v database="$source_database" \
+        -U "$LEADER_USER" \
         -d postgres <<'SQL'
 SELECT FORMAT('CREATE DATABASE %I OWNER %I', :'database', CURRENT_USER)
 WHERE NOT EXISTS (
