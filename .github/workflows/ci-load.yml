@@ -78,14 +78,19 @@ on:
         type: string
 
 env:
-  LOAD_PROFILE: ${{ github.event.inputs.load_profile || 'standard' }}
   VIRTUAL_CLIENTS_OVERRIDE: ${{ github.event.inputs.virtual_clients || '0' }}
   DURATION_OVERRIDE: ${{ github.event.inputs.duration_seconds || '0' }}
 
 jobs:
   load-testing:
-    name: Load Testing with Gatling
+    name: Load Testing with Gatling (${{ matrix.load_profile }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        load_profile: ${{ fromJSON(github.event_name == 'push' && '["quick","standard","stress"]' || format('["{0}"]', github.event.inputs.load_profile || 'standard')) }}
+    env:
+      LOAD_PROFILE: ${{ matrix.load_profile }}
 
     steps:
     - name: Checkout code
@@ -279,8 +284,8 @@ jobs:
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ Infrastructure monitoring startup completed in: ${DURATION}s"
 
-    - name: Run Gatling load tests (informational)
-      continue-on-error: ${{ env.LOAD_PROFILE != 'complete' }}
+    - name: Run Gatling load tests
+      continue-on-error: ${{ github.event_name == 'pull_request' && env.LOAD_PROFILE != 'complete' }}
       working-directory: ./test/load
       env:
         LOAD_PROFILE: ${{ env.LOAD_PROFILE }}
