@@ -5,7 +5,7 @@
 # PURPOSE: Detect race conditions using Go's ThreadSanitizer via -race flag
 # DEPENDENCIES: None (standalone workflow, no external services required)
 # EXPECTED DURATION: Unmeasured per partition (run 39356665257 was cancelled at the 30min limit with packages still running)
-# TIMEOUT: 90min per partition (four-way exact-once matrix; below GitHub-hosted 360min maximum)
+# TIMEOUT: 90min per partition (six-way full-module matrix; below GitHub-hosted 360min maximum)
 # CRITICAL PATH: go test -race (slowest step due to ThreadSanitizer instrumentation)
 
 name: CI - Race Condition Detection
@@ -74,10 +74,12 @@ jobs:
       fail-fast: false
       matrix:
         package_root:
-          - apps
-          - apps-framework
-          - apps-tools
-          - shared
+          - internal/apps
+          - internal/apps-framework
+          - internal/apps-tools
+          - internal/shared
+          - api
+          - cmd
 
     services:
       postgres:
@@ -119,7 +121,7 @@ jobs:
       - name: Run race condition detection tests
         working-directory: .
         run: |
-          partition="./internal/${{ matrix.package_root }}/..."
+          partition="./${{ matrix.package_root }}/..."
           echo "::group::go test -race ${partition}"
           go test -race -tags integration -timeout=25m -count=2 "${partition}"
           echo "::endgroup::"
@@ -130,8 +132,8 @@ jobs:
             >> $GITHUB_STEP_SUMMARY
           echo "Race condition tests completed successfully." \
             >> $GITHUB_STEP_SUMMARY
-          echo "- Full package scope: ./internal/..." >> $GITHUB_STEP_SUMMARY
-          echo "- Matrix partition: ./internal/${{ matrix.package_root }}/..." >> $GITHUB_STEP_SUMMARY
+          echo "- Full package scope: ./... (all 368 packages, integration tag)" >> $GITHUB_STEP_SUMMARY
+          echo "- Matrix partition: ./${{ matrix.package_root }}/..." >> $GITHUB_STEP_SUMMARY
           echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
           echo "- Test repetitions: 2" >> $GITHUB_STEP_SUMMARY
           echo "- Go test timeout: 25 minutes" >> $GITHUB_STEP_SUMMARY
