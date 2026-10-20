@@ -25,7 +25,8 @@ because its failing race-test step was tolerated by `continue-on-error`; it is n
 The post-fix Linux CI-equivalent race run across `./internal/...` with the integration tag and
 `-count=2` passes; see Task 5.8. The monolithic full-repository race run was stopped before
 completion due to high resource use; it is superseded by the full-module, six-partition race matrix
-whose hosted run `39362007528` is queued.
+whose hosted run `39362007528` is in progress; four of six jobs had succeeded at the latest check,
+with `apps` and `apps-framework` still running.
 Its first non-root attempt failed because Git rejected the root-owned `/workspace` checkout as
 dubious ownership while `go list` queried VCS metadata; after adding `/workspace` to the disposable
 container's system `safe.directory`, `git status` and `go list ./...` pass as UID 65534. The
@@ -966,7 +967,8 @@ coverage thresholds; the latest pinned profile reports 81.7% aggregate coverage
 upgrade simulation preserved its sentinel, but does not verify an upgrade against an existing
 legacy volume. The 11 non-Race workflows passed on `7ef7c857`; CI Race run `39321755986` is not
 accepted as a pass because its failing test step was tolerated. The corrected blocking full-module
-Race matrix run `39362007528` is queued; Docker teardown/legacy-volume validation remains open. The
+Race matrix run `39362007528` is in progress; four of six jobs succeeded at the latest check, while
+`apps` and `apps-framework` remain in progress. Docker teardown/legacy-volume validation remains open. The
 monolithic standalone race run was superseded by the exact-once six-partition matrix. The startup benchmark and
 detached-HEAD comparison are statistically inconclusive. Headless client
 registration and the Basic client-credentials exchange for a service session are implemented and
@@ -1077,8 +1079,10 @@ improvement or regression claim.
     Go issue #71919. No actionable test-gap skip remains. Literal zero skips is not a valid
     acceptance criterion for probability-sampled tests.
   - [x] The focused SM-KMS `go test -race -count=2` run passes in Linux Go 1.27.2.
-  - [ ] The corrected blocking CI Race rerun passes on the current commit; the earlier workflow
-    conclusion (`39321755986`) is not valid evidence because its test failure was tolerated.
+  - [ ] The corrected blocking full-module Race matrix passes; the earlier workflow conclusion
+    (`39321755986`) is not valid evidence because its test failure was tolerated. At the latest
+    check, run `39362007528` had four of six jobs succeeded, with `apps` and `apps-framework`
+    still in progress.
   - [x] Replace the resource-intensive monolithic local race command with the six-partition
     full-module matrix. The integration-tagged package-set comparison proves all 368 package paths
     are covered exactly once; the hosted matrix result remains a separate open acceptance item.
@@ -1552,7 +1556,8 @@ do not establish a coverage pass.
   `39356665316` and E2E run
   `39356665264` passed. The post-fix Linux CI-equivalent internal race run passes twice. The
   full-module Race matrix covers all 368 integration-tagged packages across six non-overlapping
-  roots; run `39362007528` for commit `2557168fd` is queued and is not yet passing evidence. The
+  roots; run `39362007528` for commit `2557168fd` is in progress, with four of six jobs succeeded
+  at the latest check. It is not passing evidence yet. The
   resource-intensive monolithic local race attempt is superseded by this matrix.
   Remaining runtime gates are tracked separately.
 - **Owner**: LLM Agent
@@ -1619,8 +1624,9 @@ do not establish a coverage pass.
     found no missing, extra, or duplicate paths, and `lint-workflow -q` passes.
   - [x] The corrected Linux CI-equivalent race command across `./internal/...` exits 0 with the
     integration tag and `-count=2`; see the evidence path above.
-  - [ ] The corrected full-module blocking GitHub Race matrix passes on a pushed commit; run
-    `39362007528` for commit `2557168fd` is queued and is not passing evidence.
+  - [ ] The corrected full-module blocking GitHub Race matrix passes on a pushed commit; at the
+    latest check, run `39362007528` for commit `2557168fd` had four of six jobs succeeded, with
+    `apps` and `apps-framework` still in progress.
   - [x] Replace the interrupted monolithic local race command with the six-partition
     full-module matrix: the exact integration-tagged package-set comparison proves all 368
     package paths are covered once, and the matrix adds integration-tagged tests. No further
@@ -1775,7 +1781,8 @@ Verify propagation integrity.
   Linux Go 1.27.2 (`test-output/reviewfollowup/framework-v25-sm-kms-race-20261018.log`) on Engine
   29.8.2. The earlier CI Race job conclusion on c42 (run `39165120898`) is not conclusive because
   that workflow used a non-blocking test step. The six-root integration-tagged matrix covers all
-  368 packages exactly once; run `39362007528` for commit `2557168fd` is queued. Its successful
+  368 packages exactly once; at the latest check, run `39362007528` for commit `2557168fd` had four
+  of six jobs succeeded, with `apps` and `apps-framework` still in progress. Its successful
   completion supersedes the interrupted monolithic local command.
 - [x] No skipped tests without documented justification — the latest successful full-tree run
   records 36 documented skips: 34 probability-sampled algorithm variants, one unavailable
@@ -1892,20 +1899,24 @@ validation is not a claim that the full repository suite or Docker/PostgreSQL de
 
 Recommendation numbers below refer to `review-follow-up-plan.md`, not to the historical task rows above. Recommendations 1 and 28 are excluded from implementation scope; Recommendation 28 is recorded below only as an unresolved volume-incident disposition.
 
+**Latest hosted Race status**: run `39362007528` is in progress; four of six jobs succeeded, and
+`apps` plus `apps-framework` remain running. Any `queued` references in the historical evidence
+rows below describe an earlier status snapshot.
+
 | Recommendation | Disposition | Evidence | Remaining work |
 |---|---|---|---|
 | 2 | Partially verified | SQLite migration tests and `postgres-migrations-2012-2015.log` cover migration behavior; `test-output/reviewfollowup/postgres-migrations-runner.log` records `TestPKIMigrations_PostgreSQLUpgradeAndRollback` passing against an isolated testcontainers PostgreSQL container and that container terminating. | No Compose product/suite runtime was exercised; keep that runtime gate open until a fresh isolated stack test is retained. |
 | 3 | Complete | `durable-sqlite-compose-health.log` records healthy Compose startup; `durable-sqlite-authenticated-readiness.log` records authenticated admin readiness HTTP 200; `final-repository-validators.log` passes deployment validation. | None. |
 | 4 | Complete | The baseline-maintenance procedure is in `docs/ENG-HANDBOOK.md` §10.2.3 and `.github/instructions/03-02.testing.instructions.md`; `coverage-baseline-docs.log`, `coverage-baseline-workflow.log`, and `coverage-baseline-text.log` pass. Both inventories are uploaded by the workflow. | None. |
 | 5 | Complete within the accepted scope | The latest profile-driven gate after ECDH changes passes all 352 pinned package results, 27 no-test packages, two expected no-statement packages, and all 323 threshold-eligible packages with zero threshold failures. Aggregate coverage is informational. Evidence: `test-output/coverage-analysis/framework-v25-current-after-ecdh-20261018.out`, its complete package log, and `framework-v25-current-after-ecdh-20261018-threshold-summary.log`. | None. The historical aggregate comparison was dropped at the user's direction; keep inventory and thresholds unchanged. |
-| 6 | Partially verified | `test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log` records the focused shuffled Linux race run; CI Race run `39321755986` had a success conclusion because its failing test step was tolerated by `continue-on-error`, so it is not a pass. The stale checksum was corrected and bounded module-download retries were pushed. The test failures and fail-open workflow are corrected locally. The full-module six-partition Race run `39362007528` is queued after commit `2557168fd`; its exact-once package-set comparison covers all 368 integration-tagged packages. | Pass the corrected blocking full-module CI Race matrix; the local monolithic race command is superseded due to high resource use. |
+| 6 | Partially verified | `test-output/reviewfollowup/race-go-linux-admin-listener-fixed.log` records the focused shuffled Linux race run; CI Race run `39321755986` had a success conclusion because its failing test step was tolerated by `continue-on-error`, so it is not a pass. The stale checksum was corrected and bounded module-download retries were pushed. The test failures and fail-open workflow are corrected locally. Full-module six-partition Race run `39362007528` is in progress after commit `2557168fd`; four jobs succeeded and `apps` plus `apps-framework` remain in progress. Its exact-once package-set comparison covers all 368 integration-tagged packages. | Pass the corrected blocking full-module CI Race matrix; the local monolithic race command is superseded due to high resource use. |
 | 7 | Complete | `final-focused-tests.log` passes TLS publication and failure-path tests; `docs/tls-structure.md` documents initialization-only behavior and Compose activation gating. | None; rotation/reload remains unsupported. |
 | 8 | Partially verified | `ci-load.yml` uses authenticated mTLS readiness; `postgres-authenticated-readiness.log` and `durable-sqlite-authenticated-readiness.log` record live readiness responses; `final-repository-validators.log` passes workflow lint. The authenticated Service API `complete` profile passed 218/218 requests (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); CI Load run `39361288540` passed quick, standard, and stress. | Load-profile acceptance is complete; execute the data-preserving Docker lifecycle and legacy-volume checks in an isolated environment. |
 | 9 | Complete | PKI test conventions were audited; `final-focused-tests.log` passes the relevant shuffled PKI packages and `postgres-continuity-restart.log` passes the PostgreSQL continuity test. | None. |
 | 10 | Complete | `test-output/review-followup/pki-persistence-integration.log`; see historical task row 10. | None. |
 | 11 | Partially verified | `postgres-continuity-restart.log` verifies PostgreSQL restart continuity for certificate, encrypted-key envelope, and revocation state; this is not an existing-volume upgrade test. | Execute the data-preserving upgrade against an existing PostgreSQL volume and retain a named upgrade artifact. |
 | 12 | Documentation disposition reconciled; Phase 5 acceptance remains open | `plan.md` marks Phase 5 IN PROGRESS; `lessons.md` records the current skip policy and workflow results; `review-follow-up-plan.md` aligns its dispositions. The stale PostgreSQL topology paragraph in `.github/instructions/04-01.deployment.instructions.md` matches Appendix D and ENG-HANDBOOK §3.4.2; `test-output/reviewfollowup/post-catalog-fix-docs-validation.log` records `lint-docs -q` passing. Load run `39361288540` passed all three Gatling profiles. Race workflow run `39362007528` for commit `2557168fd` is queued; the exact package-set comparison passed, but hosted Race evidence is still pending. | Phase 5 remains open pending a passing blocking full-module Race result and Docker lifecycle/legacy-volume validation. The full-module matrix is the resource-safe replacement for rerunning the interrupted monolithic local race command. |
-| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 14 repository validators, the full shuffled suite, and all 323 coverage thresholds pass. CI Quality #953 (`39165120901`) and CI E2E #952 (`39165121059`) failed on `c42c09e5359270bce889411bb8fc8755dd0669e3`; the repeated-literal and certificate-ownership fixes were pushed in `b0d954d22`. The stale checksum was fixed in `45c2757`, and bounded proxy retries were pushed in `7ef7c857`. The 11 non-Race workflows passed on that push. CI Race `39321755986` had a success conclusion but its test failure was tolerated; the test and workflow fixes were pushed in `e819239de`. Blocking Race run `39356665257` was cancelled at the 30-minute job timeout; Quality run `39356665316` and E2E run `39356665264` passed. Latest Load run `39361288540` passed quick, standard, and stress. Full-module Race run `39362007528` is queued after commit `2557168fd`. | Task 5.8 remains in progress until the blocking full-module Race matrix passes. The local monolithic race command is superseded by the six-partition matrix; Docker lifecycle and legacy-volume provenance remain open. |
+| 13 | Partially verified | Current-tree normal/tagged builds, full normal/tagged golangci-lint, all 14 repository validators, the full shuffled suite, and all 323 coverage thresholds pass. CI Quality #953 (`39165120901`) and CI E2E #952 (`39165121059`) failed on `c42c09e5359270bce889411bb8fc8755dd0669e3`; the repeated-literal and certificate-ownership fixes were pushed in `b0d954d22`. The stale checksum was fixed in `45c2757`, and bounded proxy retries were pushed in `7ef7c857`. The 11 non-Race workflows passed on that push. CI Race `39321755986` had a success conclusion but its test failure was tolerated; the test and workflow fixes were pushed in `e819239de`. Blocking Race run `39356665257` was cancelled at the 30-minute job timeout; Quality run `39356665316` and E2E run `39356665264` passed. Latest Load run `39361288540` passed quick, standard, and stress. Full-module Race run `39362007528` is in progress after commit `2557168fd`; four jobs succeeded and `apps` plus `apps-framework` remain in progress. | Task 5.8 remains in progress until the blocking full-module Race matrix passes. The local monolithic race command is superseded by the six-partition matrix; Docker lifecycle and legacy-volume provenance remain open. |
 | 14 | Complete | `test-output/reviewfollowup/commit-trailer-audit.log` verifies the required co-author trailer on every task commit from the recorded baseline through the implementation, disposition, and post-review fix commits. | None. |
 | 15 | Partially verified | The application-role access check is described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving application-role access. |
 | 16 | Partially verified | Ownership normalization and malformed-publication rejection are described in `test-output/review-followup/postgres-existing-volume-upgrade.log`, but that named artifact is not retained. | Re-run and retain a named existing-volume upgrade artifact proving ownership normalization and malformed-publication rejection. |

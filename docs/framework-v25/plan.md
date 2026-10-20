@@ -11,8 +11,9 @@ tolerated a failing test step. The full standalone repository race run was stopp
 completion under high resource use, so it is not passing evidence. CI Load run `39361288540`
 passed the quick, standard, and stress profiles. The Race workflow now partitions the full
 integration-tagged package set as 337 internal + 31 API/command packages = 368; the set comparison
-found no missing, extra, or overlapping packages. Its hosted run `39362007528` is queued, so it is
-not passing evidence yet. The monolithic standalone race attempt is superseded by the partitioned
+found no missing, extra, or overlapping packages. At the latest check, hosted run `39362007528`
+had four of six jobs succeed, while `apps` and `apps-framework` remained in progress; this is not
+passing evidence yet. The monolithic standalone race attempt is superseded by the partitioned
 matrix. The hosted Race result, Docker lifecycle, persistent legacy-follower upgrade, and
 legacy-volume provenance remain open.
 **Created**: 2026-05-25
@@ -528,7 +529,8 @@ sm-kms already has its own pki-init via `sm init pki-init`. No new routing is ne
 **Per-Phase Quality Gates (required)**:
 - Unit and integration tests pass before a phase is accepted.
 - Deployment validators pass (`go run ./cmd/cicd-lint lint-deployments`) after Phases 3 and 4.
-- Race detection passes (`go test -race -count=2 ./...`).
+- Full-module race validation passes through the six-partition integration-tagged matrix; the
+  matrix must cover every package path exactly once (see Task 5.8 in `tasks.md`).
 
 ---
 

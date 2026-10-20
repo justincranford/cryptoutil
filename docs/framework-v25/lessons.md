@@ -12,7 +12,7 @@ after each phase's quality gates pass.
 2. [Phase 2](#phase-2-extend-sm-kms-api-with-pki-endpoints): All 18 PKI routes are registered under both public API prefixes; OpenAPI and handler tests pass.
 3. [Phase 3](#phase-3-delete-pki-ca-service-artifacts): The standalone pki-ca service artifacts are absent and normal/tagged builds pass.
 4. [Phase 4](#phase-4-delete-pki-product-and-update-registry): The canonical registry, runtime registry, and fitness validation reflect 3 products and 7 PS-IDs.
-5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds; skips are classified under the repository's probability-based policy. Coverage, Mutation, and Load passed on push `c42c09e5359270bce889411bb8fc8755dd0669e3`; Quality and E2E failed there, and their fixes were pushed in `b0d954d22`. The 11 non-Race workflows passed on prior push `7ef7c857`, but CI Race run `39321755986` is a false green because its failing test step was non-blocking. On `e819239de`, CI Quality, Load, and E2E completed successfully; blocking Race run `39356665257` was cancelled at its 30-minute job timeout after reporting `identity/mfa` at 1199.098 seconds and `identity-authz/clientauth` at 311.174 seconds. CI Load run `39361288540` passed quick, standard, and stress. The full-module Race matrix run `39362007528` is queued; its six-root package-set comparison covers all 368 integration-tagged packages exactly once. Docker lifecycle and legacy-volume provenance remain open.
+5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds; skips are classified under the repository's probability-based policy. Coverage, Mutation, and Load passed on push `c42c09e5359270bce889411bb8fc8755dd0669e3`; Quality and E2E failed there, and their fixes were pushed in `b0d954d22`. The 11 non-Race workflows passed on prior push `7ef7c857`, but CI Race run `39321755986` is a false green because its failing test step was non-blocking. On `e819239de`, CI Quality, Load, and E2E completed successfully; blocking Race run `39356665257` was cancelled at its 30-minute job timeout after reporting `identity/mfa` at 1199.098 seconds and `identity-authz/clientauth` at 311.174 seconds. CI Load run `39361288540` passed quick, standard, and stress. Full-module Race matrix run `39362007528` is in progress; four of six jobs succeeded and the remaining `apps` and `apps-framework` jobs are running. Its package-set comparison covers all 368 integration-tagged packages exactly once. Docker lifecycle and legacy-volume provenance remain open.
 6. [Phase 6](#phase-6-knowledge-propagation): README and handbook topology documentation are reconciled, lessons are recorded, and docs propagation validation passes.
 
 ---
@@ -48,7 +48,8 @@ prior push `7ef7c857`. After the fail-closed fixes were pushed in `e819239de`, C
 `39356665316`, CI Load run `39356665340`, and CI E2E run `39356665264` passed; CI Race run
 `39356665257` was cancelled at its 30-minute job timeout. Its test step ran for about 29 minutes
 and did not finish the package suite. CI Load run `39361288540` passed quick, standard, and stress.
-The full-module Race matrix run `39362007528` is queued after commit `2557168fd`; the interrupted
+The full-module Race matrix run `39362007528` is in progress after commit `2557168fd`; four of six
+jobs succeeded at the latest check, with `apps` and `apps-framework` still running. The interrupted
 monolithic local race command is superseded by this exact-once partitioned matrix, not considered a
 passing result.
 
@@ -150,7 +151,8 @@ tenant identifiers and depended on token-bucket refill timing under race instrum
 test defects were fixed. A local CI-equivalent run then exposed that `./scripts/...` matches no Go
 packages and makes `go test` exit 1. The workflow fails closed and has an enforced timeout; the
 latest version partitions all 368 integration-tagged packages across six non-overlapping roots.
-Run `39362007528` for commit `2557168fd` is queued, so the corrected blocking Race result is pending.
+Run `39362007528` for commit `2557168fd` is in progress, so the corrected blocking Race result is
+pending.
 The earlier CI-equivalent coverage baseline reported 152/320 executable
 packages meeting thresholds and 168/320 below (71.5% aggregate statement coverage); this is
 historical and superseded by the pinned 352-package profile, which now passes all thresholds. The
