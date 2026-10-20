@@ -11,11 +11,10 @@ tolerated a failing test step. The full standalone repository race run was stopp
 completion under high resource use, so it is not passing evidence. CI Load run `39361288540`
 passed the quick, standard, and stress profiles. The Race workflow now partitions the full
 integration-tagged package set as 337 internal + 31 API/command packages = 368; the set comparison
-found no missing, extra, or overlapping packages. At the latest check, hosted run `39362007528`
-had five of six jobs succeed, while only `apps` remained in progress; this is not
-passing evidence yet. The monolithic standalone race attempt is superseded by the partitioned
-matrix. The hosted Race result, Docker lifecycle, persistent legacy-follower upgrade, and
-legacy-volume provenance remain open.
+found no missing, extra, or overlapping packages. Hosted Race run `39362007528` completed
+successfully on commit `2557168fd`, with all six matrix jobs passing. The monolithic standalone race
+attempt is superseded by the partitioned matrix. Docker lifecycle, persistent legacy-follower
+upgrade, and legacy-volume provenance remain open.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
