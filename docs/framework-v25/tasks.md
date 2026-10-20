@@ -1630,8 +1630,8 @@ do not establish a coverage pass.
     package paths are covered once, and the matrix adds integration-tagged tests. No further
     monolithic local race run is required; hosted matrix run `39362007528` passed.
   - [x] Verify the completed Quality, Load, and E2E results and update this task, `plan.md`, and
-    `lessons.md`; CI Load run `39361288540` passed quick, standard, and stress, and Race acceptance
-    remains open pending the full-module matrix result.
+    `lessons.md`; CI Load run `39361288540` passed quick, standard, and stress, and the full-module
+    Race matrix run `39362007528` passed all six jobs across all 368 integration-tagged packages.
 - **Local validation evidence**:
   - `test-output/reviewfollowup/framework-v25-workflow-fix-build.log` — normal and
     `e2e,integration` builds exit 0.
