@@ -48,7 +48,7 @@ and are independent of the numbered rows in the task evidence table.
   the shuffled health-path package passes
   (`test-output/reviewfollowup/health-path-real-workspace-shuffle.log`). The CI Race workflow
   concluded successfully on `c42c09e5359270bce889411bb8fc8755dd0669e3` (run `39165120898`), but
-  its test step was configured non-blocking. CI Race on latest push `7ef7c857` also concluded
+  its test step was configured non-blocking. CI Race on prior push `7ef7c857` also concluded
   successfully (run `39321755986`) despite tolerated race-test failures; neither conclusion is
   accepted as proof of a passing race gate. The test and workflow defects are corrected locally;
   the first corrected full internal race attempt then exposed parallel `FirstOrCreate` calls
@@ -66,7 +66,9 @@ and are independent of the numbered rows in the task evidence table.
   completion after resource monitoring showed 43% CPU and about 1.5 GiB use. The in-container test
   processes and task-specific validation container were stopped. Its partial output is retained at
   `test-output/reviewfollowup/framework-v25-linux-standalone-race-safe-directory-20261020.log`;
-  it is not a passing result. The corrected blocking GitHub Race rerun remains pending a push.
+  it is not a passing result. The corrected blocking GitHub Race run `39356665257`, Quality run
+  `39356665316`, and E2E run `39356665264` were triggered by push `e819239de` and are in progress;
+  their results are not yet known.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
   tests pass. Rotation/reload remains unsupported and is documented.
@@ -83,7 +85,7 @@ and are independent of the numbered rows in the task evidence table.
   Service API `complete` profile passed 218/218 requests with 100% success and a 235 ms maximum
   response time (`test-output/reviewfollowup/gatling-complete-tenant-scope-20261018.log`); do not
   disable authentication to make load tests pass. The CI Load workflow passed on c42 (run
-  `39165120886`) and on latest push `7ef7c857` (run `39321756107`); remaining simulation profiles
+  `39165120886`) and on prior push `7ef7c857` (run `39321756107`); remaining simulation profiles
   have not been evidenced, so this recommendation
   remains partially verified.
 - **9 — Complete.** PKI tests were checked against parallelism, fixtures, UUIDs, cleanup, seams,
@@ -137,9 +139,10 @@ and are independent of the numbered rows in the task evidence table.
   cancellation-path fix are recorded in
   `test-output/reviewfollowup/framework-v25-go-test-current-20261016.log`; the suite exits 0.
   The earlier audited skip total is superseded by the 36-skip current inventory. Task 5.8 records
-  the 11 passing non-Race workflows on the latest push; CI Race run `39321755986` had a success
-  conclusion despite a tolerated failing test step and is not accepted as passing. The corrected
-  blocking Race rerun, exact standalone race, and runtime gates remain open. The post-fix Linux
+  the 11 passing non-Race workflows on prior push `7ef7c857`; CI Race run `39321755986` had a success
+  conclusion despite a tolerated failing test step and is not accepted as passing. Push
+  `e819239de` triggered the corrected blocking Race, Quality, and E2E runs; all remain in progress.
+  The exact standalone race and runtime gates remain open. The post-fix Linux
   CI-equivalent race run across `./internal/...` with the integration tag and `-count=2` passes
   (`test-output/reviewfollowup/framework-v25-full-ci-race-internal-after-shared-tenant-fix-20261019.log`);
   the standalone `./...` race run was stopped before completion due to high resource use after

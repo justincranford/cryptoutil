@@ -929,20 +929,23 @@ content mismatch has been resolved. Fresh normal/tagged builds and golangci-lint
 validators, docs/text/workflow validation, and a full shuffled test run pass without test
 failures. The latest full run has 36 explained test-level skips and 41 package-level no-test events;
 the skip audit found no remaining actionable test-gap skip. The pinned 352-package coverage
-threshold gate passes. The 11 non-Race workflows passed on latest push `7ef7c857`; Race run
+threshold gate passes. The 11 non-Race workflows passed on prior push `7ef7c857`; Race run
 `39321755986` had a green conclusion despite its tolerated test failure. Task 5.8 records the
-race defects and local correction. The post-fix Linux CI-equivalent full internal race run passes
-twice with the integration tag. Phase 5 also remains open for the corrected blocking race gate,
+race defects and correction. The fixes were pushed in `e819239de`; its blocking Race run
+`39356665257` and Quality/E2E runs `39356665316` and `39356665264` are in progress, not passing
+evidence. The post-fix Linux CI-equivalent full internal race run passes twice with the integration
+tag. Phase 5 also remains open for the corrected blocking race gate,
 the exact full-repository race command, and separately listed Docker lifecycle/legacy-volume
 validation. Literal zero skips is not a valid acceptance criterion
 for probability-sampled tests; use the documented skip inventory in Task 5.3. The historical
 aggregate comparison was dropped at the user's direction.
 
 **Local workflow execution**: The official `coverage`, `race`, `mutation`, `benchmark`, `load`,
-and `e2e` workflows are available. The 11 non-Race workflows passed on push `7ef7c857`; Race
+and `e2e` workflows are available. The 11 non-Race workflows passed on prior push `7ef7c857`; Race
 (`39321755986`) is not accepted as passing because its test step was tolerated after failure.
-The blocking race gate is corrected locally and awaiting rerun. The Windows host has no
-GCC/Clang, so the plan's exact standalone `go test -race -count=2 ./...` command still needs a
+The corrected fail-closed race workflow and tests were pushed in `e819239de`; its Race run
+`39356665257` is in progress. The Windows host has no GCC/Clang, so the plan's exact standalone
+`go test -race -count=2 ./...` command still needs a
 supported Linux runner if retained as a separate gate. The current Docker Engine is 29.8.2,
 meeting the corrected minimum aligned with Docker Desktop 4.95.0.
 
@@ -1540,11 +1543,12 @@ do not establish a coverage pass.
   retries for transient module-download errors were pushed in `7ef7c857`. The 11 non-Race
   workflows passed on that push. CI Race run `39321755986` had a success conclusion only because
   its failing test step was tolerated by `continue-on-error`; its result was incorrectly treated
-  as a pass. Race-test and workflow defects are fixed locally, but a blocking post-fix rerun is
-  still required. The post-fix Linux CI-equivalent internal race run passes twice; the exact
-  standalone full-repository race is currently rerunning as UID 65534 in the isolated Go 1.27.2
-  Linux container. The corrected blocking GitHub Race rerun is pending a push. Remaining runtime
-  gates are tracked separately.
+  as a pass. Race-test and workflow defects were fixed and pushed in `e819239de`. The blocking
+  GitHub Race run `39356665257` is in progress; Quality run `39356665316` and E2E run
+  `39356665264` are also in progress. None is yet passing evidence. The post-fix Linux
+  CI-equivalent internal race run passes twice. The exact standalone full-repository race run was
+  stopped before completion because it reached high resource use; it is not a passing result.
+  Remaining runtime gates are tracked separately.
 - **Owner**: LLM Agent
 - **Dependencies**: Tasks 5.3 and 5.5
 - **Symptoms and root causes**:
@@ -1578,9 +1582,9 @@ do not establish a coverage pass.
   - The CI-equivalent race command also included `./scripts/...`, which matches no Go packages
     and makes Go 1.27.2 `go test` exit 1 (`warning: "./scripts/..." matched no packages` /
     `no packages to test`). The workflow now targets `./internal/...` only, removes the
-    fail-open behavior, and gives the race job an enforced timeout.     The local CI-equivalent internal race run passes; the exact standalone race is running
-    separately. The corrected blocking GitHub rerun is pending a push, so no post-fix GitHub
-    Race result exists yet.
+    fail-open behavior, and gives the race job an enforced timeout. The local CI-equivalent
+    internal race run passes; the exact standalone race was stopped before completion. The
+    corrected blocking GitHub run `39356665257` is in progress, so its result is not yet known.
   - The first corrected Linux `./internal/...` run exposed another shared SQLite fixture race in
     `registration_integration_list_test.go`: two parallel tests called `FirstOrCreate` for the
     same TestMain tenant ID before that tenant existed, so both attempted the same primary-key
@@ -1634,15 +1638,16 @@ do not establish a coverage pass.
   (`39165121125`), Race (`39165120898`), Mutation (`39165121009`), and Load (`39165120886`)
   passed; CI Quality and CI E2E failed for the causes recorded above. On `b0d954d22`, eight
   workflows failed before substantive checks due to `go.sum` drift, while SAST, Architecture
-  Fitness, DAST, and GitLeaks passed. On latest push `7ef7c857`, CI Quality (`39321756161`), E2E
+  Fitness, DAST, and GitLeaks   passed. On prior push `7ef7c857`, CI Quality (`39321756161`), E2E
   (`39321755975`), Load (`39321756107`), Fuzz (`39321756169`), Mutation (`39321756166`),
   Benchmark (`39321756007`), Coverage (`39321756223`), SAST (`39321756064`), DAST
   (`39321756241`), GitLeaks (`39321756357`), and Architecture Fitness (`39321755969`)
   passed. CI Race run `39321755986` had a success conclusion but its failing test step was
   tolerated by `continue-on-error`; it is not counted as a pass. Its test failures and the invalid
-  `./scripts/...` package selector were fixed locally. The fail-closed `./internal/...` workflow
-  correction passes `lint-workflow -q`; the corrected blocking race run and post-fix GitHub
-  workflow results remain pending.
+  `./scripts/...` package selector were fixed and pushed in `e819239de`. The fail-closed
+  `./internal/...` workflow correction passes `lint-workflow -q`. On current push `e819239de`, the
+  blocking Race run `39356665257`, Quality run `39356665316`, and E2E run `39356665264` are in
+  progress; their results remain unverified.
 
 ## Phase 6: Knowledge Propagation
 
