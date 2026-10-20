@@ -12,7 +12,7 @@ after each phase's quality gates pass.
 2. [Phase 2](#phase-2-extend-sm-kms-api-with-pki-endpoints): All 18 PKI routes are registered under both public API prefixes; OpenAPI and handler tests pass.
 3. [Phase 3](#phase-3-delete-pki-ca-service-artifacts): The standalone pki-ca service artifacts are absent and normal/tagged builds pass.
 4. [Phase 4](#phase-4-delete-pki-product-and-update-registry): The canonical registry, runtime registry, and fitness validation reflect 3 products and 7 PS-IDs.
-5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds; skips are classified under the repository's probability-based policy. Coverage, Mutation, and Load passed on push `c42c09e5359270bce889411bb8fc8755dd0669e3`; Quality and E2E failed there, and their fixes were pushed in `b0d954d22`. The 11 non-Race workflows passed on prior push `7ef7c857`, but CI Race run `39321755986` is a false green because its failing test step was non-blocking. The fail-closed Race, Quality, and E2E reruns were pushed in `e819239de` and are in progress. The exact standalone full-repository race, Docker lifecycle, and legacy-volume provenance gates remain open.
+5. [Phase 5](#phase-5-quality-gates): Normal/tagged builds, the default-concurrency shuffled suite, linters, and applicable cicd-lint checks pass. The latest pinned coverage profile meets all package thresholds; skips are classified under the repository's probability-based policy. Coverage, Mutation, and Load passed on push `c42c09e5359270bce889411bb8fc8755dd0669e3`; Quality and E2E failed there, and their fixes were pushed in `b0d954d22`. The 11 non-Race workflows passed on prior push `7ef7c857`, but CI Race run `39321755986` is a false green because its failing test step was non-blocking. On `e819239de`, CI Quality and Load passed; the fail-closed Race and E2E reruns remain in progress. The exact standalone full-repository race, Docker lifecycle, and legacy-volume provenance gates remain open.
 6. [Phase 6](#phase-6-knowledge-propagation): README and handbook topology documentation are reconciled, lessons are recorded, and docs propagation validation passes.
 
 ---
@@ -44,10 +44,10 @@ after each phase's quality gates pass.
 The package tree under `internal/apps/sm-kms/server/pki/` keeps PKI implementation within the owning service. The full shuffled test suite and package coverage profile verify the ported packages in their current location.
 
 **Current post-push status (2026-10-20)**: The 11 non-Race workflows recorded above passed on
-prior push `7ef7c857`. After the fail-closed fixes were pushed in `e819239de`, CI Race run
-`39356665257`, Quality run `39356665316`, and E2E run `39356665264` were still in progress at the
-last status check. The standalone full-repository race remains stopped before completion and is
-not passing evidence.
+prior push `7ef7c857`. After the fail-closed fixes were pushed in `e819239de`, CI Quality run
+`39356665316` and CI Load run `39356665340` passed; CI Race run `39356665257` and E2E run
+`39356665264` remain in progress. The standalone full-repository race was stopped before
+completion and is not passing evidence.
 
 ### What Didn't Work
 

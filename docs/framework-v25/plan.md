@@ -1,6 +1,13 @@
 # Implementation Plan â€” Framework v25: 8-to-7 PS-ID Consolidation
 
-**Status**: Implementation phases 1–4 are complete; Phase 5 quality-gate acceptance remains in progress. Phase 6 knowledge propagation is complete. `origin/main` points to `e819239dea4f9abcb08ab18bae1c5373e1b9d64e`. The original CI Quality/E2E fixes were pushed in `b0d954d22`; the stale `grpc-gateway v1.16.0` checksum correction was pushed in `45c2757`; and bounded retries for transient `go mod download` failures were pushed in `7ef7c857`. Although all 12 workflows had a success conclusion on that push, CI Race run `39321755986` tolerated a failing race-test step with `continue-on-error`; it is not accepted as passing. The fail-closed Race workflow and test fixes pass the post-fix Linux CI-equivalent full internal race run (`-tags=integration -count=2`) and were pushed in `e819239de`. The corrected blocking GitHub Race run `39356665257` and the post-fix Quality/E2E runs `39356665316` and `39356665264` are in progress; none is yet evidence of a pass. The first standalone race attempt as root failed chmod-based permission tests; the subsequent non-root attempt failed because Git rejected the root-owned `/workspace` checkout as dubious ownership while `go list` collected VCS metadata. Adding `/workspace` to the disposable container's system `safe.directory` made `git status` and `go list ./...` pass as UID 65534. The corrected standalone run was started but stopped before completion after resource monitoring showed 43% container CPU and about 1.5 GiB memory; the in-container test processes and task-specific validation container were stopped. Its partial log is `test-output/reviewfollowup/framework-v25-linux-standalone-race-safe-directory-20261020.log`; it is not a pass. Docker lifecycle and legacy-volume provenance gates also remain open, so Phase 5 is not complete.
+**Status**: Implementation phases 1–4 and Phase 6 are complete. Phase 5 remains in progress:
+CI Quality (run `39356665316`) and CI Load (run `39356665340`) passed on `e819239de`; the
+corrected blocking CI Race (`39356665257`) and CI E2E (`39356665264`) runs remain in progress.
+The earlier Race run `39321755986` is not accepted as a pass because `continue-on-error`
+tolerated a failing test step. The full standalone repository race run was stopped before
+completion under high resource use, so it is not passing evidence. Docker lifecycle and legacy
+volume provenance validation remain open. `origin/main` points to
+`e819239dea4f9abcb08ab18bae1c5373e1b9d64e`.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
