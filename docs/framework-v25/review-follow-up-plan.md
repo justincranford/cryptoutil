@@ -124,9 +124,9 @@ and are independent of the numbered rows in the task evidence table.
   accepted as passing evidence. Latest Load run `39361288540` passed all three profiles.
   Full-module Race run `39362007528` passed all six jobs on commit `2557168fd`; its package set is
   covered exactly once.
-  Only the persistent migration-1006 legacy-schema follower upgrade remains open under Task 5.6
-  and Recommendation 38; historical-volume provenance remains excluded and fail-closed under
-  Recommendation 28. The CI Quality (#953, run
+  The persistent migration-1006 legacy-schema follower upgrade now passes under Task 5.6 and
+  Recommendation 38; hosted workflow validation of its startup-role fix remains pending.
+  Historical-volume provenance remains excluded and fail-closed under Recommendation 28. The CI Quality (#953, run
   `39165120901`) and CI E2E (#952, run `39165121059`) failures are fixed locally and pushed in
   `b0d954d22`, but CI Quality, E2E, Load, Fuzz, Mutation, Race, Benchmark, and Coverage on that
   revision failed at dependency validation because `go mod tidy` removes an obsolete
@@ -153,9 +153,9 @@ and are independent of the numbered rows in the task evidence table.
   `e819239de` triggered the corrected blocking Race, Quality, and E2E runs. Quality and E2E
   passed; Race was cancelled at the 30-minute job timeout and is not passing evidence.
   Full-module Race run `39362007528` passed all six jobs on commit `2557168fd`. The monolithic
-  local race attempt is superseded by this six-partition matrix; only the persistent legacy-schema
-  follower upgrade remains open. Historical-volume provenance is excluded and fail-closed under
-  Recommendation 28. The post-fix Linux
+  local race attempt is superseded by this six-partition matrix. The persistent legacy-schema
+  follower upgrade now passes; hosted workflow validation of its startup-role fix remains pending.
+  Historical-volume provenance is excluded and fail-closed under Recommendation 28. The post-fix Linux
   CI-equivalent race run across `./internal/...` with the integration tag and `-count=2` passes
   (`test-output/reviewfollowup/framework-v25-full-ci-race-internal-after-shared-tenant-fix-20261019.log`);
   the standalone `./...` race run was stopped before completion due to high resource use after
@@ -226,15 +226,17 @@ and are independent of the numbered rows in the task evidence table.
   revocation metadata, as verified by focused storage and handler tests.
 - **37 — Complete.** PostgreSQL continuity tests exercise concurrent multi-connection CRL number
   allocation, persisted revocation, and authority-key restoration across container restart.
-- **38 — Partially verified.** Code review found that an already-enabled logical subscription
-  skipped follower-schema preparation after migration 1006 renamed `client_secret` to
-  `client_secret_hash` on the leader. The canonical and instantiated setup scripts now require the
-  migrated leader schema and reconcile the rename on both follower tables before accepting an
-  existing subscription; Bash syntax, deployment validation, template fitness, and text checks
-  pass (`test-output/reviewfollowup/framework-v25-follower-schema-reconciliation-20261017.log`).
-  A persistent legacy-follower upgrade and replication smoke test remains unverified; the local
-  Docker Engine 29.8.2 meets the corrected minimum, so this is an outstanding runtime check rather
-  than a version blocker. Do not claim the live upgrade path passes.
+- **38 — Complete.** Code review found that an already-enabled logical subscription skipped
+  follower-schema preparation after migration 1006 renamed `client_secret` to
+  `client_secret_hash` on the leader. The canonical and instantiated setup scripts reconcile the
+  rename on both follower tables before accepting an existing subscription. The persistent
+  legacy-schema follower smoke test verified both renamed tables, preservation of the enabled
+  subscription, and successful replication of a new publisher row. Its first run exposed a
+  missing explicit PostgreSQL user on the database-existence `psql` call; adding
+  `-U "$LEADER_USER"` fixed startup with the secret-backed database role. Runtime results are
+  recorded in `test-output/reviewfollowup/v25-legacy-follower-upgrade-evidence-20261020.txt`;
+  Bash syntax, deployment validation, template fitness, and text checks pass. Hosted workflow
+  validation of the fix remains part of Phase 5 acceptance.
 
 ## Excluded Recommendation
 
