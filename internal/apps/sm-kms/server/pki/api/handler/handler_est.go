@@ -13,52 +13,22 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilCAProfileSubject "cryptoutil/internal/apps/sm-kms/server/pki/profile/subject"
-	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/sm-kms/server/pki/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/sm-kms/server/pki/service/revocation"
 	cryptoutilCAServiceTimestamp "cryptoutil/internal/apps/sm-kms/server/pki/service/timestamp"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
-
-func (h *Handler) buildESTIssueRequest(
-	csr *x509.CertificateRequest,
-	profile *ProfileConfig,
-) *cryptoutilCAServiceIssuer.CertificateRequest {
-	_ = profile // Profile would be used in production to configure extensions.
-
-	// Build subject request from CSR.
-	subjectReq := &cryptoutilCAProfileSubject.Request{
-		CommonName:         csr.Subject.CommonName,
-		Organization:       csr.Subject.Organization,
-		OrganizationalUnit: csr.Subject.OrganizationalUnit,
-		Country:            csr.Subject.Country,
-		State:              csr.Subject.Province,
-		Locality:           csr.Subject.Locality,
-		DNSNames:           csr.DNSNames,
-		IPAddresses:        h.ipsToStrings(csr.IPAddresses),
-		EmailAddresses:     csr.EmailAddresses,
-		URIs:               h.urisToStrings(csr.URIs),
-	}
-
-	return &cryptoutilCAServiceIssuer.CertificateRequest{
-		PublicKey:        csr.PublicKey,
-		SubjectRequest:   subjectReq,
-		ValidityDuration: time.Duration(cryptoutilSharedMagic.DaysPerYear) * cryptoutilSharedMagic.HoursPerDay * time.Hour,
-	}
-}
 
 // ESTSimpleReenroll handles POST /est/simplereenroll - RFC 7030 Section 4.2.2.
 // Processes a PKCS#10 CSR to renew an existing certificate.
 // Note: Full mTLS authentication requires the client to authenticate with
 // the certificate being renewed.
 func (h *Handler) ESTSimpleReenroll(c *fiber.Ctx) error {
-	// Re-enrollment uses the same logic as simple enrollment.
-	// In production, mTLS would verify the client certificate being renewed.
-	return h.ESTSimpleEnroll(c)
+	ctx := withESTClientCertificate(c.UserContext(), estClientCertificateFromFiberContext(c))
+
+	return h.estSimpleEnroll(c, ctx, true)
 }
 
 // ESTServerKeyGen refuses requests until it can return generated private keys in a FIPS-approved encrypted envelope.

@@ -52,7 +52,8 @@ func TestBuildESTIssueRequest(t *testing.T) {
 		Name: testProfileNameTest,
 	}
 
-	issueReq := handler.buildESTIssueRequest(csr, profile)
+	issueReq, err := handler.buildESTIssueRequest(csr, profile)
+	require.NoError(t, err)
 	require.NotNil(t, issueReq)
 	require.NotNil(t, issueReq.SubjectRequest)
 	require.Equal(t, testDomainNameExample, issueReq.SubjectRequest.CommonName)

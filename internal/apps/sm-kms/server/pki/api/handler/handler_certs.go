@@ -3,12 +3,14 @@
 package handler
 
 import (
+	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	rsa "crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -350,6 +352,10 @@ func (h *Handler) ESTCSRAttrs(c *fiber.Ctx) error {
 // Note: Full mTLS authentication requires TLS middleware configuration.
 // This implementation accepts CSR in DER or Base64 format.
 func (h *Handler) ESTSimpleEnroll(c *fiber.Ctx) error {
+	return h.estSimpleEnroll(c, c.UserContext(), false)
+}
+
+func (h *Handler) estSimpleEnroll(c *fiber.Ctx, ctx context.Context, reenroll bool) error {
 	// Read the CSR from request body.
 	csrBytes := c.Body()
 	if len(csrBytes) == 0 {
@@ -367,29 +373,38 @@ func (h *Handler) ESTSimpleEnroll(c *fiber.Ctx) error {
 		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_signature", "CSR signature verification failed")
 	}
 
-	// Use default profile for EST enrollment.
-	// In production, this would be determined by mTLS client certificate or request path.
-	h.mu.RLock()
-
-	var profile *ProfileConfig
-
-	for _, p := range h.profiles {
-		profile = p
-
-		break // Use first available profile.
-	}
-
-	h.mu.RUnlock()
-
-	if profile == nil {
-		return h.errorResponse(c, fiber.StatusServiceUnavailable, "no_profile", "no certificate profiles configured")
+	profile, err := h.selectESTProfile()
+	if err != nil {
+		return h.errorResponse(c, fiber.StatusServiceUnavailable, cryptoutilSharedMagic.PKIErrorCodeNoProfile, err.Error())
 	}
 
 	if h.issuer == nil {
 		return h.errorResponse(c, fiber.StatusServiceUnavailable, "service_unavailable", "CA issuer not configured")
 	}
-	// Build the issuance request using CSR subject.
-	issueReq := h.buildESTIssueRequest(csr, profile)
+
+	issueReq, err := h.buildESTIssueRequest(csr, profile)
+	if err != nil {
+		return h.errorResponse(c, fiber.StatusUnprocessableEntity, cryptoutilSharedMagic.PKIErrorCodeProfileError, err.Error())
+	}
+
+	var clientCert *x509.Certificate
+	if reenroll {
+		clientCert = estClientCertificateFromContext(ctx)
+		if err := h.authorizeESTReenrollment(ctx, clientCert); err != nil {
+			switch {
+			case errors.Is(err, errESTClientCertificateRequired):
+				return h.errorResponse(c, fiber.StatusUnauthorized, cryptoutilSharedMagic.PKIErrorCodeClientCertificateRequired, cryptoutilSharedMagic.PKIMessageClientCertificateRequiredForReenrollment)
+			case errors.Is(err, errESTReenrollmentDenied):
+				return h.errorResponse(c, fiber.StatusForbidden, cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, cryptoutilSharedMagic.PKIMessageClientCertificateNotAuthorizedForReenrollment)
+			default:
+				return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+			}
+		}
+	}
+
+	if reenroll && !sameESTCertificateIdentityRequest(clientCert, issueReq.SubjectRequest) {
+		return h.errorResponse(c, fiber.StatusForbidden, cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, cryptoutilSharedMagic.PKIMessageReenrollmentIdentityMismatch)
+	}
 
 	// Issue the certificate.
 	issued, _, err := h.issuer.Issue(issueReq)
@@ -397,12 +412,16 @@ func (h *Handler) ESTSimpleEnroll(c *fiber.Ctx) error {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "issuance_error", err.Error())
 	}
 
+	if reenroll && !sameESTCertificateIdentity(clientCert, issued.Certificate) {
+		return h.errorResponse(c, fiber.StatusForbidden, cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, cryptoutilSharedMagic.PKIMessageReenrollmentIdentityMismatch)
+	}
+
 	requestID, err := googleUuid.NewV7()
 	if err != nil {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "request_id_error", "failed to generate request ID")
 	}
 
-	if _, err := h.storeIssuedCertificate(c.UserContext(), issued, profile.ID, requestID); err != nil {
+	if _, err := h.storeIssuedCertificate(ctx, issued, profile.ID, requestID); err != nil {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
 	}
 

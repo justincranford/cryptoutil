@@ -23,16 +23,20 @@ const BitsPerByte = 8
 const CA_ITEMS = "ca_items"
 
 const (
-	PKICertificatesTable             = "pki_certificates"
-	PKIAuthoritiesTable              = "pki_authorities"
-	PKICRLSequencesTable             = "pki_crl_sequences"
-	PKIDefaultAuthorityID            = "sm-kms-pki-development-authority"
-	PKICertificateStatusIndex        = "idx_pki_certificates_tenant_status"
-	PKICertificateSerialIndex        = "idx_pki_certificates_tenant_serial"
-	PKICertificateRequestLegacyIndex = "idx_pki_certificates_tenant_request"
-	PKICertificateRequestIndex       = "idx_pki_certificates_tenant_request_unique"
-	PKIPrivateKeyEnvelopeVersionV1   = 1
-	PKIErrorRemoveFromCRLUnsupported = "removeFromCRL is unsupported because only complete CRLs are generated"
+	PKICertificatesTable                  = "pki_certificates"
+	PKIAuthoritiesTable                   = "pki_authorities"
+	PKICRLSequencesTable                  = "pki_crl_sequences"
+	PKIDefaultAuthorityID                 = "sm-kms-pki-development-authority"
+	PKICertificateStatusIndex             = "idx_pki_certificates_tenant_status"
+	PKICertificateSerialIndex             = "idx_pki_certificates_tenant_serial"
+	PKICertificateRequestLegacyIndex      = "idx_pki_certificates_tenant_request"
+	PKICertificateRequestIndex            = "idx_pki_certificates_tenant_request_unique"
+	PKIPrivateKeyEnvelopeVersionV1        = 1
+	PKIErrorRemoveFromCRLUnsupported      = "removeFromCRL is unsupported because only complete CRLs are generated"
+	PKIErrorCodeClientCertificateRequired = "client_certificate_required"
+	PKIErrorCodeNoProfile                 = "no_profile"
+	PKIErrorCodeProfileError              = "profile_error"
+	PKIErrorCodeReenrollmentNotAuthorized = "reenrollment_not_authorized"
 )
 
 const (
@@ -58,6 +62,12 @@ const (
 	PKIContentTypeTimestampReply = "application/timestamp-reply"
 	// PKIMessageFailedToParseRequestBody describes malformed JSON request bodies.
 	PKIMessageFailedToParseRequestBody = "failed to parse request body"
+	// PKIMessageClientCertificateRequiredForReenrollment describes missing EST re-enrollment authentication.
+	PKIMessageClientCertificateRequiredForReenrollment = "client certificate required for re-enrollment"
+	// PKIMessageClientCertificateNotAuthorizedForReenrollment describes rejected EST re-enrollment authentication.
+	PKIMessageClientCertificateNotAuthorizedForReenrollment = "client certificate is not authorized for re-enrollment"
+	// PKIMessageReenrollmentIdentityMismatch describes an EST request identity mismatch.
+	PKIMessageReenrollmentIdentityMismatch = "requested certificate identity does not match the authenticated certificate"
 )
 
 // PKI CA hierarchy and status labels.

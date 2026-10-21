@@ -5,6 +5,11 @@ import (
 	"bytes"
 	"context"
 	"crypto"
+	ecdsa "crypto/ecdsa"
+	"crypto/elliptic"
+	crand "crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
 	"io"
@@ -25,6 +30,12 @@ import (
 	ocsp "golang.org/x/crypto/ocsp"
 )
 
+const (
+	strictESTClientCertificateMissing      = "missing"
+	strictESTClientCertificateUnregistered = "unregistered"
+	strictESTClientCertificateRegistered   = "registered"
+)
+
 func TestStrictServer_ESTSimpleEnrollPaths(t *testing.T) {
 	t.Parallel()
 
@@ -42,7 +53,7 @@ func TestStrictServer_ESTSimpleEnrollPaths(t *testing.T) {
 		{name: strictHandlerTestEmptyBody, body: func(*testing.T) io.Reader { return strings.NewReader("") }, profile: true, issuer: true, wantStatus: http.StatusBadRequest, wantError: strictHandlerTestBadRequest},
 		{name: testCaseNameInvalidCSR, body: func(*testing.T) io.Reader { return strings.NewReader("invalid CSR") }, profile: true, issuer: true, wantStatus: http.StatusBadRequest, wantError: strictHandlerTestInvalidCSR},
 		{name: "invalid signature", body: strictInvalidCSRSignatureReader, profile: true, issuer: true, wantStatus: http.StatusBadRequest, wantError: "invalid_signature"},
-		{name: "no profile", body: strictValidCSRReader, issuer: true, wantStatus: http.StatusServiceUnavailable, wantError: "no_profile"},
+		{name: "no profile", body: strictValidCSRReader, issuer: true, wantStatus: http.StatusServiceUnavailable, wantError: cryptoutilSharedMagic.PKIErrorCodeNoProfile},
 		{name: "no issuer", body: strictValidCSRReader, profile: true, wantStatus: http.StatusServiceUnavailable, wantError: strictHandlerTestServiceUnavailable},
 		{name: strictHandlerTestStorageError, body: strictValidCSRReader, profile: true, issuer: true, storageErr: true, wantStatus: http.StatusInternalServerError, wantError: "storage_error"},
 		{name: "successful enrollment", body: strictValidCSRReader, profile: true, issuer: true, wantStatus: http.StatusOK},
@@ -96,18 +107,96 @@ func TestStrictServer_ESTSimpleEnrollPaths(t *testing.T) {
 	}
 }
 
-func TestStrictServer_ESTSimpleReenrollSuccess(t *testing.T) {
+func TestStrictServer_ESTSimpleReenrollAuthorization(t *testing.T) {
 	t.Parallel()
 
-	_, handler, strict := newStrictServerFixture(t)
-	response := callStrictESTEnroll(t, strict, strings.NewReader(createValidCSRPEM(t)), true, http.StatusOK)
-	require.Equal(t, cryptoutilSharedMagic.PKIContentTypePKCS7CertsOnly, response.contentType)
-	require.NotEmpty(t, response.body)
+	tests := []struct {
+		name          string
+		clientCert    string
+		revoke        bool
+		changeSubject bool
+		wantStatus    int
+		wantError     string
+		wantStored    int
+	}{
+		{name: "missing client certificate", clientCert: strictESTClientCertificateMissing, wantStatus: http.StatusUnauthorized, wantError: cryptoutilSharedMagic.PKIErrorCodeClientCertificateRequired, wantStored: 1},
+		{name: "certificate not stored", clientCert: strictESTClientCertificateUnregistered, wantStatus: http.StatusForbidden, wantError: cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, wantStored: 1},
+		{name: "registered certificate is revoked", clientCert: strictESTClientCertificateRegistered, revoke: true, wantStatus: http.StatusForbidden, wantError: cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, wantStored: 1},
+		{name: "CSR changes certificate identity", clientCert: strictESTClientCertificateRegistered, changeSubject: true, wantStatus: http.StatusForbidden, wantError: cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, wantStored: 1},
+		{name: "matching active certificate", clientCert: strictESTClientCertificateRegistered, wantStatus: http.StatusOK, wantStored: 2},
+	}
 
-	certificates, total, err := handler.storage.List(context.Background(), &cryptoutilCAStorage.ListFilter{Limit: 10})
-	require.NoError(t, err)
-	require.Equal(t, 1, total)
-	require.Len(t, certificates, 1)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, handler, strict := newStrictServerFixture(t)
+			csrPEM := strictESTCSR(t, testDomainNameExample)
+			initial := callStrictESTEnroll(t, strict, strings.NewReader(csrPEM), false, http.StatusOK)
+			clientCert := strictESTCertificateFromResponse(t, initial)
+
+			switch tc.clientCert {
+			case strictESTClientCertificateMissing:
+				clientCert = nil
+			case strictESTClientCertificateUnregistered:
+				csr, err := handler.parseESTCSR([]byte(csrPEM))
+				require.NoError(t, err)
+				profile, err := handler.selectESTProfile()
+				require.NoError(t, err)
+				issueReq, err := handler.buildESTIssueRequest(csr, profile)
+				require.NoError(t, err)
+				unregistered, _, err := handler.issuer.Issue(issueReq)
+				require.NoError(t, err)
+
+				clientCert = unregistered.Certificate
+			case strictESTClientCertificateRegistered:
+			default:
+				require.FailNowf(
+					t,
+					cryptoutilSharedMagic.CICDTestFatalfFailureMessage,
+					"unexpected client certificate fixture: %q",
+					tc.clientCert,
+				)
+			}
+
+			if tc.revoke {
+				certificates, total, err := handler.storage.List(context.Background(), &cryptoutilCAStorage.ListFilter{Limit: 10})
+				require.NoError(t, err)
+				require.Equal(t, 1, total)
+				require.Len(t, certificates, 1)
+				revokedCertificate := *certificates[0]
+				revokedCertificate.Status = cryptoutilCAStorage.StatusRevoked
+				require.NoError(t, handler.storage.Update(context.Background(), &revokedCertificate))
+			}
+
+			reenrollContext := strictTestContext()
+			if clientCert != nil {
+				reenrollContext = withESTClientCertificate(reenrollContext, clientCert)
+			}
+
+			reenrollCSR := csrPEM
+			if tc.changeSubject {
+				reenrollCSR = strictESTCSR(t, "different.example.test")
+			}
+
+			response := assertStrictCall(t, tc.wantStatus, func() (any, error) {
+				return strict.ESTSimpleReenroll(reenrollContext, cryptoutilApiCaServer.ESTSimpleReenrollRequestObject{
+					Body: strings.NewReader(reenrollCSR),
+				})
+			})
+
+			if tc.wantError != "" {
+				require.Equal(t, tc.wantError, strictResponseBody[cryptoutilApiCaServer.ErrorResponse](t, response).Error)
+			} else {
+				require.Equal(t, cryptoutilSharedMagic.PKIContentTypePKCS7CertsOnly, response.contentType)
+				require.NotEmpty(t, response.body)
+			}
+
+			_, total, err := handler.storage.List(context.Background(), &cryptoutilCAStorage.ListFilter{Limit: 10})
+			require.NoError(t, err)
+			require.Equal(t, tc.wantStored, total)
+		})
+	}
 }
 
 func TestStrictServer_ESTCACertsConfiguration(t *testing.T) {
@@ -271,6 +360,36 @@ func strictValidCSRReader(t *testing.T) io.Reader {
 	t.Helper()
 
 	return strings.NewReader(createValidCSRPEM(t))
+}
+
+func strictESTCSR(t *testing.T, commonName string) string {
+	t.Helper()
+
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	require.NoError(t, err)
+
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, &x509.CertificateRequest{
+		Subject: pkix.Name{CommonName: commonName},
+	}, key)
+	require.NoError(t, err)
+
+	return string(pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCSR, Bytes: csrDER}))
+}
+
+func strictESTCertificateFromResponse(t *testing.T, response strictResponse) *x509.Certificate {
+	t.Helper()
+
+	certificatePEM, ok := response.body.([]byte)
+	require.True(t, ok, "EST response body type = %T", response.body)
+
+	block, _ := pem.Decode(certificatePEM)
+	require.NotNil(t, block)
+	require.Equal(t, cryptoutilSharedMagic.StringPEMTypeCertificate, block.Type)
+
+	certificate, err := x509.ParseCertificate(block.Bytes)
+	require.NoError(t, err)
+
+	return certificate
 }
 
 func strictInvalidCSRSignatureReader(t *testing.T) io.Reader {

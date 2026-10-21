@@ -96,6 +96,10 @@ func strictHandledResponse(response strictResponse) (strictResponse, error) {
 
 // StrictRequestBodyErrorMiddleware preserves PKI JSON parser error responses.
 func StrictRequestBodyErrorMiddleware(ctx *fiber.Ctx) error {
+	if clientCert := estClientCertificateFromFiberContext(ctx); clientCert != nil {
+		ctx.SetUserContext(withESTClientCertificate(ctx.UserContext(), clientCert))
+	}
+
 	if err := ctx.Next(); err != nil {
 		if isStrictRequestBodyParseError(ctx, err) {
 			message := cryptoutilSharedMagic.PKIMessageFailedToParseRequestBody

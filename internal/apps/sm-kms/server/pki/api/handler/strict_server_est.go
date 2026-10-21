@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -45,14 +46,14 @@ func (s *StrictServer) ESTServerKeyGen(_ context.Context, _ cryptoutilApiCaServe
 }
 
 func (s *StrictServer) ESTSimpleEnroll(ctx context.Context, request cryptoutilApiCaServer.ESTSimpleEnrollRequestObject) (cryptoutilApiCaServer.ESTSimpleEnrollResponseObject, error) {
-	return s.estSimpleEnroll(ctx, request.Body)
+	return s.estSimpleEnroll(ctx, request.Body, false)
 }
 
 func (s *StrictServer) ESTSimpleReenroll(ctx context.Context, request cryptoutilApiCaServer.ESTSimpleReenrollRequestObject) (cryptoutilApiCaServer.ESTSimpleReenrollResponseObject, error) {
-	return s.estSimpleEnroll(ctx, request.Body)
+	return s.estSimpleEnroll(ctx, request.Body, true)
 }
 
-func (s *StrictServer) estSimpleEnroll(ctx context.Context, body io.Reader) (strictResponse, error) {
+func (s *StrictServer) estSimpleEnroll(ctx context.Context, body io.Reader, reenroll bool) (strictResponse, error) {
 	if body == nil {
 		return strictError(fiber.StatusBadRequest, "bad_request", "empty CSR"), nil
 	}
@@ -79,28 +80,46 @@ func (s *StrictServer) estSimpleEnroll(ctx context.Context, body io.Reader) (str
 		))
 	}
 
-	s.handler.mu.RLock()
-
-	var profile *ProfileConfig
-	for _, candidate := range s.handler.profiles {
-		profile = candidate
-
-		break
-	}
-
-	s.handler.mu.RUnlock()
-
-	if profile == nil {
-		return strictError(fiber.StatusServiceUnavailable, "no_profile", "no certificate profiles configured"), nil
+	profile, err := s.handler.selectESTProfile()
+	if err != nil {
+		return strictError(fiber.StatusServiceUnavailable, cryptoutilSharedMagic.PKIErrorCodeNoProfile, err.Error()), nil
 	}
 
 	if s.handler.issuer == nil {
 		return strictError(fiber.StatusServiceUnavailable, "service_unavailable", "CA issuer not configured"), nil
 	}
 
-	issued, _, err := s.handler.issuer.Issue(s.handler.buildESTIssueRequest(csr, profile))
+	issueReq, err := s.handler.buildESTIssueRequest(csr, profile)
+	if err != nil {
+		return strictError(fiber.StatusUnprocessableEntity, cryptoutilSharedMagic.PKIErrorCodeProfileError, err.Error()), nil
+	}
+
+	var clientCert *x509.Certificate
+	if reenroll {
+		clientCert = estClientCertificateFromContext(ctx)
+		if err := s.handler.authorizeESTReenrollment(ctx, clientCert); err != nil {
+			switch {
+			case errors.Is(err, errESTClientCertificateRequired):
+				return strictError(fiber.StatusUnauthorized, cryptoutilSharedMagic.PKIErrorCodeClientCertificateRequired, cryptoutilSharedMagic.PKIMessageClientCertificateRequiredForReenrollment), nil
+			case errors.Is(err, errESTReenrollmentDenied):
+				return strictError(fiber.StatusForbidden, cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, cryptoutilSharedMagic.PKIMessageClientCertificateNotAuthorizedForReenrollment), nil
+			default:
+				return strictError(fiber.StatusInternalServerError, "storage_error", err.Error()), nil
+			}
+		}
+	}
+
+	if reenroll && !sameESTCertificateIdentityRequest(clientCert, issueReq.SubjectRequest) {
+		return strictError(fiber.StatusForbidden, cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, cryptoutilSharedMagic.PKIMessageReenrollmentIdentityMismatch), nil
+	}
+
+	issued, _, err := s.handler.issuer.Issue(issueReq)
 	if err != nil {
 		return strictError(fiber.StatusInternalServerError, "issuance_error", err.Error()), nil
+	}
+
+	if reenroll && !sameESTCertificateIdentity(clientCert, issued.Certificate) {
+		return strictError(fiber.StatusForbidden, cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, cryptoutilSharedMagic.PKIMessageReenrollmentIdentityMismatch), nil
 	}
 
 	requestID, err := googleUuid.NewV7()
