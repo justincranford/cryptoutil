@@ -1,12 +1,15 @@
 # Review Follow-Up Plan — Framework v25
 
-**Status**: Partially verified; dispositions and remaining validation are recorded below.
+**Status**: Phase 5 acceptance is complete; all tracked follow-up recommendations are complete
+except Recommendation 28, which remains pending/fail-closed.
 **Created**: 2026-10-15
+**Last Updated**: 2026-10-21
 **Scope**: Prior review recommendations 2–14 and additional recommendations 15–38.
 
 [`plan.md`](./plan.md) records the implemented 8-to-7 PS-ID consolidation; Phase 5 quality-gate
-acceptance remains in progress. This document tracks review follow-up only. Recommendation 1 is
-omitted as requested. Recommendation 28 remains pending as described below.
+acceptance is complete. This document tracks review follow-up only. Recommendation 1 is omitted
+as requested. Recommendation 28 remains pending as described below; the explicitly excluded
+full-application, multi-instance PostgreSQL E2E is not represented as completed.
 
 ## Status Definitions
 
@@ -74,7 +77,9 @@ and are independent of the numbered rows in the task evidence table.
   1199.098 seconds and `identity-authz/clientauth` at 311.174 seconds.
 - **7 — Complete.** TLS outputs are staged and validated, publication failures roll back, and
   Compose consumers are gated on successful `pki-init`; platform permission and failure-path
-  tests pass. Rotation/reload remains unsupported and is documented.
+  tests pass. Coordinated process replacement is the supported CA rollover path and is covered
+  by `test-output/framework-v25-pki-evidence-20261021.log`; in-process hot reload remains
+  unsupported.
 - **8 — Complete.** The load workflow uses authenticated mTLS readiness; live authenticated
   readiness and workflow validation pass. An earlier `ServiceApiSimulation` `complete` profile
   attempt, before the current headless registration/Basic-credentials flow, failed all 24
@@ -105,10 +110,10 @@ and are independent of the numbered rows in the task evidence table.
   inventory or thresholds.
 - **11 — Complete.** The PostgreSQL continuity test cold-starts authority components, stops and
   restarts PostgreSQL, then verifies authority-key restoration and persisted revocation state.
-- **12 — Complete.** Plan 25 is restored as the consolidation plan, with implementation phases
-  1–4 and knowledge propagation complete and Phase 5 acceptance correctly marked in progress.
-  This separate plan carries review dispositions and links to the evidence tracker.
-- **13 — Partially verified.** Current-tree normal/tagged builds and full normal/tagged
+- **12 — Complete.** Plan 25 is the consolidation plan, with implementation phases 1–6 and
+  Phase 5 quality-gate acceptance complete. This separate plan carries review dispositions and
+  links to the evidence tracker; Recommendation 28 remains separately pending/fail-closed.
+- **13 — Complete.** Current-tree normal/tagged builds and full normal/tagged
   golangci-lint pass; the 11 relevant repository validators also pass after the tracker updates.
   Evidence is recorded in
   `test-output/reviewfollowup/framework-v25-build-after-fixes-20261017.log`,
@@ -209,7 +214,9 @@ and are independent of the numbered rows in the task evidence table.
 - **27 — Complete.** The contract permits CRL-number gaps after failed generation/publication and
   never reuses reserved numbers; documented and tested.
 - **29 — Complete.** The request-ID sentinel policy is enforced at persistence; zero UUID and
-  duplicate cases are covered by focused tests.
+  duplicate cases are covered by focused tests. A read-only pre-migration preflight detects
+  duplicate nonzero request IDs and fails before migration without modifying records; see
+  `test-output/framework-v25-pki-evidence-20261021.log`.
 - **30 — Complete.** Issuance and revocation enforce the configured authority ID, issuer key ID,
   and issuer DN. Pre-migration records without an authority ID can be revoked only after their
   embedded certificate, serial, issuer, authority key ID, and signature are verified against the
@@ -217,7 +224,9 @@ and are independent of the numbered rows in the task evidence table.
 - **31 — Complete.** CRLs are explicitly issuer-wide for the shared authority; tests verify
   revocation lookup and publication semantics without tenant-scoped CRL partitioning.
 - **32 — Complete.** CRL/OCSP URLs and profile metadata are deployment-time configuration, not
-  persisted authority state; restart and configuration precedence are tested.
+  persisted authority state; restart and configuration precedence are tested. EST profile
+  selection is deterministic, rejects ambiguity, and enforces profile subject/validity policy;
+  see `test-output/framework-v25-pki-evidence-20261021.log`.
 - **33 — Complete.** Deployment endpoint hostnames, ports, and TLS paths are validated across
   PS-ID configs and template instances.
 - **34 — Complete.** The encrypted authority-key envelope is versioned and the version is
@@ -242,12 +251,13 @@ and are independent of the numbered rows in the task evidence table.
 
 ## Excluded Recommendation
 
-**28 - Pending / fail-closed.** Legacy duplicate request-ID remediation remains unauthorized because
-  the previously deleted historical global volumes have unknown contents and provenance.
-  "Fail-closed" means no deduplication, migration, or deletion of those records or volumes is
-  authorized based on volume names alone. A newly present volume with the same name does not prove
-  it contains the old data, is empty, or has the same owner; preserve it until contents, provenance,
-  and authorization can be established.
+**28 - Pending / fail-closed.** Historical-volume contents and provenance remain unknown, so
+destructive deduplication or volume deletion is not authorized based on volume names alone. The
+read-only request-ID preflight detects existing duplicate nonzero IDs and fails before migration
+without modifying records; it does not establish the contents or provenance of historical volumes
+or authorize remediation. A newly present volume with the same name does not prove it contains the
+old data, is empty, or has the same owner; preserve it until contents, provenance, and authorization
+can be established.
   `test-output/reviewfollowup/legacy-volume-readonly-inventory.log` shows the three known historical
   global volume names absent from the current Docker inventory, but cannot recover deleted contents
   or establish the state of other deployments.
