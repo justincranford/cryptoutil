@@ -6,6 +6,7 @@ package builder
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"io/fs"
 
@@ -22,6 +23,9 @@ type DomainConfig struct {
 	// MigrationsPath is the path within MigrationsFS (e.g., "migrations").
 	// Required when MigrationsFS is non-nil.
 	MigrationsPath string
+
+	// MigrationPreflight runs non-destructive validation before applying migrations.
+	MigrationPreflight func(context.Context, *sql.DB, string) error
 
 	// RouteRegistration is the domain-specific route setup callback.
 	// Receives initialized PublicServerBase and ServiceResources.
@@ -51,6 +55,8 @@ func Build(
 		if domain.MigrationsFS != nil {
 			b.WithDomainMigrations(domain.MigrationsFS, domain.MigrationsPath)
 		}
+
+		b.migrationPreflight = domain.MigrationPreflight
 
 		if domain.RouteRegistration != nil {
 			b.WithPublicRouteRegistration(domain.RouteRegistration)

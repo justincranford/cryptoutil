@@ -7,6 +7,7 @@ package builder
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -60,6 +61,7 @@ type ServerBuilder struct {
 	config              *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 	migrationFS         fs.FS
 	migrationsPath      string
+	migrationPreflight  func(context.Context, *sql.DB, string) error
 	migrationConfig     *MigrationConfig // Migration configuration (nil = use legacy WithDomainMigrations).
 	publicRouteRegister func(*cryptoutilAppsFrameworkServiceServer.PublicServerBase, *ServiceResources) error
 	swaggerUIConfig     *SwaggerUIConfig    // Swagger UI configuration (nil = disabled).

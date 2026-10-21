@@ -59,8 +59,9 @@ func NewKMSServerFromConfig(
 	}
 
 	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
-		MigrationsFS:   cryptoutilAppsSmKmsRepository.MigrationsFS,
-		MigrationsPath: "migrations",
+		MigrationsFS:       cryptoutilAppsSmKmsRepository.MigrationsFS,
+		MigrationsPath:     "migrations",
+		MigrationPreflight: cryptoutilAppsSmKmsRepository.ValidateCertificateRequestIDUniqueness,
 		RouteRegistration: func(publicServerBase *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			ormRepo, err := cryptoutilOrmRepository.NewOrmRepository(ctx, res.TelemetryService, res.DB, res.JWKGenService, settings.VerboseMode)
 			if err != nil {

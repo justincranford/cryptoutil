@@ -3,6 +3,7 @@ package builder
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"testing"
 	"testing/fstest"
@@ -75,6 +76,42 @@ func TestDomainConfig_Build_WithMigrations(t *testing.T) {
 	require.NotNil(t, resources)
 
 	resources.ShutdownCore()
+}
+
+func TestDomainConfig_Build_MigrationPreflightRunsBeforeMigrations(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
+	defer cancel()
+
+	preflightErr := errors.New("preflight rejected migration")
+	preflightCalled := false
+	domainFS := fstest.MapFS{
+		testMigrations2001TestUpSQL: &fstest.MapFile{
+			Data: []byte("CREATE TABLE IF NOT EXISTS test_domain_build (id TEXT PRIMARY KEY);"),
+		},
+		testMigrations2001TestDownSQL: &fstest.MapFile{
+			Data: []byte("DROP TABLE IF EXISTS test_domain_build;"),
+		},
+	}
+
+	resources, err := Build(ctx, getMinimalSettings(), &DomainConfig{
+		MigrationsFS:   domainFS,
+		MigrationsPath: valueMigrations,
+		MigrationPreflight: func(_ context.Context, _ *sql.DB, databaseType string) error {
+			preflightCalled = true
+
+			if databaseType != cryptoutilSharedMagic.TestDatabaseSQLite {
+				return errors.New("migration preflight received unexpected database type")
+			}
+
+			return preflightErr
+		},
+	})
+
+	require.Nil(t, resources)
+	require.ErrorIs(t, err, preflightErr)
+	require.True(t, preflightCalled)
 }
 
 // TestDomainConfig_Build_WithRouteRegistration verifies route registration callback is called.

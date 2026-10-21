@@ -339,6 +339,12 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	}
 
 	// Merge template migrations with domain migrations (if provided).
+	if b.migrationPreflight != nil {
+		if err := b.migrationPreflight(b.ctx, sqlDB, databaseType); err != nil {
+			return fmt.Errorf("failed migration preflight: %w", err)
+		}
+	}
+
 	var migrationsFS fs.FS = cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS
 
 	migrationsPath := valueMigrations
