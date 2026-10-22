@@ -120,6 +120,51 @@ func TestValidateCertificateRequestIDUniqueness_QueryErrors(t *testing.T) {
 	require.ErrorContains(t, err, "failed to inspect duplicate certificate request IDs")
 }
 
+func TestValidateCertificateRequestIDUniqueness_MalformedDuplicateRow(t *testing.T) {
+	t.Parallel()
+
+	db := newPreflightSQLiteDB(t)
+	_, err := db.ExecContext(
+		context.Background(),
+		fmt.Sprintf(
+			"CREATE TABLE %s (id TEXT, tenant_id TEXT NOT NULL, request_id TEXT NOT NULL)",
+			cryptoutilSharedMagic.PKICertificatesTable,
+		),
+	)
+	require.NoError(t, err)
+
+	tenantID := newPreflightTestUUID(t)
+
+	requestID := newPreflightTestUUID(t)
+	for range 2 {
+		_, err = db.ExecContext(
+			context.Background(),
+			fmt.Sprintf(
+				"INSERT INTO %s (id, tenant_id, request_id) VALUES (NULL, ?, ?)",
+				cryptoutilSharedMagic.PKICertificatesTable,
+			),
+			tenantID.String(),
+			requestID.String(),
+		)
+		require.NoError(t, err)
+	}
+
+	err = ValidateCertificateRequestIDUniqueness(context.Background(), db, cryptoutilSharedMagic.TestDatabaseSQLite)
+	require.ErrorContains(t, err, "failed to read duplicate certificate request IDs")
+	require.ErrorContains(t, err, "failed to scan duplicate certificate request ID row")
+}
+
+func TestValidateCertificateRequestIDUniqueness_ClosedDatabase(t *testing.T) {
+	t.Parallel()
+
+	db := newPreflightSQLiteDB(t)
+	require.NoError(t, db.Close())
+
+	err := ValidateCertificateRequestIDUniqueness(context.Background(), db, cryptoutilSharedMagic.TestDatabaseSQLite)
+	require.ErrorContains(t, err, "failed to check for certificate table")
+	require.ErrorContains(t, err, "query SQLite certificate table existence")
+}
+
 func TestValidateCertificateRequestIDUniqueness_InvalidArguments(t *testing.T) {
 	t.Parallel()
 
