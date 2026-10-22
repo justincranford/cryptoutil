@@ -19,8 +19,6 @@ import (
 const (
 	currentDirectory    = "."
 	nestedDirectory     = "nested"
-	testGOOSLinux       = cryptoutilSharedMagic.MockRuntimeGoOS
-	testGOOSWindows     = cryptoutilSharedMagic.OSNameWindows
 	testErrChmodFile    = "chmod file"
 	testReadOnlyPEMFile = "readonly.pem"
 )
@@ -317,17 +315,17 @@ func TestMakeWritableRecursiveWithOpsFilePermissionsByOS(t *testing.T) {
 	}{
 		{
 			name:     "unix skips read-only file chmod",
-			goos:     testGOOSLinux,
+			goos:     cryptoutilSharedMagic.MockRuntimeGoOS,
 			chmodErr: injectedErr,
 		},
 		{
 			name:          "windows clears read-only file permission",
-			goos:          testGOOSWindows,
+			goos:          cryptoutilSharedMagic.OSNameWindows,
 			wantChmodCall: true,
 		},
 		{
 			name:          "windows reports chmod error",
-			goos:          testGOOSWindows,
+			goos:          cryptoutilSharedMagic.OSNameWindows,
 			chmodErr:      injectedErr,
 			wantChmodCall: true,
 			wantErr:       testErrChmodFile,
@@ -438,7 +436,7 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 			name:     "file info error",
 			walkPath: filePath,
 			entry:    testDirEntryInfoError{infoErr: injectedErr},
-			goos:     testGOOSWindows,
+			goos:     cryptoutilSharedMagic.OSNameWindows,
 			wantErr:  "stat file",
 		},
 		{
@@ -446,7 +444,7 @@ func TestMakeWritableRecursiveWithOpsErrors(t *testing.T) {
 			walkPath: filePath,
 			entry:    fileEntry,
 			chmodErr: injectedErr,
-			goos:     testGOOSWindows,
+			goos:     cryptoutilSharedMagic.OSNameWindows,
 			wantErr:  testErrChmodFile,
 		},
 	}
