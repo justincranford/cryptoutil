@@ -78,6 +78,7 @@ jobs:
     - name: Scan repository for secrets
       uses: ./.github/actions/security-scan-gitleaks
       with:
+        skip-token-dependent-actions: ${{ github.actor == 'nektos/act' }}
         files: 'cmd/,internal/,pkg/,scripts/'
         scan-name: 'Repository Secrets Scan'
         sarif-output-name: 'repository-gitleaks.sarif'

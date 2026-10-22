@@ -15,6 +15,10 @@ inputs:
   sarif-output-name:
     description: 'Output filename for GitLeaks SARIF results (e.g. gitleaks-files.sarif)'
     required: true
+  skip-token-dependent-actions:
+    description: 'Skip SARIF upload when local execution does not provide a GitHub token'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -22,74 +26,102 @@ runs:
     - name: Install GitLeaks
       shell: bash
       run: |
-        echo "🔧 Installing GitLeaks..."
+        set -euo pipefail
+        echo "🔧 Installing GitLeaks v8.30.1..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-        # Determine platform and architecture
-        if [[ "$RUNNER_OS" == "Linux" ]]; then
-          PLATFORM="linux"
-        elif [[ "$RUNNER_OS" == "macOS" ]]; then
-          PLATFORM="darwin"
-        elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          PLATFORM="windows"
+        VERSION="8.30.1"
+
+        # SHA-256 values are pinned from official GitHub release asset metadata for v8.30.1.
+        case "${RUNNER_OS}:${RUNNER_ARCH}" in
+          Linux:X64)
+            PLATFORM="linux"
+            ARCH="x64"
+            EXPECTED_SHA256="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+            ;;
+          Linux:ARM64)
+            PLATFORM="linux"
+            ARCH="arm64"
+            EXPECTED_SHA256="e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080"
+            ;;
+          macOS:X64)
+            PLATFORM="darwin"
+            ARCH="x64"
+            EXPECTED_SHA256="dfe101a4db2255fc85120ac7f3d25e4342c3c20cf749f2c20a18081af1952709"
+            ;;
+          macOS:ARM64)
+            PLATFORM="darwin"
+            ARCH="arm64"
+            EXPECTED_SHA256="b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5"
+            ;;
+          Windows:X64)
+            PLATFORM="windows"
+            ARCH="x64"
+            EXPECTED_SHA256="d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e"
+            ;;
+          Windows:ARM64)
+            PLATFORM="windows"
+            ARCH="arm64"
+            EXPECTED_SHA256="b95f5e4f5c425cedca7ee203d9afd29597e692c4924a12ed42f970537c72cc0f"
+            ;;
+          *)
+            echo "❌ Unsupported platform or architecture: ${RUNNER_OS}/${RUNNER_ARCH}"
+            exit 1
+            ;;
+        esac
+
+        ASSET_NAME="gitleaks_${VERSION}_${PLATFORM}_${ARCH}"
+        if [[ "$PLATFORM" == "windows" ]]; then
+          ASSET_NAME="${ASSET_NAME}.zip"
+          BINARY_NAME="gitleaks.exe"
         else
-          echo "❌ Unsupported platform: $RUNNER_OS"
-          exit 1
+          ASSET_NAME="${ASSET_NAME}.tar.gz"
+          BINARY_NAME="gitleaks"
         fi
 
-        if [[ "$RUNNER_ARCH" == "X64" ]]; then
-          ARCH="x64"
-        elif [[ "$RUNNER_ARCH" == "ARM64" ]]; then
-          ARCH="arm64"
+        RELEASE_URL="https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/${ASSET_NAME}"
+        WORK_DIR=$(mktemp -d)
+        trap 'rm -rf "$WORK_DIR"' EXIT
+        ARCHIVE_PATH="${WORK_DIR}/${ASSET_NAME}"
+
+        echo "📥 Downloading verified GitLeaks asset: ${ASSET_NAME}"
+        curl --fail --silent --show-error --location --retry 3 --retry-all-errors --output "$ARCHIVE_PATH" "$RELEASE_URL"
+
+        if command -v sha256sum >/dev/null 2>&1; then
+          ACTUAL_SHA256=$(sha256sum "$ARCHIVE_PATH" | awk '{print $1}')
+        elif command -v shasum >/dev/null 2>&1; then
+          ACTUAL_SHA256=$(shasum -a 256 "$ARCHIVE_PATH" | awk '{print $1}')
         else
-          ARCH="x64"  # Default fallback
-        fi
-
-        # Get latest release info from GitHub API with error handling
-        echo "📥 Fetching latest GitLeaks release info..."
-        LATEST_RELEASE=$(curl -sf https://api.github.com/repos/gitleaks/gitleaks/releases/latest || echo "")
-
-        # Validate API response
-        if [[ -z "$LATEST_RELEASE" ]]; then
-          echo "❌ Failed to fetch GitLeaks release info from GitHub API (rate limiting or network error)"
+          echo "❌ No SHA-256 utility (sha256sum or shasum) is available"
           exit 1
         fi
 
-        # Check if response contains assets
-        ASSETS_CHECK=$(echo "$LATEST_RELEASE" | jq -r '.assets // empty')
-        if [[ -z "$ASSETS_CHECK" ]]; then
-          echo "❌ GitHub API response does not contain assets (may be rate limited)"
-          echo "📋 API Response preview: $(echo "$LATEST_RELEASE" | head -c 500)"
+        if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
+          echo "❌ SHA-256 mismatch for ${ASSET_NAME}"
           exit 1
         fi
+        echo "✅ SHA-256 verified for ${ASSET_NAME}"
 
-        # Find download URL with explicit null handling
-        DOWNLOAD_URL=$(echo "$LATEST_RELEASE" | jq -r ".assets[]? | select(.name | contains(\"$PLATFORM\") and contains(\"$ARCH\")) | .browser_download_url" 2>/dev/null | head -1)
-
-        if [[ -z "$DOWNLOAD_URL" || "$DOWNLOAD_URL" == "null" ]]; then
-          echo "❌ Could not find GitLeaks download URL for $PLATFORM-$ARCH"
-          echo "📋 Available assets:"
-          echo "$LATEST_RELEASE" | jq -r '.assets[]?.name // "No assets found"' 2>/dev/null || echo "Failed to parse assets"
-          exit 1
+        if [[ "$PLATFORM" == "windows" ]]; then
+          unzip -q "$ARCHIVE_PATH" "$BINARY_NAME" -d "$WORK_DIR"
+          INSTALL_DIR="$(cygpath --unix "$RUNNER_TEMP")/gitleaks-${VERSION}"
+          mkdir -p "$INSTALL_DIR"
+          mv "${WORK_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
+          echo "$(cygpath --windows "$INSTALL_DIR")" >> "$GITHUB_PATH"
+          export PATH="${INSTALL_DIR}:${PATH}"
+        else
+          tar -xzf "$ARCHIVE_PATH" -C "$WORK_DIR"
+          chmod +x "${WORK_DIR}/${BINARY_NAME}"
+          sudo mv "${WORK_DIR}/${BINARY_NAME}" /usr/local/bin/ || mv "${WORK_DIR}/${BINARY_NAME}" /usr/local/bin/
         fi
 
-        echo "📦 Downloading GitLeaks from: $DOWNLOAD_URL"
-        curl -L -o gitleaks.tar.gz "$DOWNLOAD_URL"
-
-        # Extract and install
-        tar -xzf gitleaks.tar.gz
-        chmod +x gitleaks
-        sudo mv gitleaks /usr/local/bin/ || mv gitleaks /usr/local/bin/
-
-        # Verify installation
         gitleaks version
 
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ GitLeaks installed in: ${DURATION}s"
-
     - name: Parse file list
       shell: bash
       run: |
@@ -142,10 +174,12 @@ runs:
       with:
         sarif_file: ${{ inputs.sarif-output-name }}
         category: "${{ inputs.scan-name }}-gitleaks"
-      if: always() && hashFiles('${{ inputs.sarif-output-name }}') != ''
+      if: ${{ always() && inputs.skip-token-dependent-actions != 'true' && hashFiles(inputs.sarif-output-name) != '' }}
 
     - name: Security scan summary
       shell: bash
+      env:
+        GITLEAKS_UPLOAD_SKIPPED: ${{ inputs.skip-token-dependent-actions }}
       run: |
         echo "## 🔒 ${{ inputs.scan-name }} Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -160,7 +194,11 @@ runs:
           echo "### GitLeaks Results" >> $GITHUB_STEP_SUMMARY
           echo "- SARIF file: \`${{ inputs.sarif-output-name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- Secrets found: $RESULT_COUNT" >> $GITHUB_STEP_SUMMARY
-          echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
+          if [ "$GITLEAKS_UPLOAD_SKIPPED" = "true" ]; then
+            echo "- Status: ⚠️ SARIF generated locally; upload skipped under act because a GitHub token is required" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
+          fi
         else
           echo "### GitLeaks Results" >> $GITHUB_STEP_SUMMARY
           echo "- Status: ❌ No SARIF file generated" >> $GITHUB_STEP_SUMMARY
