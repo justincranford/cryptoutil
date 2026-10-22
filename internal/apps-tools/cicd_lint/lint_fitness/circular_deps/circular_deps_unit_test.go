@@ -222,8 +222,9 @@ func TestSaveCircularDepCache_DirectoryCreationError(t *testing.T) {
 	require.ErrorContains(t, err, "failed to create output directory")
 }
 
-// Sequential: test uses filesystem permissions (os.Chmod on temp file).
 func TestSaveCircularDepCache_WriteFileError(t *testing.T) {
+	t.Parallel()
+
 	cache := cryptoutilSharedMagic.CircularDepCache{
 		LastCheck:       time.Now().UTC(),
 		GoModModTime:    time.Now().UTC(),
@@ -236,10 +237,7 @@ func TestSaveCircularDepCache_WriteFileError(t *testing.T) {
 	require.NoError(t, os.MkdirAll(cacheDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	cacheFile := filepath.Join(cacheDir, "cache.json")
-	require.NoError(t, os.WriteFile(cacheFile, []byte("existing"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.Chmod(cacheFile, 0o000))
-
-	defer func() { _ = os.Chmod(cacheFile, cryptoutilSharedMagic.CacheFilePermissions) }()
+	require.NoError(t, os.Mkdir(cacheFile, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	err := SaveCircularDepCache(cacheFile, cache)
 	require.ErrorContains(t, err, "failed to write cache file")

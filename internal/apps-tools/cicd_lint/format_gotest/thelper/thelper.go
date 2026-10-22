@@ -65,13 +65,36 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) (int, int, int,
 
 // fixTHelperInFile adds t.Helper() to test helper functions in a single file.
 func fixTHelperInFile(logger *cryptoutilCmdCicdCommon.Logger, filePath string) (bool, int, error) {
-	return fixTHelperInFileWithPrinter(logger, filePath, func(output io.Writer, fset *token.FileSet, node any) error {
-		return printer.Fprint(output, fset, node)
-	})
+	return fixTHelperInFileWithDependencies(
+		logger,
+		filePath,
+		func(path string) (io.WriteCloser, error) {
+			return os.Create(path)
+		},
+		func(output io.Writer, fset *token.FileSet, node any) error {
+			return printer.Fprint(output, fset, node)
+		},
+	)
 }
 
 // fixTHelperInFileWithPrinter is the testable implementation with injectable printer function.
 func fixTHelperInFileWithPrinter(_ *cryptoutilCmdCicdCommon.Logger, filePath string, fprintFn func(io.Writer, *token.FileSet, any) error) (bool, int, error) {
+	return fixTHelperInFileWithDependencies(
+		nil,
+		filePath,
+		func(path string) (io.WriteCloser, error) {
+			return os.Create(path)
+		},
+		fprintFn,
+	)
+}
+
+func fixTHelperInFileWithDependencies(
+	_ *cryptoutilCmdCicdCommon.Logger,
+	filePath string,
+	createFileFn func(string) (io.WriteCloser, error),
+	fprintFn func(io.Writer, *token.FileSet, any) error,
+) (bool, int, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -124,7 +147,7 @@ func fixTHelperInFileWithPrinter(_ *cryptoutilCmdCicdCommon.Logger, filePath str
 
 	if fixCount > 0 {
 		// Write the modified AST back to the file.
-		file, err := os.Create(filePath)
+		file, err := createFileFn(filePath)
 		if err != nil {
 			return false, fixCount, fmt.Errorf("failed to create file: %w", err)
 		}

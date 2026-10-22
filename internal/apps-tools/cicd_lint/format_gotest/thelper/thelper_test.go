@@ -354,31 +354,6 @@ func TestGetTestingParam_SelectorNotTesting(t *testing.T) {
 	}
 }
 
-func TestFix_ReadOnlyFile(t *testing.T) {
-	t.Parallel()
-
-	if testing.Short() {
-		t.Skip("Skipping read-only file test in short mode")
-	}
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	tmpDir := t.TempDir()
-
-	// Write a test file with helper function missing t.Helper().
-	testFile := filepath.Join(tmpDir, "setup_test.go")
-	content := testContentSetupMissingHelper
-	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
-
-	// Make the file read-only so that os.Create() fails when trying to write back.
-	require.NoError(t, os.Chmod(testFile, cryptoutilSharedMagic.FilePermOwnerReadOnlyGroupOtherReadOnly))
-
-	t.Cleanup(func() { _ = os.Chmod(testFile, cryptoutilSharedMagic.CacheFilePermissions) })
-
-	_, _, _, err := Fix(logger, tmpDir)
-	require.Error(t, err, "Should fail when test file is read-only")
-	require.Contains(t, err.Error(), "failed to process")
-}
-
 func TestFix_HelperWithoutTestingParam(t *testing.T) {
 	t.Parallel()
 

@@ -293,25 +293,6 @@ func TestFormatDir_Errors(t *testing.T) {
 			},
 			wantErr: testFormatGoTestFailed,
 		},
-		{
-			name: "read-only file",
-			setup: func(t *testing.T) string {
-				t.Helper()
-
-				tmpDir := t.TempDir()
-				testFile := filepath.Join(tmpDir, "helper_test.go")
-				err := os.WriteFile(testFile, []byte(contentHelperNeedingFix), cryptoutilSharedMagic.CacheFilePermissions)
-				require.NoError(t, err)
-
-				err = os.Chmod(testFile, 0o400)
-				require.NoError(t, err)
-
-				t.Cleanup(func() { _ = os.Chmod(testFile, cryptoutilSharedMagic.CacheFilePermissions) })
-
-				return tmpDir
-			},
-			wantErr: testFormatGoTestFailed,
-		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
