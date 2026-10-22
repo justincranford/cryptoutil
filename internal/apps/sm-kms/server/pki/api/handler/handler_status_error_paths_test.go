@@ -14,6 +14,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	http "net/http"
 	"net/http/httptest"
@@ -562,6 +563,144 @@ func TestESTSimpleEnroll_ErrorPaths(t *testing.T) {
 	}
 }
 
+func TestESTSimpleReenrollAuthorizationAndIdentityChecks(t *testing.T) {
+	t.Parallel()
+
+	setup := createTestIssuer(t)
+	caCertificate := setup.Issuer.GetCAConfig().Certificate
+	clientCertificate := newESTReenrollmentTestCertificate(t, caCertificate, testIssuerSigner(t, setup))
+	validCSR := createValidCSRDER(t)
+	mismatchedKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	require.NoError(t, err)
+
+	mismatchedCSR, err := x509.CreateCertificateRequest(crand.Reader, &x509.CertificateRequest{
+		Subject: pkix.Name{CommonName: "different.example.test"},
+	}, mismatchedKey)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name           string
+		body           []byte
+		clientCert     bool
+		storageState   string
+		wantStatusCode int
+		wantBody       string
+	}{
+		{
+			name:           testESTMissingClientCertificate,
+			body:           validCSR,
+			wantStatusCode: fiber.StatusUnauthorized,
+			wantBody:       cryptoutilSharedMagic.PKIErrorCodeClientCertificateRequired,
+		},
+		{
+			name:           "client certificate not stored",
+			body:           validCSR,
+			clientCert:     true,
+			wantStatusCode: fiber.StatusForbidden,
+			wantBody:       cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized,
+		},
+		{
+			name:           "certificate lookup failure",
+			body:           validCSR,
+			clientCert:     true,
+			storageState:   cryptoutilSharedMagic.StringError,
+			wantStatusCode: fiber.StatusInternalServerError,
+			wantBody:       "injected reenrollment lookup failure",
+		},
+		{
+			name:           testESTCSRIdentityChange,
+			body:           mismatchedCSR,
+			clientCert:     true,
+			storageState:   testESTStorageStateStored,
+			wantStatusCode: fiber.StatusForbidden,
+			wantBody:       cryptoutilSharedMagic.PKIMessageReenrollmentIdentityMismatch,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			memoryStore := cryptoutilCAStorage.NewMemoryStore()
+
+			var store cryptoutilCAStorage.Store = memoryStore
+
+			switch tc.storageState {
+			case cryptoutilSharedMagic.StringError:
+				store = &errorStore{
+					inner:  memoryStore,
+					getErr: errors.New("injected reenrollment lookup failure"),
+				}
+			case testESTStorageStateStored:
+				storeESTReenrollmentCertificate(
+					t,
+					memoryStore,
+					caCertificate,
+					clientCertificate,
+					cryptoutilCAStorage.StatusActive,
+					clientCertificate.Raw,
+				)
+			}
+
+			handler := &Handler{
+				storage: store,
+				issuer:  setup.Issuer,
+				profiles: map[string]*ProfileConfig{
+					cryptoutilSharedMagic.PKIProfileIDTLSServer: {
+						ID:          cryptoutilSharedMagic.PKIProfileIDTLSServer,
+						Name:        testProfileNameTLSServer,
+						Description: testProfileDescriptionTLSServer,
+						Category:    cryptoutilSharedMagic.PKIProfileCategoryTLS,
+					},
+				},
+			}
+			app := fiber.New(fiber.Config{DisableStartupMessage: true})
+			app.Post("/est/simplereenroll", func(c *fiber.Ctx) error {
+				ctx := c.UserContext()
+				if tc.clientCert {
+					ctx = withESTClientCertificate(ctx, clientCertificate)
+				}
+
+				return handler.estSimpleEnroll(c, ctx, true)
+			})
+
+			req := httptest.NewRequest(http.MethodPost, "/est/simplereenroll", bytes.NewReader(tc.body))
+			resp, err := app.Test(req, -1)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantStatusCode, resp.StatusCode)
+			body, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			require.Contains(t, string(body), tc.wantBody)
+			require.NoError(t, resp.Body.Close())
+		})
+	}
+}
+
+func TestGetCRL_MissingSubjectKeyIdentifier(t *testing.T) {
+	t.Parallel()
+
+	setup := createTestIssuer(t)
+	setup.Issuer.GetCAConfig().Certificate.SubjectKeyId = nil
+
+	handler := &Handler{
+		issuer:     setup.Issuer,
+		storage:    cryptoutilCAStorage.NewMemoryStore(),
+		crlService: &cryptoutilCAServiceRevocation.CRLService{},
+	}
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Get("/ca/crl", func(c *fiber.Ctx) error {
+		return handler.GetCRL(c, setup.Issuer.GetCAConfig().Name, cryptoutilApiCaServer.GetCRLParams{})
+	})
+
+	resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/ca/crl", nil), -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(body), "ca_config_error")
+	require.NoError(t, resp.Body.Close())
+}
+
 func TestLookupCertificateStatusBySerial_ErrorAndRevocationPaths(t *testing.T) {
 	t.Parallel()
 
@@ -582,13 +721,13 @@ func TestLookupCertificateStatusBySerial_ErrorAndRevocationPaths(t *testing.T) {
 			wantError: "serial number is required",
 		},
 		{
-			name:         "storage error",
+			name:         strictHandlerTestStorageError,
 			serialNumber: big.NewInt(42),
 			getErr:       errors.New("injected OCSP storage failure"),
 			wantError:    "failed to look up certificate",
 		},
 		{
-			name:           "invalid PEM",
+			name:           testHandlerInvalidPEM,
 			serialNumber:   big.NewInt(42),
 			certificatePEM: "not pem",
 			wantError:      testStoredCertificatePEMInvalid,

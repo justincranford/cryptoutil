@@ -119,10 +119,10 @@ func TestStrictServer_ESTSimpleReenrollAuthorization(t *testing.T) {
 		wantError     string
 		wantStored    int
 	}{
-		{name: "missing client certificate", clientCert: strictESTClientCertificateMissing, wantStatus: http.StatusUnauthorized, wantError: cryptoutilSharedMagic.PKIErrorCodeClientCertificateRequired, wantStored: 1},
-		{name: "certificate not stored", clientCert: strictESTClientCertificateUnregistered, wantStatus: http.StatusForbidden, wantError: cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, wantStored: 1},
+		{name: testESTMissingClientCertificate, clientCert: strictESTClientCertificateMissing, wantStatus: http.StatusUnauthorized, wantError: cryptoutilSharedMagic.PKIErrorCodeClientCertificateRequired, wantStored: 1},
+		{name: testESTCertificateNotStored, clientCert: strictESTClientCertificateUnregistered, wantStatus: http.StatusForbidden, wantError: cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, wantStored: 1},
 		{name: "registered certificate is revoked", clientCert: strictESTClientCertificateRegistered, revoke: true, wantStatus: http.StatusForbidden, wantError: cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, wantStored: 1},
-		{name: "CSR changes certificate identity", clientCert: strictESTClientCertificateRegistered, changeSubject: true, wantStatus: http.StatusForbidden, wantError: cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, wantStored: 1},
+		{name: testESTCSRIdentityChange, clientCert: strictESTClientCertificateRegistered, changeSubject: true, wantStatus: http.StatusForbidden, wantError: cryptoutilSharedMagic.PKIErrorCodeReenrollmentNotAuthorized, wantStored: 1},
 		{name: "matching active certificate", clientCert: strictESTClientCertificateRegistered, wantStatus: http.StatusOK, wantStored: 2},
 	}
 

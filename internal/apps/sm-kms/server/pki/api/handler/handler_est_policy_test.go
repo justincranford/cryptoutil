@@ -88,8 +88,8 @@ func TestBuildESTIssueRequestAppliesConfiguredPolicy(t *testing.T) {
 		},
 		CertificateProfile: &cryptoutilCAProfileCertificate.Profile{
 			Validity: cryptoutilCAProfileCertificate.ValidityConfig{
-				Duration:    "24h",
-				MaxDuration: "48h",
+				Duration:    testESTProfileValidity24Hours,
+				MaxDuration: testESTProfileValidity48Hours,
 			},
 		},
 	}

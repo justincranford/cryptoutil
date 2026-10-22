@@ -62,7 +62,7 @@ func TestStoreIssuedCertificate_IssuerAuthorityIdentity(t *testing.T) {
 			wantErr: "issuer does not match",
 		},
 		{
-			name:   "authority key identifier mismatch",
+			name:   testESTAuthorityKeyIdentifierMismatch,
 			issuer: testSetup.Issuer,
 			mutate: func(certificate *cryptoutilCAServiceIssuer.IssuedCertificate) {
 				cloned := *certificate.Certificate

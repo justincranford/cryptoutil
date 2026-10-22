@@ -75,7 +75,7 @@ func TestValidateStoredCertificateIssuer(t *testing.T) {
 			wantErrorText: testCertificateIdentityNotConfigured,
 		},
 		{
-			name:          "nil stored certificate",
+			name:          testHandlerNilStoredCertificate,
 			nilRecord:     true,
 			wantErrorText: "stored certificate is required",
 		},
@@ -136,11 +136,11 @@ func TestValidateLegacyStoredCertificateIssuer(t *testing.T) {
 		},
 		{
 			name:           "missing PEM block",
-			certificatePEM: func(*testing.T, *testIssuerSetup) string { return "not PEM" },
+			certificatePEM: func(*testing.T, *testIssuerSetup) string { return testHandlerNotPEM },
 			wantErrorText:  testStoredCertificatePEMInvalid,
 		},
 		{
-			name: "wrong PEM block type",
+			name: testHandlerWrongPEMBlockType,
 			certificatePEM: func(t *testing.T, setup *testIssuerSetup) string {
 				t.Helper()
 

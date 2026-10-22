@@ -112,7 +112,7 @@ func TestHandleOCSPUsesPersistedCertificateStatus(t *testing.T) {
 			wantStatus: ocsp.Good,
 		},
 		{
-			name:       "revoked certificate",
+			name:       testESTRevokedCertificate,
 			status:     cryptoutilCAStorage.StatusRevoked,
 			wantStatus: ocsp.Revoked,
 			wantReason: int(cryptoutilCAServiceRevocation.ReasonKeyCompromise),

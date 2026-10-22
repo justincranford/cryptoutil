@@ -74,7 +74,7 @@ func TestStrictServer_SubmitEnrollmentSuccessAndStorageError(t *testing.T) {
 		require.Equal(t, response.Certificate.SerialNumber, stored.Certificate.SerialNumber)
 	})
 
-	t.Run("storage error", func(t *testing.T) {
+	t.Run(strictHandlerTestStorageError, func(t *testing.T) {
 		t.Parallel()
 
 		setup := createTestIssuer(t)
