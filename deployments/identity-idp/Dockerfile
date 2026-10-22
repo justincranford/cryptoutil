@@ -12,7 +12,7 @@ ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 #############################################################################################
-ARG GO_VERSION=1.27.2
+ARG GO_VERSION=1.27.3
 # hadolint ignore=DL3007
 ARG ALPINE_VERSION=latest
 # Design intent is to NEVER set CGO_ENABLED=1

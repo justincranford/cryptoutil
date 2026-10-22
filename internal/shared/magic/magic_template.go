@@ -27,7 +27,7 @@ const (
 	// CICDTemplateBuildDate is the pinned build date embedded in template Dockerfiles.
 	CICDTemplateBuildDate = "2026-02-17T00:00:00Z"
 	// CICDTemplateGoVersion is the Go version used across all template Dockerfiles.
-	CICDTemplateGoVersion = "1.27.2"
+	CICDTemplateGoVersion = "1.27.3"
 	// CICDTemplateAlpineVersion is the Alpine Linux version used in runtime stages.
 	CICDTemplateAlpineVersion = "latest"
 	// CICDTemplateCGOEnabled is the CGO_ENABLED build argument (always "0" — CGO is banned).

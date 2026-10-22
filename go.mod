@@ -1,6 +1,6 @@
 module cryptoutil
 
-go 1.27.2
+go 1.27.3
 
 require (
 	github.com/cloudflare/circl v1.6.5
@@ -52,7 +52,7 @@ require (
 	gorm.io/driver/postgres v1.6.3
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.2
-	modernc.org/sqlite v1.60.1
+	modernc.org/sqlite v1.61.0
 	software.sslmate.com/src/go-pkcs12 v0.7.4
 )
 

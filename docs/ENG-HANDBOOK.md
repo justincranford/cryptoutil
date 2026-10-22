@@ -638,7 +638,7 @@ See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full auto
 
 #### Go Best Practices
 
-- **Go Version**: 1.27.2+ (same everywhere: dev, CI/CD, Docker)
+- **Go Version**: 1.27.3+ (same everywhere: dev, CI/CD, Docker)
 - **CGO Ban**: CGO_ENABLED=0 (except race detector) for maximum portability
 - **Import Aliases**: `cryptoutil<Package>` for internal, `<vendor><Package>` for external
 - **Magic Values**: `internal/shared/magic/magic_*.go` for shared, package-specific for domain
@@ -3015,7 +3015,7 @@ Docker Desktop version upgrades (e.g., .55 → .62) may introduce Docker API ver
 
 ```dockerfile
 # Global ARGs
-ARG GO_VERSION=1.27.2
+ARG GO_VERSION=1.27.3
 ARG VCS_REF
 ARG BUILD_DATE
 
@@ -4779,7 +4779,7 @@ developers regardless of platform.
 Docker container:
 
 ```bash
-docker run --rm -v ${PWD}:/workspace golang:1.27.2 \
+docker run --rm -v ${PWD}:/workspace golang:1.27.3 \
   sh -c "cd /workspace && go test -race -count=2 ./..."
 ```
 
@@ -4977,8 +4977,8 @@ def test_health_check(api_client):
 #### 11.1.1 Go Version Consistency
 
 - MANDATORY: Use same Go version everywhere (development, CI/CD, Docker, documentation)
-- Current Version: 1.27.2 (check go.mod)
-- Enforcement Locations: go.mod (go 1.27.2), .github/workflows/*.yml (GO_VERSION: '1.27.2'), Dockerfile (FROM golang:1.27.2-alpine), README.md (document Go 1.27.2+ requirement)
+- Current Version: 1.27.3 (check go.mod)
+- Enforcement Locations: go.mod (go 1.27.3), .github/workflows/*.yml (GO_VERSION: '1.27.3'), Dockerfile (FROM golang:1.27.3-alpine), README.md (document Go 1.27.3+ requirement)
 - Update Policy: Security patches (apply immediately), minor versions (update monthly), major versions (evaluate quarterly)
 
 #### 11.1.2 CGO Ban - CRITICAL
@@ -6605,7 +6605,7 @@ otlp-tls-ca-file:   /certs/{PS-ID}/otel-collector-contrib-https-client-issuing-c
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|
-| `GO_VERSION` | `1.27.2` | Must match go.mod (always identical everywhere) |
+| `GO_VERSION` | `1.27.3` | Must match go.mod (always identical everywhere) |
 | `ALPINE_VERSION` | `latest` | With `# hadolint ignore=DL3007` |
 | `CGO_ENABLED` | `0` | CGO ban is MANDATORY |
 | `CONTAINER_UID` | `65532` | Well-known `nonroot` convention |

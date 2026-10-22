@@ -101,7 +101,7 @@ This prevents pre-commit from stashing unrelated unstaged edits and restoring a 
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...` (NO errors)
 2. **Module Cache**: `go list -m all` (dependencies resolved)
-3. **Go Version**: `go version` (verify 1.27.2+)
+3. **Go Version**: `go version` (verify 1.27.3+)
 4. **Docker**: `docker ps` (if tasks require Docker)
    - If Docker not running, start it:
    - Windows: `Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"`

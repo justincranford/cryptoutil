@@ -28,7 +28,7 @@ This guide covers setting up a complete development environment for the cryptout
   - [Node.js Tools](#nodejs-tools)
   - [Python Tools](#python-tools)
 - [Why Each Tool is Required](#why-each-tool-is-required)
-  - [Core Development (Go 1.27.2+)](#core-development-go-1272)
+  - [Core Development (Go 1.27.3+)](#core-development-go-1273)
   - [Docker & Docker Compose](#docker--docker-compose)
   - [Python 3.14+ (3.15.0 latest stable)](#python-314-3150-latest-stable)
   - [Node.js 24.22.0+ LTS](#nodejs-24220-lts)
@@ -99,7 +99,7 @@ new support claim.
 
 | Tool | Minimum / Project Pin | Current recommendation | Purpose | Required For |
 |------|-----------------------|------------------------|---------|--------------|
-| **Go** | 1.27.2+ | 1.27.2 (project pin) | Primary language | All development |
+| **Go** | 1.27.3+ | 1.27.3 (project pin) | Primary language | All development |
 | **Docker** | 29.8.2+ Engine | 29.8.2 Engine / Desktop 4.95.0 | Containerization | PostgreSQL, E2E tests, deployments |
 | **Docker Compose** | v5.6.0+ | v5.6.0 | Container orchestration | Multi-service deployments, recursive includes |
 | **Python** | 3.14+ | 3.15.0 (latest stable; no LTS) | Pre-commit hooks, utilities | Code quality automation |
@@ -150,10 +150,10 @@ See [ENG-HANDBOOK.md Section 2.2 Architecture Strategy](ENG-HANDBOOK.md#22-archi
 
 ## Why Each Tool is Required
 
-### Core Development (Go 1.27.2+)
+### Core Development (Go 1.27.3+)
 
-**Why this version?** Go 1.27.2 is pinned because it includes upstream fixes for standard-library
-vulnerabilities reported against Go 1.27.1. CI and container builds use the same release.
+**Why this version?** Go 1.27.3 is pinned because it fixes GO-2026-6809 in the standard library's
+certificate validation. CI and container builds use the same release.
 
 **Core project dependencies built and tested with this toolchain:**
 
@@ -241,7 +241,7 @@ See [ENG-HANDBOOK.md Section 6.2 SDLC Security Strategy](ENG-HANDBOOK.md#62-sdlc
 
 #### 1. Install Core Prerequisites
 
-**Go 1.27.2+**
+**Go 1.27.3+**
 
 ```powershell
 # Download and install from https://golang.org/dl/
@@ -250,7 +250,7 @@ winget install --id Google.Go --source winget
 
 # Verify installation
 go version
-# Expected: go version go1.27.2 windows/amd64
+# Expected: go version go1.27.3 windows/amd64
 ```
 
 **Docker Desktop**
@@ -451,9 +451,9 @@ setting global Windows environment variables. See [VS Code Setup](#vs-code-setup
 # Update package list
 sudo apt update
 
-# Install Go 1.27.2+
-wget https://go.dev/dl/go1.27.2.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.27.2.linux-amd64.tar.gz
+# Install Go 1.27.3+
+wget https://go.dev/dl/go1.27.3.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.27.3.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 
@@ -516,8 +516,8 @@ sudo apt install -y maven
 
 ```bash
 # Install Go
-wget https://go.dev/dl/go1.27.2.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.27.2.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.27.3.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.27.3.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 
@@ -600,7 +600,7 @@ curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo ba
 # Install Homebrew if not already installed
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Go 1.27.2+
+# Install Go 1.27.3+
 brew install go
 
 # Install Docker Desktop

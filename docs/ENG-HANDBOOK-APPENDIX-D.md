@@ -580,7 +580,7 @@ applyTo: "**"
 <!-- @from-eng-handbook as="minimum-versions" -->
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
 
-- Go: 1.27.2+
+- Go: 1.27.3+
 - Python: 3.14+ (3.15.0 latest stable; Python has no LTS)
 - golangci-lint: v2.14.0+
 - Node: v24.22.0+ LTS
@@ -1868,7 +1868,7 @@ applyTo: "**"
 
 ## Quick Reference
 
-**Go Version**: 1.27.2 (ALWAYS same everywhere: dev, CI/CD, Docker)
+**Go Version**: 1.27.3 (ALWAYS same everywhere: dev, CI/CD, Docker)
 **CGO**: BANNED (CGO_ENABLED=0) except race detector
 **Project Layout**: cmd, internal, pkg, api (avoid /src)
 
@@ -2483,7 +2483,7 @@ services:
 ## Multi-Stage Dockerfile
 
 ```dockerfile
-ARG GO_VERSION=1.27.2
+ARG GO_VERSION=1.27.3
 FROM golang:\$\{GO_VERSION}-alpine AS builder
 WORKDIR /src
 
@@ -3533,7 +3533,7 @@ This prevents pre-commit from stashing unrelated unstaged edits and returning to
 **Before starting work:**
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...`
-2. **Go Version**: `go version` (1.27.2+)
+2. **Go Version**: `go version` (1.27.3+)
 3. **Docker**: `docker ps` (if needed)
 
 **If fails**: Treat as a blocker and fix it immediately; do NOT stop and do NOT defer
@@ -4395,7 +4395,7 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...`
 2. **Module Cache**: `go list -m all`
-3. **Go Version**: `go version` (1.27.2+)
+3. **Go Version**: `go version` (1.27.3+)
 
 **If fails**: Report, DO NOT proceed
 
@@ -5053,7 +5053,7 @@ This prevents pre-commit from stashing unrelated unstaged edits and restoring a 
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...` (NO errors)
 2. **Module Cache**: `go list -m all` (dependencies resolved)
-3. **Go Version**: `go version` (verify 1.27.2+)
+3. **Go Version**: `go version` (verify 1.27.3+)
 4. **Docker**: `docker ps` (if tasks require Docker)
    - If Docker not running, start it:
    - Windows: `Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"`
@@ -6926,7 +6926,7 @@ EOF
 
 ## Technical Context
 
-- **Language**: Go 1.27.2
+- **Language**: Go 1.27.3
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
@@ -7259,7 +7259,7 @@ EOF
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...` (NO errors, confirms project compiles)
 2. **Module Cache**: `go list -m all` (verify dependencies resolved)
-3. **Go Version**: `go version` (verify 1.27.2+)
+3. **Go Version**: `go version` (verify 1.27.3+)
 4. **Working Directory**: Confirm you're in project root (c:\Dev\Projects\cryptoutil)
 
 **If any check fails**: Report error, DO NOT proceed with action

@@ -17,7 +17,7 @@
 
 ### A.2 Technology Selection Decisions
 
-**Go 1.27.2**: Static typing, fast compilation, excellent concurrency, CGO-free (portability)
+**Go 1.27.3**: Static typing, fast compilation, excellent concurrency, CGO-free (portability)
 **PostgreSQL + SQLite**: Production (ACID, scalability) + Dev/Test (zero-config, in-memory)
 **GORM**: Cross-DB compatibility, migrations, type-safe queries
 **Fiber**: Fast HTTP framework, Express-like API, low memory footprint
