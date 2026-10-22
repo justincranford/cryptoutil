@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"net"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -86,6 +87,19 @@ func TestAdminServer_StartAndShutdownErrorPaths(t *testing.T) {
 
 		admin := &AdminServer{}
 		require.ErrorContains(t, admin.Start(nilAuthzContextForTest()), "context cannot be nil")
+	})
+
+	t.Run("TLS configuration failure", func(t *testing.T) {
+		t.Parallel()
+
+		config := cryptoutilIdentityConfig.RequireNewForTest("authz-admin-start-tls-error")
+		config.AuthZ.TLSCertFile = filepath.Join(t.TempDir(), "missing-start-cert.pem")
+		config.AuthZ.TLSKeyFile = filepath.Join(t.TempDir(), "missing-start-key.pem")
+		admin := &AdminServer{config: config}
+
+		err := admin.Start(context.Background())
+		require.ErrorContains(t, err, "failed to load TLS configuration")
+		require.ErrorContains(t, err, "failed to load TLS certificate and key")
 	})
 
 	t.Run("occupied admin port", func(t *testing.T) {
