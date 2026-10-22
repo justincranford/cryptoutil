@@ -3,6 +3,12 @@
 **Status**: Parked; no implementation phases have started.
 **Created**: 2026-10-21
 
+## Carry-Forward Lesson from Framework v25
+
+Volume names and metadata do not prove data continuity or ownership after recreation or cleanup.
+Define Kubernetes PVC retention, PV reclaim, backup/restore, and namespace-scoped test cleanup
+before implementation; verify durable application state across pod replacement and Helm upgrade.
+
 ## Phase 1: Define Kubernetes Deployment Contract
 
 Pending.

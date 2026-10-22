@@ -2384,6 +2384,7 @@ applyTo: "**"
 - Healthcheck fields use underscores in Docker Compose YAML: `start_period` (NOT `start-period`); the Dockerfile `HEALTHCHECK` instruction uses `--start-period` (hyphen) — these are different syntaxes
 - **Distroless images** (e.g. `otel/opentelemetry-collector-contrib`): NEVER use `wget`/`curl` healthchecks — set `disable: true` and use a sidecar Alpine container with wget for readiness signaling
 - **`docker-entrypoint-initdb.d/` scripts**: PostgreSQL initdb runs with Unix socket only (no TCP). ALL `psql` commands MUST omit `-h localhost`/`-h 127.0.0.1`; using `-h` causes `SASL auth` failures inside initdb
+- **Compose cleanup action input**: CI cleanup actions for shared or persistent stacks MUST require an explicit Compose file and use the same file as the matching build/start actions; they MUST NOT fall back to a suite-level default
 - **Stack volume isolation**: Explicitly named volumes can be shared across Compose projects, so project names alone do not guarantee isolation.
   Use distinct volume names for isolated stacks. Do not run `docker compose down -v` on shared or unknown deployments; use `docker compose down` to preserve data.
   Remove volumes only after confirming they belong exclusively to a disposable stack and any required data is backed up.

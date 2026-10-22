@@ -20,6 +20,13 @@ service's pods must use the configured shared PostgreSQL deployment and preserve
 TLS/mTLS, secrets, readiness, migration, and persistence requirements. Product and suite
 charts must preserve this invariant for every included service.
 
+Persistent-storage ownership and lifecycle MUST be explicit for every chart: identify
+shared versus release-owned data, PVC retention on upgrade/uninstall, PV reclaim policy,
+and backup/restore expectations. Routine pod replacement, rollout, or chart upgrade MUST
+not delete a claim or silently initialize an empty database. Destructive cleanup is limited
+to dedicated disposable K3D namespaces and resources owned by that test run; resource names
+alone are not proof of ownership or data continuity.
+
 The current Compose topology already starts two PostgreSQL-backed `sm-kms` app instances
 using the same `postgres-url.secret`; its E2E suite checks health and TLS for both. The
 PostgreSQL storage E2E also uses two independent connections/stores and verifies concurrent
@@ -57,6 +64,10 @@ reloaded pods are atomically synchronized.
   Compose-based service deployment and E2E orchestration are retired.
 - Every service chart defaults to at least two ready replicas; no chart or product/suite
   overlay may silently reduce that minimum.
+- Persistent data ownership, PVC retention, PV reclaim, and backup/restore behavior are
+  documented; routine pod replacement and Helm upgrades preserve persistent state.
+- Destructive test cleanup is namespace-scoped to disposable K3D resources owned by that run;
+  shared or persistent data is never removed based only on resource names.
 - Functional E2E traffic reaches each replica, not only a load-balanced service endpoint
   that might repeatedly route to one pod.
 - Cross-pod state tests use the shared PostgreSQL deployment and real supported client
@@ -75,8 +86,9 @@ reloaded pods are atomically synchronized.
 ### Phase 1: Define Kubernetes Deployment Contract
 
 Map the existing Compose service, shared PostgreSQL, telemetry, certificate, secrets,
-migration, and health-check dependencies into K3D/K3S and Helm. Define chart ownership,
-the default two-pod floor for all seven PS-ID services, product/suite composition, the
+migration, health-check, and persistent-storage dependencies into K3D/K3S and Helm. Define
+chart ownership, the default two-pod floor for all seven PS-ID services, product/suite
+composition, PVC retention and PV reclaim policies, backup/restore expectations, the
 local/CI cluster lifecycle, and safe direct-per-pod client access for E2E while preserving
 production TLS/authentication behavior.
 
@@ -84,16 +96,19 @@ production TLS/authentication behavior.
 
 Implement Helm deployment for all seven services with a minimum of two pods per service,
 shared PostgreSQL connectivity, persistent storage where required, and existing TLS/mTLS
-and secret handling. Replace Compose-driven service startup and E2E orchestration with
-K3D/K3S workflows; remove Compose as a parallel supported service deployment path.
+and secret handling. Routine upgrades and pod replacement must preserve data claims;
+destructive cleanup must be limited to run-owned disposable namespaces. Replace
+Compose-driven service startup and E2E orchestration with K3D/K3S workflows; remove Compose
+as a parallel supported service deployment path.
 
 ### Phase 3: Verify Multi-Pod Client Behavior
 
 Use authenticated clients against each `sm-kms` pod and at least one other service pair.
 Prove that a write through one pod is visible through another, exercise shared-PG PKI
 issuance/revocation and CRL allocation across pods, and verify readiness, restart,
-rollout, and persistence behavior. Tests must distinguish each pod rather than relying
-only on load-balanced health probes.
+rollout, Helm upgrade, PVC retention, and persistence behavior. Tests must distinguish each
+pod rather than relying only on load-balanced health probes, and cleanup must target only
+the disposable namespace and resources owned by that test run.
 
 ### Phase 4: Define PKI Reload Contract
 
@@ -128,6 +143,8 @@ patterns. Record phase post-mortems and completion evidence before archiving thi
 - The E2E suite performs authenticated functional client requests against each replica; it
   proves cross-pod persistence and shared-PostgreSQL PKI behavior, not only health/TLS.
 - PostgreSQL, migration, certificate, secret, readiness, and TLS/mTLS behavior pass on K3D/K3S.
+- A durable record remains available across pod replacement and Helm upgrade; PVC retention
+  and reclaim behavior match the documented policy, and test cleanup cannot delete shared data.
 - The reloadable setting allowlist and explicit non-reloadable settings are documented.
 - A failed candidate cannot partially replace live issuer, CRL, OCSP, handler, or endpoint state.
 - In-flight requests observe one complete generation, and concurrent reload/request tests pass

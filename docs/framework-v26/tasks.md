@@ -10,7 +10,9 @@ deployment and PKI reload contracts.
       configured database secret; E2E checks their health/TLS, but does not send functional client
       requests to both; PostgreSQL storage E2E covers two connections/stores.
 - [ ] Map Compose dependencies to K3D/K3S and Helm, including shared PostgreSQL, TLS/mTLS, secrets,
-      migrations, readiness, telemetry, and persistent storage.
+      migrations, readiness, telemetry, and persistent storage ownership.
+- [ ] Define PVC retention for upgrades/uninstalls, PV reclaim policy, backup/restore expectations,
+      and a namespace-scoped destructive-reset policy for disposable K3D runs.
 - [ ] Define chart ownership and guarantee a minimum of two pods per each of the seven PS-ID
       services in standalone, product, and suite charts.
 - [ ] Define local/CI K3D/K3S lifecycle and how E2E can target each pod without bypassing production
@@ -24,6 +26,8 @@ deployment and PKI reload contracts.
       two pods per service.
 - [ ] Deploy pods against the shared PostgreSQL deployment with existing TLS/mTLS, Docker/Kubernetes
       secret, migration, health, and persistence requirements intact.
+- [ ] Ensure routine Helm upgrade and pod replacement preserve persistent claims; constrain
+      destructive test cleanup to per-run disposable namespaces and resources.
 - [ ] Replace Compose-driven service startup and E2E orchestration with K3D/K3S workflows.
 
 ## Phase 3: Verify Multi-Pod Client Behavior
@@ -31,7 +35,9 @@ deployment and PKI reload contracts.
 - [ ] Exercise authenticated functional APIs on each pod, not only health/TLS endpoints.
 - [ ] Prove writes through one pod are visible through another pod using the shared database.
 - [ ] Exercise PKI issuance, revocation, and CRL allocation across pods and verify persisted state.
-- [ ] Verify readiness, rollout/restart, and persistent data behavior in the K3D/K3S environment.
+- [ ] Verify a durable API record survives pod replacement and Helm upgrade, and validate PVC
+      retention/reclaim behavior against the documented lifecycle policy.
+- [ ] Verify readiness, rollout/restart, and that test cleanup cannot target shared storage.
 
 ## Phase 4: Define PKI Reload Contract
 

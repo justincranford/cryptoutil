@@ -8,8 +8,9 @@ commit `53d4d2be`; Race run `39373113751` passed all six jobs across the 368-pac
 integration-tagged set exactly once. The persistent legacy-schema follower upgrade and its
 secret-backed PostgreSQL role fix are runtime- and workflow-validated. The monolithic local race
 attempt was stopped due to high resource use and is superseded by the hosted matrix. The
-historical aggregate coverage comparison was dropped at the user's direction. Historical-volume
-provenance remains excluded and fail-closed under Recommendation 28.
+historical aggregate coverage comparison was dropped at the user's direction. Recommendation 28
+is closed as a historical incident disposition: volume contents and provenance remain unknown,
+with no remaining v25 implementation or testing action.
 **Last Updated**: 2026-10-21
 **Created**: 2026-05-25
 
@@ -18,13 +19,14 @@ provenance remains excluded and fail-closed under Recommendation 28.
 **Archived task status note**: Original Phase 1–4 status labels were not maintained during
 execution; the task statuses and acceptance checkboxes below have been selectively reconciled
 against source, test, config, and retained-artifact evidence. All tracked acceptance criteria are
-marked complete; Recommendation 28 is the sole explicitly pending/fail-closed data-provenance
-follow-up.
+marked complete; Recommendation 28 is separately dispositioned as a closed, fail-closed
+historical-data record, not a pending implementation or testing task.
 Earlier coverage collections and the 30-versus-27 no-test mismatch are historical and superseded
 by the final pinned-gate result recorded under Task 5.4. The persistent legacy-schema follower
 upgrade now passes under Task 5.6; all current-push workflow validation is successful.
-Historical-volume provenance remains fail-closed under Recommendation 28. The exact standalone race command was stopped and superseded by the
-passing six-partition matrix; skips are accepted only when classified and justified under Task 5.3.
+Historical-volume provenance remains fail-closed under the closed Recommendation 28 disposition.
+The exact standalone race command was stopped and superseded by the passing six-partition matrix;
+skips are accepted only when classified and justified under Task 5.3.
 
 ## Quality Mandate - MANDATORY
 
@@ -913,9 +915,9 @@ actionable test-gap skip. The pinned 352-package coverage gate passes all eligib
 All 12 required hosted workflows passed on code commit `53d4d2be`; Race run `39373113751` passed
 all six jobs across the 368-package integration-tagged set. The persistent legacy-schema follower
 upgrade and secret-backed role fix are verified. The hosted matrix supersedes the interrupted,
-resource-intensive monolithic local race attempt. Recommendation 28 remains excluded and
-fail-closed because historical-volume contents and provenance are unknown; it is not a Phase 5
-acceptance gate.
+resource-intensive monolithic local race attempt. Recommendation 28 is closed as a historical
+incident disposition; historical-volume contents and provenance remain unknown, and it is not a
+Phase 5 acceptance gate or remaining implementation/testing task.
 
 **Local workflow execution**: The official `coverage`, `race`, `mutation`, `benchmark`, `load`,
 and `e2e` workflows are available. The 11 non-Race workflows passed on prior push `7ef7c857`; Race
@@ -936,9 +938,9 @@ commit `53d4d2be`. Race run `39373113751` completed all six jobs successfully an
 368-package integration-tagged set exactly once. The persistent migration-1006 follower-schema
 reconciliation and explicit secret-backed PostgreSQL role fix pass runtime verification and
 current-push workflow validation. The monolithic standalone race run remains superseded by the
-hosted matrix; no additional laptop race run is required. Recommendation 28 remains pending and
-fail-closed: historical volume contents/provenance cannot be established, so no destructive
-remediation is authorized. The startup benchmark and detached-HEAD comparison remain
+hosted matrix; no additional laptop race run is required. Recommendation 28 is closed as a
+historical incident disposition; volume contents/provenance cannot be established, so destructive
+remediation is not authorized and no v25 code or testing task remains. The startup benchmark and detached-HEAD comparison remain
 statistically inconclusive; the authenticated `complete` load profile passed 218/218 requests.
 
 **Fresh framework/shared coverage evidence**: The consolidated shuffled run
@@ -1894,7 +1896,7 @@ validation is not a claim that the full repository suite or Docker/PostgreSQL de
 
 ## Review Follow-Up Recommendation Disposition and Evidence
 
-Recommendation numbers below refer to `review-follow-up-plan.md`, not to the historical task rows above. Recommendations 1 and 28 are excluded from implementation scope; Recommendation 28 is recorded below only as an unresolved volume-incident disposition.
+Recommendation numbers below refer to `review-follow-up-plan.md`, not to the historical task rows above. Recommendation 1 is excluded from implementation scope. Recommendation 28 is recorded below as a closed historical incident disposition; its unknown data continuity is not an implementation or testing task.
 
 **Latest hosted Race status**: run `39362007528` completed successfully on commit `2557168fd`;
 all six matrix jobs succeeded. Earlier workflow conclusions in the historical evidence rows below
@@ -1958,7 +1960,8 @@ Finding identifiers F-1 and F-2 are distinct from review recommendation numbers.
 
 ## Recommendation 28: Legacy Volume Incident Disposition
 
-**Status**: Pending / fail-closed. The older read-only inventory at
+**Status**: Closed as a historical incident disposition; historical data continuity remains
+unknown. The older read-only inventory at
 `test-output/reviewfollowup/legacy-volume-readonly-inventory.log` showed the three known
 historical global volume names absent at that time. The newer
 `test-output/reviewfollowup/framework-v25-docker-inventory-20261019.log` finds the leader and
@@ -1980,8 +1983,12 @@ follower PostgreSQL volume names present and the Grafana volume absent; metadata
 present volumes in the `sm` Compose project with 2026-10-18 creation timestamps. This does not
 establish whether they contain any historical data, whether data is continuous, or who created
 them. The associated `sm-kms` app container is restarting and the follower is Created. No Docker
-resources were changed during that inventory. No claim is made that legacy data is absent;
-Recommendation 28 remains pending/fail-closed. Later, the 13 Testcontainers-labelled
+resources were changed during that inventory. No claim is made that legacy data is absent.
+Recommendation 28 is closed without claiming historical recovery or continuity; no code change,
+permanent regression test, or throwaway runtime test remains to be done for v25. If recovery becomes
+a separate objective, independently retained backups or snapshots would need a read-only provenance
+check first; their existence is unknown. Kubernetes PVC/reclaim/backup lifecycle and namespace-scoped
+cleanup requirements are carried into framework-v26. Later, the 13 Testcontainers-labelled
 Postgres containers were removed by full IDs with `docker rm` and no `-v`, and the task-owned
 Compose project was removed with `docker compose ... down` and no `-v`. Verification found zero
 remaining containers matching either label, all six named project volumes remain, and no

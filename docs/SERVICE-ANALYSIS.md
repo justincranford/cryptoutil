@@ -2,7 +2,7 @@
 
 Date: 2026-05-24
 
-> **Superseded:** This historical analysis predates the approved framework-v25 consolidation. The current decision is to move all PKI functionality into `sm-kms` and retire the standalone `pki-ca` service and `pki` product. Use [the framework-v25 plan](framework-v25/plan.md) for the current migration record; this document is retained only as historical context.
+> **Superseded:** This historical analysis predates the approved framework-v25 consolidation. The current decision is to move all PKI functionality into `sm-kms` and retire the standalone `pki-ca` service and `pki` product. Use the [archived framework-v25 plan](archive/framework-v25/plan.md) for the migration record; this document is retained only as historical context.
 
 ## Executive Summary
 

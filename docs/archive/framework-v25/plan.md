@@ -5,9 +5,9 @@ required hosted workflows passed on code commit `53d4d2be`; Race run `3937311375
 successfully across all six jobs, covering the 368 integration-tagged packages exactly once.
 The earlier monolithic local race attempt remains superseded by this resource-safe hosted matrix.
 The persistent legacy-schema follower upgrade and its secret-backed PostgreSQL role fix are
-verified. Recommendation 28 remains excluded and fail-closed because historical volume contents
-and provenance cannot be established; this is a documented data-safety exception, not an open
-Phase 5 gate.
+verified. Recommendation 28 is closed as a historical incident disposition: volume contents and
+provenance remain unknown, and no further v25 implementation or testing action is required. This
+is a documented data-safety exception, not an open Phase 5 gate.
 **Created**: 2026-05-25
 **Last Updated**: 2026-10-20
 **Purpose**: Consolidate from 8 PS-IDs (4 products) to 7 PS-IDs (3 products) by merging
@@ -138,9 +138,9 @@ table. Production PKI state in sm-kms now uses the service's shared SQLite/Postg
 - **PKI storage**: Production certificate, revocation, and CA authority state uses the shared sm-kms SQLite/PostgreSQL database. The CA private key is barrier-encrypted before persistence.
 - **Binary content types**: OCSP (application/ocsp-request), TSA (application/timestamp-query),
   EST (application/pkcs10, application/pkcs7-mime) â€” oapi-codegen handles these as `[]byte`
-- **Test references**: [ENG-HANDBOOK Â§10](../../docs/ENG-HANDBOOK.md#10-testing-architecture), [Â§10.2](../../docs/ENG-HANDBOOK.md#102-unit-testing-strategy), [Â§10.3](../../docs/ENG-HANDBOOK.md#103-integration-testing-strategy), [Â§10.4](../../docs/ENG-HANDBOOK.md#104-e2e-testing-strategy), [Â§10.5](../../docs/ENG-HANDBOOK.md#105-mutation-testing-strategy)
-- **Quality reference**: [ENG-HANDBOOK Â§11.2](../../docs/ENG-HANDBOOK.md#112-quality-gates), [Â§11.3](../../docs/ENG-HANDBOOK.md#113-code-quality-standards)
-- **Coding standards**: [ENG-HANDBOOK Â§14.1](../../docs/ENG-HANDBOOK.md#141-coding-standards)
+- **Test references**: [ENG-HANDBOOK Â§10](../../ENG-HANDBOOK.md#10-testing-architecture), [Â§10.2](../../ENG-HANDBOOK.md#102-unit-testing-strategy), [Â§10.3](../../ENG-HANDBOOK.md#103-integration-testing-strategy), [Â§10.4](../../ENG-HANDBOOK.md#104-e2e-testing-strategy), [Â§10.5](../../ENG-HANDBOOK.md#105-mutation-testing-strategy)
+- **Quality reference**: [ENG-HANDBOOK Â§11.2](../../ENG-HANDBOOK.md#112-quality-gates), [Â§11.3](../../ENG-HANDBOOK.md#113-code-quality-standards)
+- **Coding standards**: [ENG-HANDBOOK Â§14.1](../../ENG-HANDBOOK.md#141-coding-standards)
 
 ### Affected Files â€” Complete Enumeration
 
@@ -544,16 +544,16 @@ sm-kms already has its own pki-init via `sm init pki-init`. No new routing is ne
 
 | Topic | ENG-HANDBOOK.md Section | When to Reference |
 |-------|------------------------|-------------------|
-| Testing Strategy | [Section 10](../../docs/ENG-HANDBOOK.md#10-testing-architecture) | ALL phases with implementation |
-| Unit Testing | [Section 10.2](../../docs/ENG-HANDBOOK.md#102-unit-testing-strategy) | Phases 1-2 (porting + API) |
-| Integration Testing | [Section 10.3](../../docs/ENG-HANDBOOK.md#103-integration-testing-strategy) | Phase 2 (route wiring tests) |
-| Quality Gates | [Section 11.2](../../docs/ENG-HANDBOOK.md#112-quality-gates) | ALL phases (mandatory) |
-| Code Quality | [Section 11.3](../../docs/ENG-HANDBOOK.md#113-code-quality-standards) | Phases 1-2 (new code) |
-| Coding Standards | [Section 14.1](../../docs/ENG-HANDBOOK.md#141-coding-standards) | Phases 1-2 |
-| Service Template | [Section 5.1](../../docs/ENG-HANDBOOK.md#51-service-framework-pattern) | Phase 2 (route registration) |
-| OpenAPI Architecture | [Section 8](../../docs/ENG-HANDBOOK.md#8-api-architecture) | Phase 2 (OpenAPI spec update) |
-| Security Architecture | [Section 6](../../docs/ENG-HANDBOOK.md#6-security-architecture) | Phases 1-2 (PKI/cert handling) |
-| Deployment Architecture | [Section 12](../../docs/ENG-HANDBOOK.md#12-deployment-architecture) | Phases 3-4 (deletion) |
-| Version Control | [Section 14.2](../../docs/ENG-HANDBOOK.md#142-version-control) | ALL phases (commit strategy) |
-| Plan Lifecycle | [Section 14.6](../../docs/ENG-HANDBOOK.md#146-plan-lifecycle-management) | ALL phases |
-| Post-Mortem & Knowledge Propagation | [Section 14.8](../../docs/ENG-HANDBOOK.md#148-phase-post-mortem--knowledge-propagation) | Every phase + Phase 6 |
+| Testing Strategy | [Section 10](../../ENG-HANDBOOK.md#10-testing-architecture) | ALL phases with implementation |
+| Unit Testing | [Section 10.2](../../ENG-HANDBOOK.md#102-unit-testing-strategy) | Phases 1-2 (porting + API) |
+| Integration Testing | [Section 10.3](../../ENG-HANDBOOK.md#103-integration-testing-strategy) | Phase 2 (route wiring tests) |
+| Quality Gates | [Section 11.2](../../ENG-HANDBOOK.md#112-quality-gates) | ALL phases (mandatory) |
+| Code Quality | [Section 11.3](../../ENG-HANDBOOK.md#113-code-quality-standards) | Phases 1-2 (new code) |
+| Coding Standards | [Section 14.1](../../ENG-HANDBOOK.md#141-coding-standards) | Phases 1-2 |
+| Service Template | [Section 5.1](../../ENG-HANDBOOK.md#51-service-framework-pattern) | Phase 2 (route registration) |
+| OpenAPI Architecture | [Section 8](../../ENG-HANDBOOK.md#8-api-architecture) | Phase 2 (OpenAPI spec update) |
+| Security Architecture | [Section 6](../../ENG-HANDBOOK.md#6-security-architecture) | Phases 1-2 (PKI/cert handling) |
+| Deployment Architecture | [Section 12](../../ENG-HANDBOOK.md#12-deployment-architecture) | Phases 3-4 (deletion) |
+| Version Control | [Section 14.2](../../ENG-HANDBOOK.md#142-version-control) | ALL phases (commit strategy) |
+| Plan Lifecycle | [Section 14.6](../../ENG-HANDBOOK.md#146-plan-lifecycle-management) | ALL phases |
+| Post-Mortem & Knowledge Propagation | [Section 14.8](../../ENG-HANDBOOK.md#148-phase-post-mortem--knowledge-propagation) | Every phase + Phase 6 |

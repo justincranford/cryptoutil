@@ -1,21 +1,25 @@
 # Review Follow-Up Plan — Framework v25
 
-**Status**: Phase 5 acceptance is complete; all tracked follow-up recommendations are complete
-except Recommendation 28, which remains pending/fail-closed.
+**Status**: Phase 5 acceptance is complete; all tracked follow-up recommendations are
+dispositioned. Recommendation 28 is closed as a historical incident record; volume contents and
+provenance remain unknown, with no remaining v25 implementation or testing action.
 **Created**: 2026-10-15
 **Last Updated**: 2026-10-21
 **Scope**: Prior review recommendations 2–14 and additional recommendations 15–38.
 
 [`plan.md`](./plan.md) records the implemented 8-to-7 PS-ID consolidation; Phase 5 quality-gate
 acceptance is complete. This document tracks review follow-up only. Recommendation 1 is omitted
-as requested. Recommendation 28 remains pending as described below; the explicitly excluded
-full-application, multi-instance PostgreSQL E2E is not represented as completed.
+as requested. Recommendation 28's historical data uncertainty is explicitly dispositioned below;
+the explicitly excluded full-application, multi-instance PostgreSQL E2E is not represented as
+completed.
 
 ## Status Definitions
 
 - **Complete**: The recommendation’s acceptance criteria are met and evidence is recorded.
 - **Partially verified**: Implementation or focused evidence exists, but a stated gap remains.
 - **Pending**: Required review, implementation, or validation has not been evidenced.
+- **Closed**: The remaining uncertainty is documented, and no in-scope implementation or testing
+  action remains; closure does not claim that historical facts are known or recoverable.
 
 Items 15–27 and 29–37 are accepted into this follow-up plan, but inclusion does not mean that
 implementation is authorized or complete. Update a status only with evidence recorded in
@@ -112,7 +116,8 @@ and are independent of the numbered rows in the task evidence table.
   restarts PostgreSQL, then verifies authority-key restoration and persisted revocation state.
 - **12 — Complete.** Plan 25 is the consolidation plan, with implementation phases 1–6 and
   Phase 5 quality-gate acceptance complete. This separate plan carries review dispositions and
-  links to the evidence tracker; Recommendation 28 remains separately pending/fail-closed.
+  links to the evidence tracker; Recommendation 28 is separately closed as a historical incident
+  disposition with data continuity still unknown.
 - **13 — Complete.** Current-tree normal/tagged builds and full normal/tagged
   golangci-lint pass; the 11 relevant repository validators also pass after the tracker updates.
   Evidence is recorded in
@@ -249,15 +254,14 @@ and are independent of the numbered rows in the task evidence table.
   Bash syntax, deployment validation, template fitness, and text checks pass. Hosted workflow
   validation of the fix passed in hosted Race run `39373113751` on code commit `53d4d2be`.
 
-## Excluded Recommendation
+## Closed Historical Incident Disposition
 
-**28 - Pending / fail-closed.** Historical-volume contents and provenance remain unknown, so
-destructive deduplication or volume deletion is not authorized based on volume names alone. The
-read-only request-ID preflight detects existing duplicate nonzero IDs and fails before migration
-without modifying records; it does not establish the contents or provenance of historical volumes
-or authorize remediation. A newly present volume with the same name does not prove it contains the
-old data, is empty, or has the same owner; preserve it until contents, provenance, and authorization
-can be established.
+**28 — Closed; historical data continuity remains unknown.** Historical-volume contents and
+provenance were not established. Destructive deduplication or volume deletion is not authorized
+based on volume names alone. The read-only request-ID preflight detects existing duplicate nonzero
+IDs and fails before migration without modifying records; it does not establish historical volume
+contents, provenance, or data continuity. A newly present volume with the same name does not prove
+it contains old data, is empty, or has the same owner.
   `test-output/reviewfollowup/legacy-volume-readonly-inventory.log` shows the three known historical
   global volume names absent from the current Docker inventory, but cannot recover deleted contents
   or establish the state of other deployments.
@@ -299,14 +303,21 @@ can be established.
   input, and the action defaulted to the suite Compose file and ran `docker compose down -v`. The
   action now requires an explicit Compose file and runs `docker compose down` without volume
   deletion; `ci-load.yml` passes the same sm-kms Compose file it starts. Static workflow validation
-  passes (`framework-v25-compose-teardown-validation-20261016.log`), but live teardown validation
-  remains outstanding; Docker Engine 29.8.2 meets the corrected minimum. No evidence attributes
+  passes (`framework-v25-compose-teardown-validation-20261016.log`). A one-off teardown check
+  against an isolated task-owned project is recorded in
+  `test-output/reviewfollowup/isolated-compose-down-preserves-volume-20261018.log`; it showed that
+  `docker compose down` preserved that project's dedicated named volume. This evidence is not a
+  permanent regression test and no additional throwaway test is required for v25 closeout. Docker
+  Engine 29.8.2 meets the corrected minimum. No evidence attributes
   historical deletions to the corrected action. Do not claim this session removed the
   screenshot's Postgres entries or product-retest project, and do not delete preserved volumes. Do
   not perform destructive deduplication while legacy-volume contents and provenance are unknown.
-  Remaining evidence: resolve the disappearance provenance and perform any eventual teardown test
-  only on a supported engine and isolated task-owned project; use non-destructive inspection for
-  legacy-volume state.
+  **Closeout**: There is no reproducible code or test change that can recover or prove continuity
+  for volumes already deleted. No further v25 implementation, regression test, or throwaway
+  teardown exercise is required. If historical recovery becomes a separate objective, first inspect
+  independently retained backups or snapshots without modifying shared resources; their existence
+  has not been established here. Kubernetes PVC/reclaim/backup lifecycle and namespace-scoped
+  cleanup requirements are carried forward to framework-v26.
 
 ## Post-Implementation Deep-Review Findings
 
