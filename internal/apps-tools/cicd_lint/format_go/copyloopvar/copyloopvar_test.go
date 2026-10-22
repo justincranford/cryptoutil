@@ -532,15 +532,15 @@ func TestFixCopyLoopVarInFile_ReadOnlyFile(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	// Make file read-only so os.Create will fail during write.
-	err = os.Chmod(testFile, 0o400)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	changed, fixes, err := FixInFile(logger, testFile)
-
-	// Restore permissions for cleanup.
-	_ = os.Chmod(testFile, cryptoutilSharedMagic.CacheFilePermissions)
+	changed, fixes, err := fixInFile(
+		testFile,
+		func(string) (io.WriteCloser, error) {
+			return nil, errors.New("permission denied")
+		},
+		func(io.Writer, *token.FileSet, any) error {
+			return nil
+		},
+	)
 
 	require.Error(t, err, "fixCopyLoopVarInFile should fail when file is read-only")
 	require.False(t, changed, "Should return false when error occurs")
