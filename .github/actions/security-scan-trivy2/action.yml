@@ -20,6 +20,10 @@ inputs:
   severity:
     description: 'Minimum severity level to report (CRITICAL, HIGH, MEDIUM, LOW, UNKNOWN)'
     required: true
+  skip-token-dependent-actions:
+    description: 'Skip Trivy scanning and SARIF upload when local execution has no GitHub token'
+    required: false
+    default: 'false'
   format:
     description: 'Output format (sarif, json, table, etc.)'
     required: false
@@ -29,6 +33,7 @@ runs:
   using: 'composite'
   steps:
     - name: Run Trivy security scan
+      if: ${{ inputs.skip-token-dependent-actions != 'true' }}
       # https://github.com/aquasecurity/trivy-action/releases (v0.35.0, 2026-08-08)
       # SECURITY: v0.33.1 was affected by GHSA-9p44-j4g5-cfx5 (CVE-2026-26189) - script injection via unsanitized env export
       uses: aquasecurity/trivy-action@v0.35.0
@@ -42,7 +47,7 @@ runs:
     - name: Upload Trivy results to GitHub Security tab
       # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
       uses: github/codeql-action/upload-sarif@v3.28.19
-      if: always()
+      if: ${{ always() && inputs.skip-token-dependent-actions != 'true' }}
       with:
         sarif_file: ${{ inputs.trivy-sarif-output }}
         category: "${{ inputs.scan-name }}-trivy"
@@ -59,17 +64,23 @@ runs:
         echo "- **Format**: ${{ inputs.format }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Check if SARIF file was generated and has content
-        if [ -f "${{ inputs.trivy-sarif-output }}" ]; then
+        # Report local-act skips separately from missing scan output.
+        if [ "${{ inputs.skip-token-dependent-actions }}" = "true" ]; then
+          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ⚠️ Trivy scan and SARIF upload skipped for local execution" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Token-dependent scanning and SARIF upload are disabled for this local run." >> $GITHUB_STEP_SUMMARY
+        elif [ -f "${{ inputs.trivy-sarif-output }}" ]; then
           RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.trivy-sarif-output }} 2>/dev/null || echo "0")
           echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
-          echo "- SARIF file: \`${{ inputs.trivy-sarif-output }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- SARIF file: `${{ inputs.trivy-sarif-output }}`" >> $GITHUB_STEP_SUMMARY
           echo "- Findings: $RESULT_COUNT" >> $GITHUB_STEP_SUMMARY
           echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Results are available in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning) for detailed analysis." >> $GITHUB_STEP_SUMMARY
         else
           echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
           echo "- Status: ❌ No SARIF file generated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Results are available in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning) for detailed analysis." >> $GITHUB_STEP_SUMMARY
         fi
-
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Note**: Results are available in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning) for detailed analysis." >> $GITHUB_STEP_SUMMARY

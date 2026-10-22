@@ -438,6 +438,7 @@ jobs:
     - name: Scan coverage artifacts for vulnerabilities
       uses: ./.github/actions/security-scan-trivy2
       with:
+        skip-token-dependent-actions: ${{ github.actor == 'nektos/act' }}
         scan-name: 'coverage'
         scan-type: 'fs'
         scan-ref: 'workflow-reports/coverage'
@@ -555,6 +556,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
 
     - name: Upload coverage
+      if: ${{ github.actor != 'nektos/act' }}
       # https://github.com/codecov/codecov-action/releases (v5.5.1, 2025-11-15)
       uses: codecov/codecov-action@v5.5.1
       with:
@@ -562,6 +564,18 @@ jobs:
         flags: coverage-tests  # Group uploads under "coverage-tests"
         name: codecov-coverage
         fail_ci_if_error: false
+
+    - name: Report Codecov upload skipped for local act
+      if: ${{ github.actor == 'nektos/act' }}
+      shell: bash
+      run: |
+        {
+          echo "## Codecov Upload"
+          echo ""
+          echo "- Status: SKIPPED - local act does not provide Codecov token or GitHub OIDC authentication."
+          echo "- Coverage tests and package thresholds still ran."
+          echo "- Local coverage reports remain available in \`workflow-reports/coverage/\`."
+        } >> "$GITHUB_STEP_SUMMARY"
 
     - name: Upload coverage artifacts
       # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
