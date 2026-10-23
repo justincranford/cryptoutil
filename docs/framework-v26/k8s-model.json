@@ -1,0 +1,52 @@
+{
+  "clusterDomain": "cluster.local",
+  "infrastructure": {
+    "collector": 2,
+    "lgtm": 1,
+    "postgresFollower": 1,
+    "postgresLeader": 1
+  },
+  "localDomain": "localhost",
+  "modes": [
+    {
+      "name": "pg",
+      "pools": [
+        "pg"
+      ]
+    },
+    {
+      "name": "mixed-mem",
+      "pools": [
+        "pg",
+        "mem"
+      ]
+    },
+    {
+      "name": "mixed-disk",
+      "pools": [
+        "pg",
+        "disk"
+      ]
+    },
+    {
+      "name": "mem",
+      "pools": [
+        "mem"
+      ]
+    },
+    {
+      "name": "disk",
+      "pools": [
+        "disk"
+      ]
+    }
+  ],
+  "overrides": {},
+  "replicas": {
+    "max": 2,
+    "min": 2
+  },
+  "revision": "r1",
+  "run": "review",
+  "version": 1
+}
