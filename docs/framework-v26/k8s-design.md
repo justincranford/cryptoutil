@@ -2,7 +2,7 @@
 
 **Status**: Planning draft for human review; no runtime cutover is authorized.
 **Created**: 2026-10-22
-**Last Updated**: 2026-10-22
+**Last Updated**: 2026-10-23
 
 ## Scope and decisions
 
@@ -21,11 +21,13 @@ The registry contains **7 PS-IDs, 3 products, 1 suite**, not four products:
 | SUITE | cryptoutil | All 7 PS-IDs |
 
 Therefore 7 + 3 + 1 = **11 registered tier scopes**, not the requested 7 + 4 + 1 = 12.
-The fourth product has no current registry identity or membership; it is **unresolved**, not
-silently renamed, invented, or treated as infrastructure. Older handbook references to a `pki`
-product predate PKI consolidation into sm-kms. A fourth group needs an explicit registry/group
-decision before implementation readiness. The generator follows actual membership and will
-reject `p:pki:pg`. It does not manufacture a fourth deployable product.
+**Draft scope assumption**: use the three registered products; treat the requested fourth
+as a count mismatch, not a product to invent, rename, or substitute with infrastructure.
+Older handbook references to a `pki` product predate PKI consolidation into sm-kms.
+Adding a fourth group is a scope change requiring an explicit identity, membership and
+registry/group decision. It does not block review of this registry-backed draft.
+The generator follows actual membership and rejects `p:pki:pg`; it does not manufacture
+a fourth deployable product. This assumption is not a claim of user approval.
 
 ### Evidence: effective Compose versus historical prose
 

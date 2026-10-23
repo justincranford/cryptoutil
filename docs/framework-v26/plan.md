@@ -2,7 +2,7 @@
 
 **Status**: Kubernetes planning draft for human review; not implementation-ready.
 **Created**: 2026-10-21
-**Last Updated**: 2026-10-22
+**Last Updated**: 2026-10-23
 **Purpose**: Replace Docker Compose as the service deployment/test path with K3D/K3S and
 Helm, prove real client operations across multiple service pods sharing PostgreSQL, and
 define safe in-process activation of supported PKI CA configuration changes.
@@ -18,10 +18,12 @@ Only design and the planning inventory generator are authorized in the current r
 No Helm runtime, cluster bootstrap, reusable-framework code, deployment config or workflow
 is implemented here. The existing PKI reload track remains future scope.
 
-**Unresolved planning input**: the request names four product groups, but the registry
-contains only sm, identity, skeleton. The tree covers 7 + 3 + 1 = 11 registered scopes,
-not a fabricated twelfth. Fourth-product identity/membership must be resolved before
-implementation readiness; no deployment-runtime dependency is a planning blocker.
+**Draft scope assumption**: use the registry's three products (sm, identity, skeleton),
+treating the requested fourth as a count mismatch rather than inventing membership.
+The tree covers 7 + 3 + 1 = 11 registered scopes, not a fabricated twelfth.
+Adding a fourth requires an explicit identity/membership and registry/group scope change.
+The current draft is handoff-ready for human review, not approved for implementation;
+no deployment-runtime dependency is a planning blocker.
 
 ## Scope
 
@@ -114,7 +116,7 @@ Map Compose dependencies and effective override semantics into the registry-driv
 and five-mode matrix in [k8s-design.md](k8s-design.md). Define owners, configurable replica
 bounds, all three probes, storage/crypto continuity, local cluster lifecycle and direct-per-pod
 client testing. Generate the human-review tree and JSON expected inventory using the same
-pure model. Resolve the fourth-product discrepancy and review the design before authorization.
+pure model. Review the explicit three-product scope assumption and design before authorization.
 
 ### Phase 2: Replace Compose Service Deployment and Test Orchestration
 

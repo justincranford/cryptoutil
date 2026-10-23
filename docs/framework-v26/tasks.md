@@ -1,9 +1,10 @@
 # Framework v26 — Tasks
 
 **Status**: Kubernetes planning draft for human review. Only design and the planning generator
-are authorized; runtime implementation remains pending. Fourth-product identity is unresolved.
+are authorized; runtime implementation remains pending. Three registered products are the
+explicit draft scope assumption, not a claim of user approval.
 **Created**: 2026-10-21
-**Last Updated**: 2026-10-22
+**Last Updated**: 2026-10-23
 
 ## Phase 1: Define Kubernetes Deployment Contract
 
@@ -25,7 +26,8 @@ are authorized; runtime implementation remains pending. Fourth-product identity 
       machine-readable expected inventory from the same planning model. Named-file shuffled
       tests: 99.1% coverage; vet, deterministic tree check, JSON preview and lint-text pass.
       [Evidence](../../test-output/framework-v26-k8s-planning-evidence.log).
-- [ ] Resolve requested fourth product identity/membership versus the registry's three products.
+- [x] Adopt the registry's three products as the explicit draft scope assumption; do not invent
+      a fourth group. Adding one requires a separately defined identity/membership scope change.
 - [ ] Complete human design review and authorize runtime implementation.
 
 ## Phase 2: Replace Compose Service Deployment and Test Orchestration

@@ -2,7 +2,7 @@
 
 **Status**: Kubernetes planning draft for human review; no runtime implementation has started.
 **Created**: 2026-10-21
-**Last Updated**: 2026-10-22
+**Last Updated**: 2026-10-23
 
 ## Carry-Forward Lesson from Framework v25
 
@@ -13,8 +13,9 @@ before implementation; verify durable application state across pod replacement a
 ## Phase 1: Define Kubernetes Deployment Contract
 
 - Registry evidence is 7 PS-IDs + 3 products + 1 suite, not four products. Do not instantiate
-  obsolete PKI as another product after consolidation into sm-kms. The requested fourth
-  product remains an explicit unresolved planning input.
+  obsolete PKI as another product after consolidation into sm-kms. Use the three registered
+  products as the explicit draft scope assumption; adding a fourth requires a defined
+  identity/membership scope change, not guessed membership or a claim of user approval.
 - Abstract identity is (run, tier, scope, mode, PS-ID, backend pool, ordinal). Define that
   taxonomy before enumerating resources; namespace, DB, SAN and config generation share it.
 - Replica pools preserve legacy slots: two PG replicas and two independent SQLite replicas
