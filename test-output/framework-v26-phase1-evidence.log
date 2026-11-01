@@ -4,13 +4,26 @@ Environment: Go 1.27.3 windows/amd64; Windows PowerShell. Initial Phase 1 worktr
 was clean at a91cec785; follow-up continued from the committed Phase 1 artifacts.
 No cache/temp environment overrides were applied.
 
-Scope and acceptance
---------------------
-Phase 1 is technically accepted and complete; Phase 2 is not authorized. The three
-products are registry-backed planning scope, not user approval. Human review and
-explicit runtime authorization remain Phase 2 prerequisites. No production charts,
-bootstrap, framework probes, deployment, or cicd-workflow runtime changes were made.
-No Docker/K3s runtime acceptance is claimed.
+Current lifetime/authorization update (2026-11-01)
+--------------------------------------------------
+This correction started from clean HEAD a64d56c07. The reusable planning prototype,
+model, generated tree and expected inventory now live in durable API/docs locations;
+only plan.md, tasks.md and lessons.md remain in docs/framework-v26 as ephemeral tracking.
+The user authorized Phase 2 on 2026-11-01 with: “Then implement phase 2, including
+post-mortem and fixes at the end. Ensure all work is committed.” Phase 2 remains
+authorized but not started by this bounded Phase 1 lifetime/placement worker.
+
+The pre-relocation command paths and status in the historical evidence below describe
+the earlier validation only. Current repo-root commands and new validation evidence are
+recorded in the final section. No production charts, bootstrap, framework probes,
+deployment, or cicd-workflow runtime changes were made. No Docker/K3s runtime acceptance
+is claimed.
+
+Historical scope and acceptance (before explicit Phase 2 authorization)
+-----------------------------------------------------------------------
+Phase 1 was technically accepted and complete; Phase 2 had not yet been authorized.
+The three products were registry-backed planning scope, not product-membership approval.
+No production runtime implementation or Docker/K3s acceptance was claimed.
 
 Registry and inventory evidence
 -------------------------------
@@ -21,9 +34,9 @@ remain min=max=2. The `p:identity:mixed-disk` projection is 1 release / 10 pools
 20 pod identities / 5 databases. Expanded pod inventory is preflight-limited at
 10,000 records and rejected before enumeration rather than silently clamped.
 
-The same pure graph generates the exhaustive deployment tree and persistent expected
-JSON. Exact-byte `-check` passed for both artifacts. Repeated tree and JSON generator
-runs produced identical output. SHA-256:
+The same pure graph generated the exhaustive deployment tree and persistent expected
+JSON before relocation. Exact-byte `-check` passed for both artifacts. Repeated tree
+and JSON generator runs produced identical output. Historical pre-relocation SHA-256:
   docs/framework-v26/k8s-deploy-tree.md
   6C9692DE59A2E5543A6835CCCA197254C25DAC59569AD0FAD663A934E7638E97
   docs/framework-v26/k8s-expected-inventory.json
@@ -152,4 +165,48 @@ two-space indentation, unlike the initial serializer. Canonical output now match
 formatter and exact-byte parity passes.
 
 Windows validation did not run mutation testing; no mutation score is claimed. No
-Docker/K3s/Helm runtime validation was attempted or implied. Phase 2 remains unauthorized.
+Docker/K3s/Helm runtime validation was attempted or implied in the historical Phase 1 work.
+Phase 2 authorization was subsequently recorded above; its implementation has not started.
+
+Phase 1 lifetime/placement correction validation (2026-11-01)
+------------------------------------------------------------
+Durable paths:
+  api/cryptosuite-registry/tools/k8s-plan/       eight build-ignored Go files
+  api/cryptosuite-registry/k8s/                  model, generated tree and expected JSON
+  docs/kubernetes-deployment-contract.md         durable contract
+The ephemeral tracking directory contains only plan.md, tasks.md and lessons.md. The new
+TestGeneratorUsesDurablePaths test checks exact model/registry/tree/JSON paths through the
+existing injected read/write seams; it neither renames nor deletes the tracking directory.
+
+Durable generated artifacts, exact-byte `-check` passed:
+  api/cryptosuite-registry/k8s/k8s-deploy-tree.md
+  83677F69B1E80D339400EE1A87EB26F58BAF1C5D8AB5A7BDC8FD77FFA6C56B87
+  api/cryptosuite-registry/k8s/k8s-expected-inventory.json
+  831622537604C1B375406D6FE24C24B67334C450A76272573025FC862538D131
+The expected-inventory hash is unchanged; membership and counts remain 7 PS-IDs,
+3 products, 1 suite, 55 releases, 147 pools, 294 pods, 63 PostgreSQL databases per node,
+and 84 active SQLite claims.
+
+Repo-root PowerShell commands use only durable paths:
+  go run $src -write
+  go run $src -check
+  go test -shuffle=on -count=1 ($src + $testFiles)
+  go test -shuffle=on -count=1 "-coverprofile=$coverage" ($src + $testFiles)
+  go vet ($src + $testFiles)
+  R:\GO\BIN\golangci-lint.exe run --timeout=30m ($src + $testFiles)
+The source/test arrays are listed verbatim in docs/kubernetes-deployment-contract.md.
+Generator write/check passed. All eight named files passed shuffled tests (214 test cases),
+vet and scoped golangci-lint (0 issues); named-file statement coverage is 98.3%.
+The focused durable-path test passed.
+
+Repository gates after relocation:
+  go build ./...                                  PASS
+  go build -tags e2e,integration ./...             PASS
+  go test ./... -shuffle=on                         PASS (5467 tests, 126 packages)
+  golangci-lint run --fix                          PASS (0 issues)
+  golangci-lint run --build-tags=e2e,integration   PASS (0 issues)
+  cicd-lint lint-text / lint-docs / lint-fitness    PASS
+Main independently reported the same normal/tagged builds and 762 unchanged-production
+framework tests across seven packages. Main's repo-root generator `-check` also passed;
+these are corroborating baseline/parity results, separate from the named-file checks above.
+All moved Go files remain `//go:build ignore`; no runtime or package-discovery behavior changed.

@@ -1,7 +1,8 @@
 # Kubernetes deployment design
 
-**Status**: Phase 1 deployment contract technically accepted; Phase 2 runtime cutover remains
-unauthorized until its explicit human review/authorization gate passes.
+**Status**: Phase 1 deployment contract technically accepted. The user authorized Phase 2 on
+2026-11-01: “Then implement phase 2, including post-mortem and fixes at the end. Ensure all work is committed.”
+Phase 2 is authorized but implementation has not started; this document records planning only.
 **Created**: 2026-10-22
 **Last Updated**: 2026-11-01
 
@@ -34,14 +35,14 @@ a fourth deployable product. This assumption is not a claim of user approval.
 
 | Design intent | Current evidence | Kubernetes disposition |
 |---|---|---|
-| Registry-driven entities and tier host-port offsets | [registry](../../api/cryptosuite-registry/registry.yaml) | Registry remains canonical; no copied product lists in the generator |
-| Recursive composition plus tier overrides | [service entrypoint](../../deployments/sm-kms/compose.yml), [product](../../deployments/identity/compose-apps.yml), [suite overrides](../../deployments/cryptoutil/compose-apps-overrides.yml) | Explicit values composition; one independent release/namespace per selected tier scope and mode |
-| Four app identities per member | [sm-kms apps](../../deployments/sm-kms/compose-apps.yml) | PG and SQLite replica groups preserve ordinals/identities, rather than doubling every existing slot |
-| In-memory SQLite versus file-backed SQLite | [durable overlay](../../deployments/sm-kms/compose-sqlite-durable.yml) | Separate mem/disk pools; PVC per disk pod; no shared SQLite file |
-| Physical PostgreSQL sharing, logical isolation | [shared PostgreSQL](../../deployments/shared-postgres/compose.yml), [database catalog](../../api/cryptosuite-registry/templates/deployments/shared-postgres/init-databases.sql) | Run-owned leader and logical follower; DB/role per release/member; optional external provider later |
-| Shared telemetry with collector hop | [shared telemetry](../../deployments/shared-telemetry/compose.yml) | Run-owned collector replicas -> run-owned LGTM; application never bypasses collector |
-| Tier-level unseal/pepper sharing | [product override template](../../api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose-apps-overrides.yml), [suite override template](../../api/cryptosuite-registry/templates/deployments/__SUITE__/compose-apps-overrides.yml) | Preserve effective sharing **within a release**; never share across run/mode/tier boundaries |
-| Per-instance TLS, DB mTLS, admin loopback | [instance framework config](../../deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml), [TLS taxonomy](../deployment-templates.md) | Preserve all trust purposes and specific leaf identities; do not substitute an unauthenticated health port |
+| Registry-driven entities and tier host-port offsets | [registry](../api/cryptosuite-registry/registry.yaml) | Registry remains canonical; no copied product lists in the generator |
+| Recursive composition plus tier overrides | [service entrypoint](../deployments/sm-kms/compose.yml), [product](../deployments/identity/compose-apps.yml), [suite overrides](../deployments/cryptoutil/compose-apps-overrides.yml) | Explicit values composition; one independent release/namespace per selected tier scope and mode |
+| Four app identities per member | [sm-kms apps](../deployments/sm-kms/compose-apps.yml) | PG and SQLite replica groups preserve ordinals/identities, rather than doubling every existing slot |
+| In-memory SQLite versus file-backed SQLite | [durable overlay](../deployments/sm-kms/compose-sqlite-durable.yml) | Separate mem/disk pools; PVC per disk pod; no shared SQLite file |
+| Physical PostgreSQL sharing, logical isolation | [shared PostgreSQL](../deployments/shared-postgres/compose.yml), [database catalog](../api/cryptosuite-registry/templates/deployments/shared-postgres/init-databases.sql) | Run-owned leader and logical follower; DB/role per release/member; optional external provider later |
+| Shared telemetry with collector hop | [shared telemetry](../deployments/shared-telemetry/compose.yml) | Run-owned collector replicas -> run-owned LGTM; application never bypasses collector |
+| Tier-level unseal/pepper sharing | [product override template](../api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose-apps-overrides.yml), [suite override template](../api/cryptosuite-registry/templates/deployments/__SUITE__/compose-apps-overrides.yml) | Preserve effective sharing **within a release**; never share across run/mode/tier boundaries |
+| Per-instance TLS, DB mTLS, admin loopback | [instance framework config](../deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml), [TLS taxonomy](deployment-templates.md) | Preserve all trust purposes and specific leaf identities; do not substitute an unauthenticated health port |
 
 Observed templates share the unseal shard set across PS-IDs in a product/suite, whereas some
 handbook prose describes per-PS-ID shards. Preserve observed mounts during migration; reconcile
@@ -79,9 +80,10 @@ Legacy `postgresql-1/2` map to `pg-0/1`; `sqlite-1/2` map to `mem-0/1` or `disk-
 An ordinal beyond 1 is an explicitly new replica identity. A pod restart retains its identity.
 
 Bounds can later be changed globally or with `PSID/pool` overrides in
-[k8s-model.json](k8s-model.json), including an intentional minimum of 1; the old plan's
-hard-coded two-pod floor is superseded. Validate `1 <= min <= max`. PostgreSQL HPA uses
-these bounds (equal bounds are valid); require CPU requests, metrics-server availability,
+[k8s-model.json](../api/cryptosuite-registry/k8s/k8s-model.json), including an intentional
+minimum of 1; the old plan's hard-coded two-pod floor is superseded. Validate
+`1 <= min <= max`. PostgreSQL HPA uses these bounds (equal bounds are valid); require CPU requests,
+metrics-server availability,
 and tests before enabling variable scaling. Pre-provision identities through `max`.
 Do not let Helm's `spec.replicas` fight an active HPA: initialize at min, then let HPA own it.
 
@@ -288,7 +290,7 @@ future cluster runtime support stays untested until a separately authorized acce
 
 ## PKI, initialization, migrations, and persistence
 
-Preserve all 14 [certificate categories](../deployment-templates.md), with grammar-derived
+Preserve all 14 [certificate categories](deployment-templates.md), with grammar-derived
 SANs/identities rather than old Compose DNS names:
 
 | Category | Role | Owner/consumer |
@@ -363,10 +365,10 @@ Deleting one app release never deletes infra, another release's DB, or shared te
 
 ## Framework probe contract
 
-Current [admin implementation](../../internal/apps-framework/service/server/listener/admin.go)
+Current [admin implementation](../internal/apps-framework/service/server/listener/admin.go)
 has livez/readyz but no startupz; readyz reads a mutable `ready` flag, not current dependencies.
-[CLI startup](../../internal/apps-framework/service/cli/server_start.go) sets ready before
-starting listeners; the older [listener lifecycle](../../internal/apps-framework/service/server/application/application_listener.go)
+[CLI startup](../internal/apps-framework/service/cli/server_start.go) sets ready before
+starting listeners; the older [listener lifecycle](../internal/apps-framework/service/server/application/application_listener.go)
 also sets it early. Therefore chart probes alone cannot satisfy the requested semantics.
 Extend the **shared framework**, CLI/router/usage/constants, generated PS-ID surfaces and
 canonical templates, builder/lifecycle, test helpers and all seven services consistently.
@@ -483,9 +485,9 @@ material requires a separately verified re-encryption operation. Quiesce writers
 backups, migrate, verify records and key continuity, switch traffic, and retain a tested
 rollback route; Helm rollback alone cannot undo a database schema/data migration.
 
-The pre-existing PKI hot-reload track remains Phases 4-6 of [plan.md](plan.md), distinct from
-probe state and deployment graph. No trigger/allowlist decision is implied by this design;
-the allowlist/trigger design is itself a future phase task, not missing input for this request.
+The pre-existing PKI hot-reload track is distinct from probe state and the deployment graph.
+No trigger/allowlist decision is implied by this design; the allowlist/trigger design remains
+future work, not missing input for the deployment contract.
 
 ## Regeneration and review
 
@@ -493,30 +495,32 @@ From repository root, PowerShell syntax (the Go program is cross-platform):
 
 ```powershell
 $src = @(
-    '.\docs\framework-v26\k8s-gen.go',
-    '.\docs\framework-v26\k8s-model.go',
-    '.\docs\framework-v26\k8s-json.go',
-    '.\docs\framework-v26\k8s-inventory.go',
-    '.\docs\framework-v26\k8s-render.go'
+    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-gen.go',
+    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-model.go',
+    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-json.go',
+    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-inventory.go',
+    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-render.go'
 )
 $testFiles = @(
-    '.\docs\framework-v26\k8s-input_test.go',
-    '.\docs\framework-v26\k8s-model_test.go',
-    '.\docs\framework-v26\k8s-gen_test.go'
+    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-input_test.go',
+    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-model_test.go',
+    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-gen_test.go'
 )
 go run $src -write
 go run $src -check
 go run $src -format json -select p:identity:mixed-disk
 go run $src -select s:sm-kms:pg -run trial
 go test -shuffle=on -count=1 ($src + $testFiles)
-go test -shuffle=on -count=1 '-coverprofile=test-output/coverage-analysis/framework-v26-phase1-named.coverprofile' ($src + $testFiles)
+$coverage = Join-Path (Get-Location) 'test-output\coverage-analysis\k8s-planner-phase1-named.coverprofile'
+go test -shuffle=on -count=1 "-coverprofile=$coverage" ($src + $testFiles)
 go vet ($src + $testFiles)
 golangci-lint run --timeout=30m ($src + $testFiles)
 ```
 
 Without flags, output is a Markdown preview; JSON is machine-readable names/config only.
-`-write` regenerates both [k8s-deploy-tree.md](k8s-deploy-tree.md) and the committed
-[k8s-expected-inventory.json](k8s-expected-inventory.json) from the same pure model;
+`-write` regenerates both [k8s-deploy-tree.md](../api/cryptosuite-registry/k8s/k8s-deploy-tree.md)
+and the committed [k8s-expected-inventory.json](../api/cryptosuite-registry/k8s/k8s-expected-inventory.json)
+from the same pure model;
 `-check` compares exact bytes for both and fails if either artifact is missing or stale.
 A subset or alternate-run preview cannot overwrite either exhaustive artifact.
 Files use `//go:build ignore` and explicit named-file test/vet/lint execution to avoid adding a
@@ -527,9 +531,14 @@ on the exact `$src + $testFiles` list instead; the command and result are record
 evidence log. Migrate this prototype into tested production tooling during Phase 2; it does not
 belong in `cicd-lint`.
 The prototype inventory intentionally does not contain private material or live-cluster access.
+The reusable prototype, its non-secret model, generated tree and expected JSON are stored outside
+the ephemeral `docs/framework-v##` tracking directories. The command paths above and the
+generator's injected-I/O path test do not depend on those directories. Phase 1 relocation
+validation is recorded in the [evidence log](../test-output/framework-v26-phase1-evidence.log).
 
-Review the generated [full tree](k8s-deploy-tree.md) as part of the explicit Phase 2
-authorization gate in [plan.md](plan.md); the planning artifacts are not approval.
+Review the generated [full tree](../api/cryptosuite-registry/k8s/k8s-deploy-tree.md) as an
+implementation input; the planning artifacts are not runtime certification or product-membership
+approval. The user authorized Phase 2 on 2026-11-01; it remains authorized but not started.
 The current example is exhaustive over **registered scopes x the five configured modes**,
 not all possible future input values or a fabricated fourth product. Resource limits, provider
 implementations and full chart generation remain implementation work, with no current runtime
@@ -550,7 +559,7 @@ K3s networking/resource and Kubernetes NetworkPolicy/StatefulSet lifecycle seman
 - [k3d versioned config, if the optional adapter is adopted](https://k3d.io/stable/usage/configfile/)
 - [Helm dependency composition](https://helm.sh/docs/chart_best_practices/dependencies/)
 - [Helm values conventions](https://helm.sh/docs/chart_best_practices/values/)
-- [Handbook deployment architecture](../ENG-HANDBOOK.md#12-deployment-architecture),
-  [testing](../ENG-HANDBOOK.md#10-testing-architecture),
-  [quality](../ENG-HANDBOOK.md#11-quality-strategy), and
-  [coding](../ENG-HANDBOOK.md#14-development-practices)
+- [Handbook deployment architecture](ENG-HANDBOOK.md#12-deployment-architecture),
+  [testing](ENG-HANDBOOK.md#10-testing-architecture),
+  [quality](ENG-HANDBOOK.md#11-quality-strategy), and
+  [coding](ENG-HANDBOOK.md#14-development-practices)

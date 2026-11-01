@@ -1,8 +1,8 @@
 # Framework v26 — Tasks
 
-**Status**: Phase 1 complete; Phase 2 not authorized. Technical Phase 1 acceptance is recorded;
-human review and explicit runtime authorization remain Phase 2 prerequisites. The three
-registered products are a registry-backed scope assumption, not a claim of user approval.
+**Status**: Phase 1 lifetime/placement closure is complete. Phase 2 was explicitly authorized
+by the user on 2026-11-01 and is not started. The registry-backed three-product scope remains
+unchanged; no new product membership was specified or approved.
 **Created**: 2026-10-21
 **Last Updated**: 2026-11-01
 
@@ -21,21 +21,31 @@ registered products are a registry-backed scope assumption, not a claim of user 
       TLS/authentication.
 - [x] Record cutover replacing application Compose, retaining only the local K3S bootstrap.
 - [x] Define grammar, exact selectors, five-mode matrix, network/DB/crypto isolation, and
-      framework startup/liveness/readiness semantics in [k8s-design.md](k8s-design.md).
-- [x] Generate and validate the exhaustive [k8s-deploy-tree.md](k8s-deploy-tree.md) and
-      persistent [k8s-expected-inventory.json](k8s-expected-inventory.json) from the same
+      framework startup/liveness/readiness semantics in the
+      [durable deployment contract](../../docs/kubernetes-deployment-contract.md).
+- [x] Generate and validate the exhaustive
+      [k8s-deploy-tree.md](../../api/cryptosuite-registry/k8s/k8s-deploy-tree.md) and
+      persistent [k8s-expected-inventory.json](../../api/cryptosuite-registry/k8s/k8s-expected-inventory.json) from the same
       planning model. Current evidence and exact coverage are recorded in
       [the Phase 1 evidence log](../../test-output/framework-v26-phase1-evidence.log).
 - [x] Adopt the registry's three products as the explicit draft scope assumption; do not invent
       a fourth group. Adding one requires a separately defined identity/membership scope change.
 - [x] Complete the main-agent Phase 1 postmortem and technical acceptance review. This does
-      not approve implementation or grant Phase 2 runtime authorization.
+      not by itself approve runtime work; the explicit user authorization is recorded separately below.
+- [x] Close Phase 1 prototype lifetime/placement: keep the eight build-ignored Go files in
+      [`api/cryptosuite-registry/tools/k8s-plan`](../../api/cryptosuite-registry/tools/k8s-plan/)
+      and the model/tree/expected JSON in
+      [`api/cryptosuite-registry/k8s`](../../api/cryptosuite-registry/k8s/); move the
+      durable contract to [docs/kubernetes-deployment-contract.md](../../docs/kubernetes-deployment-contract.md).
+      Verify CLI inputs and outputs through injected I/O paths without depending on the
+      ephemeral tracking directory. See the four-section postmortem in
+      [lessons.md](lessons.md#phase-1-lifetimeplacement-postmortem).
 
 ## Phase 2: Replace Compose Service Deployment and Test Orchestration
 
-- [ ] Obtain human review of the Phase 1 contract and explicit runtime authorization, including
-      whether to change the registry-backed three-product scope assumption; do not begin runtime
-      changes or cutover before this gate passes.
+- [x] Record explicit user authorization dated 2026-11-01: “Then implement phase 2, including
+      post-mortem and fixes at the end. Ensure all work is committed.” Authorization is recorded;
+      Phase 2 implementation has not started.
 - [ ] Promote the planning graph into production Go generation/check tooling with typed schemas,
       canonical chart templates, deterministic chart/values generation and independent Helm parity tests.
 - [ ] Implement Helm charts and values for all services, tiers and modes, with configurable default

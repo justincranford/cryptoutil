@@ -26,6 +26,24 @@ const (
 	treeOutputFormat             = "tree"
 )
 
+type plannerPaths struct {
+	model     string
+	registry  string
+	tree      string
+	inventory string
+}
+
+func defaultPlannerPaths() plannerPaths {
+	modelDir := filepath.Join("api", "cryptosuite-registry", "k8s")
+
+	return plannerPaths{
+		model:     filepath.Join(modelDir, k8sModelFileName),
+		registry:  filepath.Join("api", "cryptosuite-registry", k8sRegistryFileName),
+		tree:      filepath.Join(modelDir, k8sDeployTreeFileName),
+		inventory: filepath.Join(modelDir, k8sExpectedInventoryFileName),
+	}
+}
+
 func main() {
 	os.Exit(internalMain(os.Args[1:], os.Stdout, os.Stderr, os.ReadFile, os.WriteFile))
 }
@@ -85,7 +103,9 @@ func internalMain(args []string, stdout, stderr io.Writer,
 		return failWithDiagnostic(stderr, 2, "invalid flags: check/write require the full default inventory; format must be tree or json\n")
 	}
 
-	mBytes, err := readFile(filepath.Join(cryptoutilSharedMagic.CICDExcludeDirDocs, "framework-v26", k8sModelFileName))
+	paths := defaultPlannerPaths()
+
+	mBytes, err := readFile(paths.model)
 	if err != nil {
 		return failWithDiagnostic(stderr, 1, "read model: %v\n", err)
 	}
@@ -99,7 +119,7 @@ func internalMain(args []string, stdout, stderr io.Writer,
 		m.Run = *run
 	}
 
-	rBytes, err := readFile(filepath.Join("api", "cryptosuite-registry", k8sRegistryFileName))
+	rBytes, err := readFile(paths.registry)
 	if err != nil {
 		return failWithDiagnostic(stderr, 1, "read registry: %v\n", err)
 	}
@@ -128,16 +148,12 @@ func internalMain(args []string, stdout, stderr io.Writer,
 		output = inventoryJSON
 	}
 
-	directory := filepath.Join(cryptoutilSharedMagic.CICDExcludeDirDocs, "framework-v26")
-	treePath := filepath.Join(directory, k8sDeployTreeFileName)
-	inventoryPath := filepath.Join(directory, k8sExpectedInventoryFileName)
-
 	switch {
 	case *check:
 		for _, artifact := range []struct {
 			path string
 			data []byte
-		}{{treePath, output}, {inventoryPath, inventoryJSON}} {
+		}{{paths.tree, output}, {paths.inventory, inventoryJSON}} {
 			current, readErr := readFile(artifact.path)
 			if readErr != nil || !bytes.Equal(current, artifact.data) {
 				return failWithDiagnostic(stderr, 1, "generated artifact missing or stale: %s (read error: %v)\n", artifact.path, readErr)
@@ -151,13 +167,13 @@ func internalMain(args []string, stdout, stderr io.Writer,
 		for _, artifact := range []struct {
 			path string
 			data []byte
-		}{{treePath, output}, {inventoryPath, inventoryJSON}} {
+		}{{paths.tree, output}, {paths.inventory, inventoryJSON}} {
 			if err := writeFile(artifact.path, artifact.data, cryptoutilSharedMagic.CICDOutputFilePermissions); err != nil {
 				return failWithDiagnostic(stderr, 1, "write artifact %s: %v\n", artifact.path, err)
 			}
 		}
 
-		if _, err := fmt.Fprintf(stdout, "Generated %s\nGenerated %s\n", treePath, inventoryPath); err != nil {
+		if _, err := fmt.Fprintf(stdout, "Generated %s\nGenerated %s\n", paths.tree, paths.inventory); err != nil {
 			return failWithDiagnostic(stderr, 1, "write status: %v\n", err)
 		}
 	default:

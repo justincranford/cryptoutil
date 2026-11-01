@@ -1,8 +1,8 @@
 # Framework v26 — Lessons
 
-**Status**: Phase 1 complete; Phase 2 not authorized. Technical acceptance is recorded; no
-runtime implementation has started. Human review and explicit runtime authorization remain
-Phase 2 prerequisites.
+**Status**: Phase 1 lifetime/placement closure is complete. The user authorized Phase 2 on
+2026-11-01 with: “Then implement phase 2, including post-mortem and fixes at the end. Ensure all
+work is committed.” Phase 2 is authorized but not started.
 **Created**: 2026-10-21
 **Last Updated**: 2026-11-01
 
@@ -37,14 +37,52 @@ before implementation; verify durable application state across pod replacement a
   controller UIDs. Expected inventory must distinguish active/min and reserved/max identities.
 - Full matrix costs are derived, not guessed: `21 member occurrences * 7 pools across modes *
   2 pods = 294 app pods`. Local capacity failure must not silently weaken replica settings.
-- See [design](k8s-design.md), [model](k8s-model.json), [tree](k8s-deploy-tree.md),
-  [expected inventory](k8s-expected-inventory.json), and named-file
-  [input](k8s-input_test.go), [inventory](k8s-model_test.go), and [CLI](k8s-gen_test.go) tests.
+- See the [durable deployment contract](../../docs/kubernetes-deployment-contract.md),
+  [model](../../api/cryptosuite-registry/k8s/k8s-model.json),
+  [tree](../../api/cryptosuite-registry/k8s/k8s-deploy-tree.md),
+  [expected inventory](../../api/cryptosuite-registry/k8s/k8s-expected-inventory.json),
+  and named-file input, inventory and CLI tests in
+  [`api/cryptosuite-registry/tools/k8s-plan`](../../api/cryptosuite-registry/tools/k8s-plan/).
 - Three main-agent review passes covered source/architecture correctness,
   requirements/artifacts/tests, and operational/scope/status integrity. They accepted Phase 1
-  technically; they do not represent human approval or Phase 2 runtime authorization.
-- Human review and explicit runtime authorization remain Phase 2 gates. The three-product set is
-  registry-backed, not a fictional human approval; Phase 2 onward remains unchecked.
+  technically; they were not themselves user authorization. The separate Phase 2 authorization
+  is recorded below.
+- Phase 2 authorization is recorded from the user's 2026-11-01 request; it does not change the
+  registry-backed three-product set. Phase 2 implementation items remain unchecked.
+
+### Phase 1 Lifetime/Placement Postmortem
+
+#### Gap
+
+The Phase 1 planning generator, model, generated tree and expected inventory lived only inside
+`docs/framework-v26`, a tracking directory the user states is ephemeral and deleted after
+completion. The contract itself also lived there. Reusing the prototype or its generated inputs
+therefore required a directory that is not a durable repository owner.
+
+#### Root Cause
+
+The planning prototype was treated as disposable along with its tracking directory, but reusable
+inputs/code and generated reference artifacts had no separate durable owner. Fixed CLI input and
+output paths reinforced the misplaced ownership, while no file-I/O seam test asserted their
+repository-root locations.
+
+#### Fix
+
+Move the eight `//go:build ignore` Go source/test files to
+`api/cryptosuite-registry/tools/k8s-plan/`; place the non-secret model, generated human tree and
+machine inventory in `api/cryptosuite-registry/k8s/`; and place the contract in
+`docs/kubernetes-deployment-contract.md`. Keep only plan/tasks/lessons in the ephemeral directory,
+with links to durable artifacts. Make CLI paths repository-root-relative and test expected input
+and output paths through injected read/write functions. Keep the three registered products and
+all inventory semantics unchanged; this corrects artifact lifetime, not Phase 2 runtime behavior.
+
+#### Verification
+
+Run named-file tests, vet and scoped golangci-lint against all eight moved files; maintain at least
+98% coverage; run generator write/check and compare tree/JSON bytes; verify a path-seam test uses
+the durable locations without renaming or deleting the tracking directory; run relevant build and
+text/docs/fitness validators. Record exact commands and UTF-8/LF evidence in the durable test
+evidence log. Phase 2 is authorized but implementation remains unstarted.
 
 ### Phase 1 Postmortem
 
@@ -75,8 +113,9 @@ before implementation; verify durable application state across pod replacement a
 - The duplicate scanner compared literal key casing, while `encoding/json` performs
   case-insensitive struct-field matching. Build-ignored named-file sources are absent from
   package-discovery tests/lints; planning-file limits were not explicitly enforced.
-- Worker readiness was mistaken for a requirement to wait for user approval of Phase 1,
-  although the external human review/runtime authorization gate applies before Phase 2.
+- Worker readiness was mistaken for a reason to defer technical Phase 1 acceptance. Runtime
+  authorization is a separate gate; the user explicitly supplied that authorization on
+  2026-11-01 without changing registry membership.
 
 #### Patterns
 
@@ -93,7 +132,8 @@ before implementation; verify durable application state across pod replacement a
 
 ## Phase 2: Replace Compose Service Deployment and Test Orchestration
 
-Pending.
+Authorized by the user on 2026-11-01; not started. Keep the actual registry membership (three
+products) unless the user specifies otherwise. All implementation tasks remain pending.
 
 ## Phase 3: Verify Multi-Pod Client Behavior
 

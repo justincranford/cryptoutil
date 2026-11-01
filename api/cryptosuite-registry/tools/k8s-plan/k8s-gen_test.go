@@ -53,6 +53,71 @@ func TestMarshalCanonicalJSON(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestGeneratorUsesDurablePaths(t *testing.T) {
+	t.Parallel()
+
+	expectedPaths := plannerPaths{
+		model:     filepath.Join("api", "cryptosuite-registry", "k8s", k8sModelFileName),
+		registry:  filepath.Join("api", "cryptosuite-registry", k8sRegistryFileName),
+		tree:      filepath.Join("api", "cryptosuite-registry", "k8s", k8sDeployTreeFileName),
+		inventory: filepath.Join("api", "cryptosuite-registry", "k8s", k8sExpectedInventoryFileName),
+	}
+	require.Equal(t, expectedPaths, defaultPlannerPaths())
+
+	m, r := fixture(t)
+	mBytes, err := json.Marshal(m)
+	require.NoError(t, err)
+
+	rBytes, err := yaml.Marshal(r)
+	require.NoError(t, err)
+
+	inv, err := build(m, r, "")
+	require.NoError(t, err)
+
+	tree := render(m, r, inv)
+	inventoryJSON, err := marshalCanonicalJSON(inv)
+	require.NoError(t, err)
+
+	artifacts := map[string][]byte{
+		expectedPaths.tree:      tree,
+		expectedPaths.inventory: inventoryJSON,
+	}
+
+	var reads []string
+
+	read := func(path string) ([]byte, error) {
+		reads = append(reads, path)
+
+		switch path {
+		case expectedPaths.model:
+			return mBytes, nil
+		case expectedPaths.registry:
+			return rBytes, nil
+		case expectedPaths.tree, expectedPaths.inventory:
+			return artifacts[path], nil
+		default:
+			return nil, fmt.Errorf("unexpected path: %s", path)
+		}
+	}
+
+	var stdout, stderr bytes.Buffer
+
+	code := internalMain([]string{cliCheckFlag}, &stdout, &stderr, read,
+		func(string, []byte, os.FileMode) error {
+			return fmt.Errorf("unexpected write")
+		},
+	)
+
+	require.Equal(t, 0, code, stderr.String())
+	require.Equal(t, []string{
+		expectedPaths.model,
+		expectedPaths.registry,
+		expectedPaths.tree,
+		expectedPaths.inventory,
+	}, reads)
+	require.Contains(t, stdout.String(), "PASS:")
+}
+
 func TestGeneratorCLI(t *testing.T) {
 	t.Parallel()
 

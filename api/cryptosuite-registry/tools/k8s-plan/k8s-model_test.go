@@ -18,11 +18,11 @@ import (
 func fixture(t *testing.T) (model, registry) {
 	t.Helper()
 
-	mBytes, err := os.ReadFile("k8s-model.json")
+	mBytes, err := os.ReadFile(filepath.Join("..", "..", "k8s", k8sModelFileName))
 	require.NoError(t, err)
 	m, err := decodeModel(mBytes)
 	require.NoError(t, err)
-	rBytes, err := os.ReadFile(filepath.Join("..", "..", "api", "cryptosuite-registry", "registry.yaml"))
+	rBytes, err := os.ReadFile(filepath.Join("..", "..", k8sRegistryFileName))
 	require.NoError(t, err)
 	r, err := decodeRegistry(rBytes)
 	require.NoError(t, err)

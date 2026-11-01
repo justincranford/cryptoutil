@@ -1,7 +1,8 @@
 # Framework v26 — Kubernetes HA Deployment and In-Process PKI CA Reload
 
-**Status**: Phase 1 complete; Phase 2 not authorized. Phase 1 technical acceptance is complete;
-human review and explicit runtime authorization remain Phase 2 prerequisites.
+**Status**: Phase 1 lifetime/placement closure is complete. The user authorized Phase 2 on
+2026-11-01, but Phase 2 implementation has not started. The registry-backed three-product
+scope is unchanged; authorization does not approve any new product membership.
 **Created**: 2026-10-21
 **Last Updated**: 2026-11-01
 **Purpose**: Replace Docker Compose as the service deployment/test path with K3D/K3S and
@@ -10,18 +11,24 @@ define safe in-process activation of supported PKI CA configuration changes.
 
 ## Current Planning Deliverables
 
-- [Kubernetes design, grammar, probes and migration strategy](k8s-design.md)
-- [Versioned, non-secret deployment model](k8s-model.json)
-- [Deterministically generated exhaustive deployment tree](k8s-deploy-tree.md)
-- [Deterministically generated machine-readable expected inventory](k8s-expected-inventory.json)
-- [Planning-only Go generator](k8s-gen.go) and named-file
-  [input](k8s-input_test.go), [inventory](k8s-model_test.go), and [CLI](k8s-gen_test.go) tests
+- [Durable Kubernetes deployment contract, grammar, probes and migration strategy](../../docs/kubernetes-deployment-contract.md)
+- [Versioned, non-secret deployment model](../../api/cryptosuite-registry/k8s/k8s-model.json)
+- [Deterministically generated exhaustive deployment tree](../../api/cryptosuite-registry/k8s/k8s-deploy-tree.md)
+- [Deterministically generated machine-readable expected inventory](../../api/cryptosuite-registry/k8s/k8s-expected-inventory.json)
+- Planning-only Go generator under
+  [`api/cryptosuite-registry/tools/k8s-plan`](../../api/cryptosuite-registry/tools/k8s-plan/),
+  with named-file input, inventory and CLI tests. These files retain `//go:build ignore`
+  and remain outside production package discovery until Phase 2 promotion.
+- [Phase 1 validation evidence](../../test-output/framework-v26-phase1-evidence.log)
 
 This Phase 1 request authorizes only the deployment contract and planning inventory generator.
 No Helm runtime, cluster bootstrap, reusable-framework code, deployment config or workflow is
-implemented here. Phase 1 completion is technical planning acceptance only; it is not user
-approval or runtime authorization. Human review and explicit Phase 2 authorization remain
-prerequisites before runtime changes or cutover. The existing PKI reload track remains future scope.
+implemented here. Phase 1 completion is technical planning acceptance only; it is not runtime
+certification or approval of a new product. The user explicitly authorized Phase 2 on
+2026-11-01 with: “Then implement phase 2, including post-mortem and fixes at the end. Ensure all
+work is committed.” This worker's bounded assignment is Phase 1 lifetime/placement cleanup;
+the separately orchestrated Phase 2 is authorized but not started. The existing PKI reload
+track remains future scope.
 
 **Draft scope assumption**: use the registry's three products (sm, identity, skeleton),
 treating the requested fourth as a count mismatch rather than inventing membership.
@@ -118,18 +125,22 @@ reloaded pods are atomically synchronized.
 ### Phase 1: Define Kubernetes Deployment Contract
 
 Map Compose dependencies and effective override semantics into the registry-driven grammar
-and five-mode matrix in [k8s-design.md](k8s-design.md). Define owners, configurable replica
+and five-mode matrix in the
+[durable deployment contract](../../docs/kubernetes-deployment-contract.md). Define owners, configurable replica
 bounds, all three probes, storage/crypto continuity, local cluster lifecycle and direct-per-pod
 client testing. Generate the human-review tree and JSON expected inventory using the same
 pure model. Keep the three-product scope assumption explicit; it is registry-backed, not user
-approval. The main-agent technical postmortem and Phase 1 acceptance are complete. This does not
-authorize runtime work; Phase 2 must wait for its explicit human review and authorization gate.
+approval. The main-agent technical postmortem and Phase 1 acceptance are complete. Close the
+prototype's lifetime/placement gap by keeping reusable code and planning inputs outside ephemeral
+tracking directories. The four-section lifetime/placement postmortem is in
+[lessons.md](lessons.md#phase-1-lifetimeplacement-postmortem). Phase 2 is user-authorized but
+implementation remains unstarted.
 
 ### Phase 2: Replace Compose Service Deployment and Test Orchestration
 
-The first Phase 2 task is to obtain human review of the Phase 1 contract and explicit runtime
-authorization, including a decision on the three-product scope assumption. Phase 1 completion
-or a registry count mismatch is not approval; no runtime cutover begins before this gate passes.
+The user explicitly authorized Phase 2 on 2026-11-01 with: “Then implement phase 2, including
+post-mortem and fixes at the end. Ensure all work is committed.” Authorization is recorded, not
+implementation progress: all Phase 2 implementation work remains pending and unchecked.
 
 Implement reviewed Go graph/rendering tooling and canonical Helm templates, rather than
 hand-editing generated charts/values. Extend shared-framework startup/liveness/readiness
