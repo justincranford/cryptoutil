@@ -160,11 +160,11 @@ func reportViolations(violations []Violation, projectRoot string) bool {
 		rel, _ := filepath.Rel(projectRoot, v.File)
 
 		if v.IsError {
-			fmt.Fprintf(os.Stderr, "ERROR: %s (%d lines, exceeds hard limit of %d)\n", rel, v.Lines, hardLimit)
+			fmt.Fprintf(os.Stderr, "ERROR: %s (%d lines, %d hard max)\n", rel, v.Lines, hardLimit)
 
 			hasErrors = true
 		} else {
-			fmt.Fprintf(os.Stderr, "WARN:  %s (%d lines, exceeds soft limit of %d)\n", rel, v.Lines, softLimit)
+			fmt.Fprintf(os.Stderr, "WARN:  %s (%d lines, %d soft max)\n", rel, v.Lines, softLimit)
 		}
 	}
 
