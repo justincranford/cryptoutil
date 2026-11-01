@@ -1,8 +1,8 @@
 # Framework v26 — Tasks
 
-**Status**: Phase 1 contract/generator evidence is recorded; runtime implementation is not
-authorized. Final main-agent postmortem/acceptance is pending user follow-up. Three registered
-products remain the explicit draft scope assumption, not a claim of user approval.
+**Status**: Phase 1 complete; Phase 2 not authorized. Technical Phase 1 acceptance is recorded;
+human review and explicit runtime authorization remain Phase 2 prerequisites. The three
+registered products are a registry-backed scope assumption, not a claim of user approval.
 **Created**: 2026-10-21
 **Last Updated**: 2026-11-01
 
@@ -28,14 +28,14 @@ products remain the explicit draft scope assumption, not a claim of user approva
       [the Phase 1 evidence log](../../test-output/framework-v26-phase1-evidence.log).
 - [x] Adopt the registry's three products as the explicit draft scope assumption; do not invent
       a fourth group. Adding one requires a separately defined identity/membership scope change.
-- [ ] Complete the main-agent Phase 1 postmortem and acceptance review after user follow-up.
-      This is not a Phase 2 runtime authorization.
+- [x] Complete the main-agent Phase 1 postmortem and technical acceptance review. This does
+      not approve implementation or grant Phase 2 runtime authorization.
 
 ## Phase 2: Replace Compose Service Deployment and Test Orchestration
 
-- [ ] Obtain human review of the Phase 1 contract and explicit runtime authorization,
-      including a decision on the three-product scope assumption; do not begin runtime changes
-      or cutover before this gate passes.
+- [ ] Obtain human review of the Phase 1 contract and explicit runtime authorization, including
+      whether to change the registry-backed three-product scope assumption; do not begin runtime
+      changes or cutover before this gate passes.
 - [ ] Promote the planning graph into production Go generation/check tooling with typed schemas,
       canonical chart templates, deterministic chart/values generation and independent Helm parity tests.
 - [ ] Implement Helm charts and values for all services, tiers and modes, with configurable default
@@ -103,5 +103,6 @@ products remain the explicit draft scope assumption, not a claim of user approva
 ## Phase 7: Propagate Lessons
 
 - [ ] Update applicable handbook, Kubernetes, deployment, and PKI/configuration guidance with
-      reusable operational rules.
+      source-backed reusable operational rules after actual runtime adoption; permanent handbook
+      propagation is deferred to Phase 7 and is not a Phase 1 blocker.
 - [ ] Record phase post-mortems, validation evidence, and the completion summary before archiving.

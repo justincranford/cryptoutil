@@ -1,7 +1,7 @@
 # Framework v26 — Kubernetes HA Deployment and In-Process PKI CA Reload
 
-**Status**: Phase 1 contract, generator, and evidence are recorded; runtime implementation is
-not authorized. Final main-agent Phase 1 postmortem/acceptance is pending user follow-up.
+**Status**: Phase 1 complete; Phase 2 not authorized. Phase 1 technical acceptance is complete;
+human review and explicit runtime authorization remain Phase 2 prerequisites.
 **Created**: 2026-10-21
 **Last Updated**: 2026-11-01
 **Purpose**: Replace Docker Compose as the service deployment/test path with K3D/K3S and
@@ -14,20 +14,21 @@ define safe in-process activation of supported PKI CA configuration changes.
 - [Versioned, non-secret deployment model](k8s-model.json)
 - [Deterministically generated exhaustive deployment tree](k8s-deploy-tree.md)
 - [Deterministically generated machine-readable expected inventory](k8s-expected-inventory.json)
-- [Planning-only Go generator](k8s-gen.go) and [tests](k8s-model_test.go)
+- [Planning-only Go generator](k8s-gen.go) and named-file
+  [input](k8s-input_test.go), [inventory](k8s-model_test.go), and [CLI](k8s-gen_test.go) tests
 
 This Phase 1 request authorizes only the deployment contract and planning inventory generator.
 No Helm runtime, cluster bootstrap, reusable-framework code, deployment config or workflow is
-implemented here. No Phase 2 runtime authorization is implied; the explicit review/authorization
-gate is a Phase 2 prerequisite before runtime changes or cutover. The existing PKI reload track
-remains future scope.
+implemented here. Phase 1 completion is technical planning acceptance only; it is not user
+approval or runtime authorization. Human review and explicit Phase 2 authorization remain
+prerequisites before runtime changes or cutover. The existing PKI reload track remains future scope.
 
 **Draft scope assumption**: use the registry's three products (sm, identity, skeleton),
 treating the requested fourth as a count mismatch rather than inventing membership.
 The tree covers 7 + 3 + 1 = 11 registered scopes, not a fabricated twelfth.
 Adding a fourth requires an explicit identity/membership and registry/group scope change.
-The current draft is handoff-ready for human review, not approved for implementation;
-no deployment-runtime dependency is a planning blocker.
+The three-product set is registry-backed, not a claim of human approval. Phase 1 is complete
+for planning; no deployment-runtime dependency is a planning blocker.
 
 ## Scope
 
@@ -120,9 +121,9 @@ Map Compose dependencies and effective override semantics into the registry-driv
 and five-mode matrix in [k8s-design.md](k8s-design.md). Define owners, configurable replica
 bounds, all three probes, storage/crypto continuity, local cluster lifecycle and direct-per-pod
 client testing. Generate the human-review tree and JSON expected inventory using the same
-pure model. Keep the three-product scope assumption explicit; it is not user approval. The
-final main-agent Phase 1 postmortem/acceptance remains pending user follow-up. Phase 2 runtime
-work must not begin until its explicit human review and authorization gate passes.
+pure model. Keep the three-product scope assumption explicit; it is registry-backed, not user
+approval. The main-agent technical postmortem and Phase 1 acceptance are complete. This does not
+authorize runtime work; Phase 2 must wait for its explicit human review and authorization gate.
 
 ### Phase 2: Replace Compose Service Deployment and Test Orchestration
 
@@ -170,8 +171,10 @@ process-replacement fallback.
 
 ### Phase 7: Propagate Lessons
 
-Update deployment, Kubernetes, testing, and PKI/configuration guidance with reusable
-patterns. Record phase post-mortems and completion evidence before archiving this plan.
+After actual runtime adoption and validation, reconcile Compose-era handbook assumptions and
+update deployment, Kubernetes, testing, and PKI/configuration guidance with source-backed
+patterns. This permanent propagation is intentionally deferred to Phase 7, not a Phase 1
+blocker. Record phase post-mortems and completion evidence before archiving this plan.
 
 ## Acceptance Criteria
 
@@ -199,7 +202,7 @@ patterns. Record phase post-mortems and completion evidence before archiving thi
 
 ## Planning Verification
 
-Named-file shuffled planner tests pass at **98.7% statement coverage**, with named-file `go vet`.
+Named-file shuffled planner tests pass at **98.3% statement coverage**, with named-file `go vet`.
 The generator checks exact bytes for both the exhaustive tree and full expected JSON; repeated
 `-write` runs produced identical SHA-256 digests. Tests project all 55 selectors from the same
 full graph and cover strict JSON/YAML input, expanded DNS/SQL identity constraints, capacity
@@ -208,8 +211,10 @@ preflight, isolation, scaling, and CLI failures. The identity mixed-disk CLI pre
 147 pools / 294 maximum pod slots (294 active at default min=max=2) / 63 PostgreSQL databases
 on each logical-replication node / 84 active SQLite claims; it contains Secret names only.
 Repository `go build ./...`, tagged build, shuffled full tests, `lint-text`, `lint-docs`,
-`lint-fitness`, and `lint-go` passed. `golangci-lint` was unavailable; named-file tests, vet,
-and repository Go lint covered the build-ignored planner. Exact commands, digests, and the
+`lint-fitness`, and `lint-go` passed. The build-ignored planner also passed scoped
+`golangci-lint` when invoked with its exact named source/test files; package discovery alone does
+not inspect it. Applying `--build-tags=ignore` globally is invalid because it selects unrelated
+ignored standard-library packages. Exact commands, digests, scoped-lint findings, and the
 initial transient module-proxy failure/recovery are recorded in
 [the Phase 1 evidence log](../../test-output/framework-v26-phase1-evidence.log).
 These remain planning/prototype checks, not Helm, Docker, Kubernetes or framework runtime tests.

@@ -1,7 +1,7 @@
 # Kubernetes deployment design
 
-**Status**: Phase 1 deployment-contract draft; runtime cutover remains unauthorized pending
-the explicit Phase 2 review/authorization gate.
+**Status**: Phase 1 deployment contract technically accepted; Phase 2 runtime cutover remains
+unauthorized until its explicit human review/authorization gate passes.
 **Created**: 2026-10-22
 **Last Updated**: 2026-11-01
 
@@ -44,9 +44,10 @@ a fourth deployable product. This assumption is not a claim of user approval.
 | Per-instance TLS, DB mTLS, admin loopback | [instance framework config](../../deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml), [TLS taxonomy](../deployment-templates.md) | Preserve all trust purposes and specific leaf identities; do not substitute an unauthenticated health port |
 
 Observed templates share the unseal shard set across PS-IDs in a product/suite, whereas some
-handbook prose describes per-PS-ID shards. Preserve observed mounts during migration, and reconcile
-the prose in the implementation documentation phase; do not change HKDF inputs or silently
-re-encrypt persisted data as a side effect. Source references, not secret values, establish this.
+handbook prose describes per-PS-ID shards. Preserve observed mounts during migration; reconcile
+the Compose-era prose in planned Phase 7 after actual runtime adoption. This propagation is not a
+Phase 1 blocker. Do not change HKDF inputs or silently re-encrypt persisted data as a side effect.
+Source references, not secret values, establish this.
 
 Current mixed-memory topology: 7 standalone members + (1 + 5 + 1) grouped members + 7 suite
 members = **21 tier/member occurrences**; each has SQLite-1/2 and PostgreSQL-1/2, yielding
@@ -111,6 +112,12 @@ All names are deterministic functions of inputs. IDs are lowercase DNS labels; r
 1-8 lowercase alphanumeric characters starting with a letter. Reject overlong names,
 duplicate identities, unknown members/pools/modes/overrides, empty groups, and invalid bounds.
 Never truncate names or append random suffixes to resolve collisions.
+
+The planning model JSON schema requires the exact case-sensitive JSON tag spelling for
+typed fields, including nested bounds, mode entries, and infrastructure counts. A recognized
+case alias such as `Run` or `Min` is rejected even when it appears alone. Dynamic override
+map keys are case-sensitive PS-ID/pool identities, not schema field names; they are never
+case-folded or normalized.
 
 ```text
 tier        := s | p | u
@@ -434,10 +441,11 @@ ensure preStop plus process drain fit **one** termination budget.
 ## Verification and cutover acceptance
 
 Planning checks now: exact matrix/membership counts, default legacy-slot mapping, strict
-single-document JSON/YAML validation, bounds/override and capacity-preflight behavior, full
-versus selected graph equivalence, deterministic tree/JSON bytes, expanded resource/SQL/DNS
-uniqueness and length checks, other-run isolation, and stale/missing artifact detection. These
-prove the proposed grammar, **not** deployability.
+single-document JSON/YAML validation including exact case-sensitive model field names,
+bounds/override and capacity-preflight behavior, full versus selected graph equivalence,
+deterministic tree/JSON bytes, expanded resource/SQL/DNS uniqueness and length checks,
+other-run isolation, and stale/missing artifact detection. These prove the proposed grammar,
+**not** deployability.
 
 Implementation validation must include:
 
@@ -487,14 +495,23 @@ From repository root, PowerShell syntax (the Go program is cross-platform):
 $src = @(
     '.\docs\framework-v26\k8s-gen.go',
     '.\docs\framework-v26\k8s-model.go',
+    '.\docs\framework-v26\k8s-json.go',
     '.\docs\framework-v26\k8s-inventory.go',
     '.\docs\framework-v26\k8s-render.go'
+)
+$testFiles = @(
+    '.\docs\framework-v26\k8s-input_test.go',
+    '.\docs\framework-v26\k8s-model_test.go',
+    '.\docs\framework-v26\k8s-gen_test.go'
 )
 go run $src -write
 go run $src -check
 go run $src -format json -select p:identity:mixed-disk
 go run $src -select s:sm-kms:pg -run trial
-go test ($src + @('.\docs\framework-v26\k8s-model_test.go', '.\docs\framework-v26\k8s-gen_test.go')) -shuffle=on
+go test -shuffle=on -count=1 ($src + $testFiles)
+go test -shuffle=on -count=1 '-coverprofile=test-output/coverage-analysis/framework-v26-phase1-named.coverprofile' ($src + $testFiles)
+go vet ($src + $testFiles)
+golangci-lint run --timeout=30m ($src + $testFiles)
 ```
 
 Without flags, output is a Markdown preview; JSON is machine-readable names/config only.
@@ -502,9 +519,13 @@ Without flags, output is a Markdown preview; JSON is machine-readable names/conf
 [k8s-expected-inventory.json](k8s-expected-inventory.json) from the same pure model;
 `-check` compares exact bytes for both and fails if either artifact is missing or stale.
 A subset or alternate-run preview cannot overwrite either exhaustive artifact.
-Files use `//go:build ignore` and explicit named-file execution to avoid adding a planning
-package to production builds or the CI package/coverage baseline. Migrate this prototype
-into tested production tooling during Phase 2; it does not belong in `cicd-lint`.
+Files use `//go:build ignore` and explicit named-file test/vet/lint execution to avoid adding a
+planning package to production builds or the CI package/coverage baseline. Normal repository
+package-discovery checks do not inspect these files. Do not apply `--build-tags=ignore` globally:
+it selects unrelated ignored standard-library sources and fails typechecking. Invoke the linter
+on the exact `$src + $testFiles` list instead; the command and result are recorded in the Phase 1
+evidence log. Migrate this prototype into tested production tooling during Phase 2; it does not
+belong in `cicd-lint`.
 The prototype inventory intentionally does not contain private material or live-cluster access.
 
 Review the generated [full tree](k8s-deploy-tree.md) as part of the explicit Phase 2
