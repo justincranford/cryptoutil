@@ -1,8 +1,9 @@
 # Kubernetes deployment design
 
-**Status**: Planning draft for human review; no runtime cutover is authorized.
+**Status**: Phase 1 deployment-contract draft; runtime cutover remains unauthorized pending
+the explicit Phase 2 review/authorization gate.
 **Created**: 2026-10-22
-**Last Updated**: 2026-10-23
+**Last Updated**: 2026-11-01
 
 ## Scope and decisions
 
@@ -146,6 +147,9 @@ Namespace prefixing plus the structured identity avoids ambiguous parsing of hyp
 The generator checks the **complete expanded resource inventory**, not only the short names.
 Runtime-assigned IPs, UIDs, PV names, and Job pod suffixes are discovered by labels and
 ownerReferences, never generated. PVs must be owned/checked by claim UID, not predicted name.
+Before enumeration, the planning generator rejects any selected graph whose active and
+reserved application pods plus dependency pods exceed 10,000. This is an explicit output-safety
+guard, not a deployment quota or a replica clamp; requested bounds are never silently reduced.
 
 An exact selector such as `p:identity:mixed-disk` projects one complete release from the
 full graph; all selectors together can coexist. Different runs coexist in the same cluster
@@ -180,15 +184,21 @@ Isolation layers:
    Workload init is restricted to `get` on its explicit per-ordinal leaf Secret names through
    max; no list/watch/write. Only init mounts its projected API token. NetworkPolicy
    applies to the entire pod, not individual containers: its restricted API egress
-   allowance is pod-scoped, even though the application has no API credentials.
+   allowance is pod-scoped, even though the application has no API credentials. Drop all
+   Linux capabilities from application containers by default; do not grant `NET_RAW` to app
+   pods, and add a capability only for a separately reviewed runtime requirement.
    Init materializes the selected ordinal into a memory emptyDir mounted read-only by app.
    A shared StatefulSet service account is a **workload**, not per-pod, RBAC trust boundary;
    it can read that workload's leaf Secrets. Do not claim stronger per-pod RBAC isolation.
 
 Namespaces alone do not isolate network traffic. Test the active K3s NetworkPolicy controller;
-creating objects is not evidence they are enforced. No hostNetwork, hostPort, privileged app
+creating objects is not evidence they are enforced. NetworkPolicy allow rules are additive and
+apply to pod endpoints, not individual containers; standard semantics include node-to-pod and
+pod-self exceptions. Validate those exceptions, source/NAT behavior, and policy enforcement with
+the selected CNI; a pod policy is not a node firewall. No hostNetwork, hostPort, privileged app
 containers, wildcard namespace allowlists, public admin Service, or global Helm fullname override.
-Local bootstrap nodes are privileged Docker infrastructure, confined to trusted developer hosts.
+Application pods drop all capabilities and do not receive `NET_RAW`. Local K3s nodes and their
+container runtime are a privileged trust boundary, confined to trusted developer hosts.
 Shared LGTM is a run-level trust boundary, not isolated telemetry tenancy; use a separate run
 or separate backend for mutually untrusted deployments. Retain run/release/mode/PS-ID/pod
 telemetry attributes to prevent collisions and make shared-backend provenance auditable.
@@ -247,8 +257,16 @@ Kubeconfig exports use the host-reachable API, with CA validation and private fi
 agents use the internal server DNS. Generate K3s node config files; mount join tokens through
 Docker secret files, not inline Compose values/environment. Preserve node data on routine Compose down/up. Multi-node
 spread protects against a worker loss, **not** loss of the Docker host or single control plane.
-Configure topology spread, PDBs, resource requests/limits, quotas with rollout headroom, and
-graceful termination; PDB is not a hard guarantee of ready-pod minimum during failure.
+K3s documented CPU/RAM minima cover K3s and packaged components, **excluding application
+workloads**; they are not a capacity estimate for this matrix. Preflight node-level allocatable
+CPU and memory and allocatable **pod slots** after system/K3s reservations. Include rolling
+replacement/surge overlap, migration and PKI Jobs, gateway/metrics components, and other
+system pods in peak placement and quota headroom; check the chosen topology can place the
+requested workload rather than relying only on cluster-wide aggregate totals. Preserve exact
+replica bounds or reject the request; never downsize to fit. If metrics-server is enabled,
+restrict the K3s node-to-node TCP 10250 requirement to node/platform traffic, never application
+pods. Configure topology spread, PDBs, resource requests/limits, quotas with rollout headroom,
+and graceful termination; PDB is not a hard guarantee of ready-pod minimum during failure.
 All-variations defaults require `21 * (1+2+2+1+1) * 2` = **294 app pods** plus
 1 leader + 1 follower + 2 collectors + 1 LGTM = **299 steady-state workload pods**, excluding
 Jobs and cluster system/gateway pods. At a provisional 128Mi request per app pod that is
@@ -321,8 +339,11 @@ visible; Helm hooks alone are not an orchestration DAG.
 
 PVC retention: keep on upgrade, scale-down, uninstall and routine namespace lifecycle actions;
 app uninstall must not delete namespaces. Provision retained claims under explicit bootstrap
-ownership, with StatefulSet retention policies and Helm keep annotations where applicable.
-Select a **Retain** reclaim StorageClass for persistent data; K3s default local-path deletion
+ownership, and explicitly set StatefulSet
+`persistentVolumeClaimRetentionPolicy.whenDeleted: Retain` and
+`persistentVolumeClaimRetentionPolicy.whenScaled: Retain` even though the StatefulSet default
+is Retain. Use Helm keep annotations where applicable. Select a **Retain** reclaim StorageClass
+for persistent data; K3s default local-path deletion
 behavior is not acceptable without an explicit disposable override. Local-path is node-local:
 PVC retention is not worker/host fault tolerance; use node-affinity-aware scheduling, backups,
 and a replicated CSI provider later for cross-node failover.
@@ -412,10 +433,11 @@ ensure preStop plus process drain fit **one** termination budget.
 
 ## Verification and cutover acceptance
 
-Planning checks now: exact matrix/membership counts, default legacy-slot mapping, config
-validation, bounds/override behavior, full versus selected graph equivalence, deterministic
-bytes, resource/SQL/DNS uniqueness and length checks, other-run isolation, and stale-tree
-detection. These prove the proposed grammar, **not** deployability.
+Planning checks now: exact matrix/membership counts, default legacy-slot mapping, strict
+single-document JSON/YAML validation, bounds/override and capacity-preflight behavior, full
+versus selected graph equivalence, deterministic tree/JSON bytes, expanded resource/SQL/DNS
+uniqueness and length checks, other-run isolation, and stale/missing artifact detection. These
+prove the proposed grammar, **not** deployability.
 
 Implementation validation must include:
 
@@ -476,14 +498,17 @@ go test ($src + @('.\docs\framework-v26\k8s-model_test.go', '.\docs\framework-v2
 ```
 
 Without flags, output is a Markdown preview; JSON is machine-readable names/config only.
-`-write` changes only [k8s-deploy-tree.md](k8s-deploy-tree.md); `-check` compares exact bytes
-and fails on drift. A subset or alternate-run preview cannot overwrite the exhaustive tree.
+`-write` regenerates both [k8s-deploy-tree.md](k8s-deploy-tree.md) and the committed
+[k8s-expected-inventory.json](k8s-expected-inventory.json) from the same pure model;
+`-check` compares exact bytes for both and fails if either artifact is missing or stale.
+A subset or alternate-run preview cannot overwrite either exhaustive artifact.
 Files use `//go:build ignore` and explicit named-file execution to avoid adding a planning
 package to production builds or the CI package/coverage baseline. Migrate this prototype
 into tested production tooling during Phase 2; it does not belong in `cicd-lint`.
 The prototype inventory intentionally does not contain private material or live-cluster access.
 
-Review the generated [full tree](k8s-deploy-tree.md) before authorizing implementation.
+Review the generated [full tree](k8s-deploy-tree.md) as part of the explicit Phase 2
+authorization gate in [plan.md](plan.md); the planning artifacts are not approval.
 The current example is exhaustive over **registered scopes x the five configured modes**,
 not all possible future input values or a fabricated fourth product. Resource limits, provider
 implementations and full chart generation remain implementation work, with no current runtime
@@ -491,7 +516,8 @@ success claim.
 
 ## Verified upstream references
 
-Retrieved 2026-10-22; pin implementation versions rather than adopting rolling-doc versions:
+K3s networking/resource and Kubernetes NetworkPolicy/StatefulSet lifecycle semantics rechecked
+2026-11-01. Pin implementation versions rather than adopting rolling-doc versions:
 
 - [Kubernetes probe semantics](https://kubernetes.io/docs/concepts/workloads/pods/probes/)
 - [Probe configuration and transports](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)

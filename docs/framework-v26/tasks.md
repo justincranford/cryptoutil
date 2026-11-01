@@ -1,10 +1,10 @@
 # Framework v26 — Tasks
 
-**Status**: Kubernetes planning draft for human review. Only design and the planning generator
-are authorized; runtime implementation remains pending. Three registered products are the
-explicit draft scope assumption, not a claim of user approval.
+**Status**: Phase 1 contract/generator evidence is recorded; runtime implementation is not
+authorized. Final main-agent postmortem/acceptance is pending user follow-up. Three registered
+products remain the explicit draft scope assumption, not a claim of user approval.
 **Created**: 2026-10-21
-**Last Updated**: 2026-10-23
+**Last Updated**: 2026-11-01
 
 ## Phase 1: Define Kubernetes Deployment Contract
 
@@ -22,16 +22,20 @@ explicit draft scope assumption, not a claim of user approval.
 - [x] Record cutover replacing application Compose, retaining only the local K3S bootstrap.
 - [x] Define grammar, exact selectors, five-mode matrix, network/DB/crypto isolation, and
       framework startup/liveness/readiness semantics in [k8s-design.md](k8s-design.md).
-- [x] Generate and validate the exhaustive [k8s-deploy-tree.md](k8s-deploy-tree.md) plus
-      machine-readable expected inventory from the same planning model. Named-file shuffled
-      tests: 99.1% coverage; vet, deterministic tree check, JSON preview and lint-text pass.
-      [Evidence](../../test-output/framework-v26-k8s-planning-evidence.log).
+- [x] Generate and validate the exhaustive [k8s-deploy-tree.md](k8s-deploy-tree.md) and
+      persistent [k8s-expected-inventory.json](k8s-expected-inventory.json) from the same
+      planning model. Current evidence and exact coverage are recorded in
+      [the Phase 1 evidence log](../../test-output/framework-v26-phase1-evidence.log).
 - [x] Adopt the registry's three products as the explicit draft scope assumption; do not invent
       a fourth group. Adding one requires a separately defined identity/membership scope change.
-- [ ] Complete human design review and authorize runtime implementation.
+- [ ] Complete the main-agent Phase 1 postmortem and acceptance review after user follow-up.
+      This is not a Phase 2 runtime authorization.
 
 ## Phase 2: Replace Compose Service Deployment and Test Orchestration
 
+- [ ] Obtain human review of the Phase 1 contract and explicit runtime authorization,
+      including a decision on the three-product scope assumption; do not begin runtime changes
+      or cutover before this gate passes.
 - [ ] Promote the planning graph into production Go generation/check tooling with typed schemas,
       canonical chart templates, deterministic chart/values generation and independent Helm parity tests.
 - [ ] Implement Helm charts and values for all services, tiers and modes, with configurable default

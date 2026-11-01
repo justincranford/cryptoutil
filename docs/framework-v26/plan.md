@@ -1,8 +1,9 @@
 # Framework v26 — Kubernetes HA Deployment and In-Process PKI CA Reload
 
-**Status**: Kubernetes planning draft for human review; not implementation-ready.
+**Status**: Phase 1 contract, generator, and evidence are recorded; runtime implementation is
+not authorized. Final main-agent Phase 1 postmortem/acceptance is pending user follow-up.
 **Created**: 2026-10-21
-**Last Updated**: 2026-10-23
+**Last Updated**: 2026-11-01
 **Purpose**: Replace Docker Compose as the service deployment/test path with K3D/K3S and
 Helm, prove real client operations across multiple service pods sharing PostgreSQL, and
 define safe in-process activation of supported PKI CA configuration changes.
@@ -12,11 +13,14 @@ define safe in-process activation of supported PKI CA configuration changes.
 - [Kubernetes design, grammar, probes and migration strategy](k8s-design.md)
 - [Versioned, non-secret deployment model](k8s-model.json)
 - [Deterministically generated exhaustive deployment tree](k8s-deploy-tree.md)
+- [Deterministically generated machine-readable expected inventory](k8s-expected-inventory.json)
 - [Planning-only Go generator](k8s-gen.go) and [tests](k8s-model_test.go)
 
-Only design and the planning inventory generator are authorized in the current request.
-No Helm runtime, cluster bootstrap, reusable-framework code, deployment config or workflow
-is implemented here. The existing PKI reload track remains future scope.
+This Phase 1 request authorizes only the deployment contract and planning inventory generator.
+No Helm runtime, cluster bootstrap, reusable-framework code, deployment config or workflow is
+implemented here. No Phase 2 runtime authorization is implied; the explicit review/authorization
+gate is a Phase 2 prerequisite before runtime changes or cutover. The existing PKI reload track
+remains future scope.
 
 **Draft scope assumption**: use the registry's three products (sm, identity, skeleton),
 treating the requested fourth as a count mismatch rather than inventing membership.
@@ -116,9 +120,15 @@ Map Compose dependencies and effective override semantics into the registry-driv
 and five-mode matrix in [k8s-design.md](k8s-design.md). Define owners, configurable replica
 bounds, all three probes, storage/crypto continuity, local cluster lifecycle and direct-per-pod
 client testing. Generate the human-review tree and JSON expected inventory using the same
-pure model. Review the explicit three-product scope assumption and design before authorization.
+pure model. Keep the three-product scope assumption explicit; it is not user approval. The
+final main-agent Phase 1 postmortem/acceptance remains pending user follow-up. Phase 2 runtime
+work must not begin until its explicit human review and authorization gate passes.
 
 ### Phase 2: Replace Compose Service Deployment and Test Orchestration
+
+The first Phase 2 task is to obtain human review of the Phase 1 contract and explicit runtime
+authorization, including a decision on the three-product scope assumption. Phase 1 completion
+or a registry count mismatch is not approval; no runtime cutover begins before this gate passes.
 
 Implement reviewed Go graph/rendering tooling and canonical Helm templates, rather than
 hand-editing generated charts/values. Extend shared-framework startup/liveness/readiness
@@ -189,13 +199,20 @@ patterns. Record phase post-mortems and completion evidence before archiving thi
 
 ## Planning Verification
 
-The planning generator's shuffled named-file tests pass at **99.1% statement coverage**;
-`go vet`, exact generated-tree comparison and repository `lint-text` pass.
-The identity mixed-disk CLI JSON preview contains 1 release, 10 pools, 20 pods and 5 DBs.
-Full-matrix and subset-projection tests validate 55 releases, 147 pools, 294 app pods and
-63 PostgreSQL DBs. Repeated generation produces identical bytes.
-Evidence: [planning validation log](../../test-output/framework-v26-k8s-planning-evidence.log).
-These are planning/prototype checks, not Helm, Docker, Kubernetes or framework runtime tests.
+Named-file shuffled planner tests pass at **98.7% statement coverage**, with named-file `go vet`.
+The generator checks exact bytes for both the exhaustive tree and full expected JSON; repeated
+`-write` runs produced identical SHA-256 digests. Tests project all 55 selectors from the same
+full graph and cover strict JSON/YAML input, expanded DNS/SQL identity constraints, capacity
+preflight, isolation, scaling, and CLI failures. The identity mixed-disk CLI preview is
+1 release / 10 pools / 20 pod slots / 5 databases. The full expected inventory is 55 releases /
+147 pools / 294 maximum pod slots (294 active at default min=max=2) / 63 PostgreSQL databases
+on each logical-replication node / 84 active SQLite claims; it contains Secret names only.
+Repository `go build ./...`, tagged build, shuffled full tests, `lint-text`, `lint-docs`,
+`lint-fitness`, and `lint-go` passed. `golangci-lint` was unavailable; named-file tests, vet,
+and repository Go lint covered the build-ignored planner. Exact commands, digests, and the
+initial transient module-proxy failure/recovery are recorded in
+[the Phase 1 evidence log](../../test-output/framework-v26-phase1-evidence.log).
+These remain planning/prototype checks, not Helm, Docker, Kubernetes or framework runtime tests.
 
 ## References
 
