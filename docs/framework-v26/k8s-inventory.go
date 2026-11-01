@@ -11,6 +11,10 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// maxExpandedPods keeps planner output bounded at over 33 times the 299 pods
+// in the default full inventory while including inactive replica capacity.
+const maxExpandedPods = 10_000
+
 type object struct {
 	Kind string `json:"kind"`
 	Name string `json:"name"`
@@ -74,6 +78,9 @@ func named(kind string, names ...string) []object {
 
 func build(m model, r registry, selectKey string) (inventory, error) {
 	if err := validate(m, r); err != nil {
+		return inventory{}, err
+	}
+	if err := preflightPodCapacity(m, r, selectKey); err != nil {
 		return inventory{}, err
 	}
 
@@ -173,6 +180,107 @@ func build(m model, r registry, selectKey string) (inventory, error) {
 	return inv, validateInventory(inv)
 }
 
+func preflightPodCapacity(m model, r registry, selectKey string) error {
+	total := 0
+	addCapacity := func(count int) error {
+		if count < 0 || count > maxExpandedPods-total {
+			return fmt.Errorf("expanded pod capacity exceeds limit of %d", maxExpandedPods)
+		}
+		total += count
+		return nil
+	}
+	addMemberCapacity := func(id string, v mode) error {
+		for _, pool := range v.Pools {
+			b, ok := m.Overrides[id+"/"+pool]
+			if !ok {
+				b = m.Replicas
+			}
+			if err := addCapacity(b.Max); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	matchedRelease := false
+	hasPG := false
+	for _, service := range r.Members {
+		for _, v := range m.Modes {
+			key := "s:" + service.PSID + ":" + v.Name
+			if selectKey != "" && selectKey != key {
+				continue
+			}
+			matchedRelease = true
+			for _, pool := range v.Pools {
+				if pool == "pg" {
+					hasPG = true
+				}
+			}
+			if err := addMemberCapacity(service.PSID, v); err != nil {
+				return err
+			}
+		}
+	}
+	for _, product := range r.Products {
+		for _, v := range m.Modes {
+			key := "p:" + product.ID + ":" + v.Name
+			if selectKey != "" && selectKey != key {
+				continue
+			}
+			matchedRelease = true
+			for _, service := range r.Members {
+				if service.Product != product.ID {
+					continue
+				}
+				for _, pool := range v.Pools {
+					if pool == "pg" {
+						hasPG = true
+					}
+				}
+				if err := addMemberCapacity(service.PSID, v); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	for _, suite := range r.Suites {
+		for _, v := range m.Modes {
+			key := "u:" + suite.ID + ":" + v.Name
+			if selectKey != "" && selectKey != key {
+				continue
+			}
+			matchedRelease = true
+			for _, service := range r.Members {
+				for _, pool := range v.Pools {
+					if pool == "pg" {
+						hasPG = true
+					}
+				}
+				if err := addMemberCapacity(service.PSID, v); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	if !matchedRelease {
+		return nil
+	}
+	if err := addCapacity(1); err != nil { // LGTM pod.
+		return err
+	}
+	if err := addCapacity(m.Infrastructure.Collector); err != nil {
+		return err
+	}
+	if hasPG {
+		if err := addCapacity(2); err != nil { // PostgreSQL leader and follower.
+			return err
+		}
+	}
+
+	return nil
+}
+
 func buildWorkload(m model, ns, id, pool string) workload {
 	b, ok := m.Overrides[id+"/"+pool]
 	if !ok {
@@ -210,6 +318,19 @@ func buildWorkload(m model, ns, id, pool string) workload {
 	return w
 }
 
+func sqlIdentifier(value string) bool {
+	if len(value) == 0 || len(value) > 63 {
+		return false
+	}
+	for i := 0; i < len(value); i++ {
+		c := value[i]
+		if (c < 'a' || c > 'z') && c != '_' && (i == 0 || c < '0' || c > '9') {
+			return false
+		}
+	}
+	return true
+}
+
 func validateInventory(inv inventory) error {
 	identities := map[string]bool{}
 	check := func(namespace, kind, name string) error {
@@ -244,20 +365,20 @@ func validateInventory(inv inventory) error {
 		objects := append([]object{}, rel.Objects...)
 		for _, db := range rel.Databases {
 			for _, name := range []string{db.Name, db.Role, db.Publication, db.Subscription} {
-				if len(name) > 63 || sqlNames[name] {
+				if !sqlIdentifier(name) || sqlNames[name] {
 					return fmt.Errorf("invalid or duplicate SQL identifier: %s", name)
 				}
 				sqlNames[name] = true
 			}
 		}
 		for _, w := range rel.Workloads {
-			if len(w.ServiceFQDN) > 253 || len(w.Host) > 253 {
-				return fmt.Errorf("DNS name exceeds 253 bytes: %s", w.Name)
+			if (w.ServiceFQDN != "" && !dnsName(w.ServiceFQDN)) || (w.Host != "" && !dnsName(w.Host)) {
+				return fmt.Errorf("invalid DNS name (RFC 1123 labels, at most 253 bytes): %s", w.Name)
 			}
 			objects = append(objects, w.Objects...)
 			for _, p := range w.Pods {
-				if len(p.FQDN) > 253 || len(p.Host) > 253 {
-					return fmt.Errorf("DNS name exceeds 253 bytes: %s", p.Name)
+				if !dnsName(p.FQDN) || !dnsName(p.Host) {
+					return fmt.Errorf("invalid DNS name (RFC 1123 labels, at most 253 bytes): %s", p.Name)
 				}
 				objects = append(objects, named("Pod", p.Name)...)
 				objects = append(objects, named("Service", p.Service)...)
