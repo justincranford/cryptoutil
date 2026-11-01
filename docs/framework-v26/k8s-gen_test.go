@@ -18,6 +18,21 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
+const (
+	cliFormatFlag           = "-format"
+	cliRunFlag              = "-run"
+	cliSelectFlag           = "-select"
+	cliCheckFlag            = "-check"
+	cliWriteFlag            = "-write"
+	cliTrialRun             = "trial"
+	cliUnsupportedFormat    = "xml"
+	cliJSONSubsetTest       = "json subset"
+	cliInvalidFlagsMessage  = "invalid flags"
+	cliStaleArtifactMessage = "missing or stale"
+	cliWriteArtifactMessage = "write artifact"
+	cliWriteStatusMessage   = "write status"
+)
+
 type failingWriter struct{}
 
 func (failingWriter) Write(_ []byte) (int, error) {
@@ -28,7 +43,7 @@ func TestMarshalCanonicalJSON(t *testing.T) {
 	t.Parallel()
 
 	output, err := marshalCanonicalJSON(struct {
-		Zulu int `json:"zulu"`
+		Zulu  int `json:"zulu"`
 		Alpha int `json:"alpha"`
 	}{Zulu: 2, Alpha: 1})
 	require.NoError(t, err)
@@ -40,6 +55,7 @@ func TestMarshalCanonicalJSON(t *testing.T) {
 
 func TestGeneratorCLI(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name              string
 		args              []string
@@ -50,38 +66,40 @@ func TestGeneratorCLI(t *testing.T) {
 		staleArtifact     string
 		writeFailArtifact string
 		stdoutFail        bool
+		stderrFail        bool
 		code              int
 		message           string
 		writes            int
 	}{
 		{name: "preview", message: "# Kubernetes deployment tree"},
 		{name: cryptoutilSharedMagic.CLIHelpCommand, args: []string{"-h"}, message: "Usage of"},
-		{name: "json subset", args: []string{"-format", "json", "-select", "s:sm-kms:pg"}, message: `"namespace": "cu-review-s-sm-kms-pg"`},
-		{name: "alternate run", args: []string{"-run", "trial", "-select", "p:sm:mem"}, message: "cu-trial-p-sm-mem"},
-		{name: "check", args: []string{"-check"}, message: "PASS:"},
-		{name: cryptoutilSharedMagic.ScopeWrite, args: []string{"-write"}, message: "Generated", writes: 2},
+		{name: cliJSONSubsetTest, args: []string{cliFormatFlag, jsonOutputFormat, cliSelectFlag, testServiceSMKMSPGSelector}, message: `"namespace": "cu-review-s-sm-kms-pg"`},
+		{name: "alternate run", args: []string{cliRunFlag, cliTrialRun, cliSelectFlag, testProductSMMemSelector}, message: "cu-trial-p-sm-mem"},
+		{name: "check", args: []string{cliCheckFlag}, message: "PASS:"},
+		{name: cryptoutilSharedMagic.ScopeWrite, args: []string{cliWriteFlag}, message: "Generated", writes: 2},
 		{name: "unknown flag", args: []string{"-unknown"}, code: 2, message: "flag provided"},
-		{name: "invalid format", args: []string{"-format", "xml"}, code: 2, message: "invalid flags"},
-		{name: "positional", args: []string{"extra"}, code: 2, message: "invalid flags"},
-		{name: "check and write", args: []string{"-check", "-write"}, code: 2, message: "invalid flags"},
-		{name: "subset write prohibited", args: []string{"-write", "-select", "s:sm-kms:pg"}, code: 2, message: "invalid flags"},
-		{name: "alternate run check prohibited", args: []string{"-check", "-run", "trial"}, code: 2, message: "invalid flags"},
-		{name: "json format write prohibited", args: []string{"-write", "-format", "json"}, code: 2, message: "invalid flags"},
-		{name: "missing model", readFault: "k8s-model.json", code: 1, message: "read model"},
-		{name: "invalid model", badModel: true, code: 1, message: "model:"},
-		{name: "invalid bounds", badBounds: true, code: 1, message: "replicas"},
-		{name: "missing registry", readFault: "registry.yaml", code: 1, message: "read registry"},
-		{name: "invalid registry", badYAML: true, code: 1, message: "registry:"},
-		{name: "unknown selector", args: []string{"-select", "p:pki:pg"}, code: 1, message: "matched no release"},
-		{name: "missing tree", args: []string{"-check"}, readFault: "k8s-deploy-tree.md", code: 1, message: "missing or stale"},
-		{name: "stale tree", args: []string{"-check"}, staleArtifact: "k8s-deploy-tree.md", code: 1, message: "missing or stale"},
-		{name: "missing expected inventory", args: []string{"-check"}, readFault: "k8s-expected-inventory.json", code: 1, message: "missing or stale"},
-		{name: "stale expected inventory", args: []string{"-check"}, staleArtifact: "k8s-expected-inventory.json", code: 1, message: "missing or stale"},
-		{name: "tree write failure", args: []string{"-write"}, writeFailArtifact: "k8s-deploy-tree.md", code: 1, message: "write artifact", writes: 1},
-		{name: "expected inventory write failure", args: []string{"-write"}, writeFailArtifact: "k8s-expected-inventory.json", code: 1, message: "write artifact", writes: 2},
+		{name: "invalid format", args: []string{cliFormatFlag, cliUnsupportedFormat}, code: 2, message: cliInvalidFlagsMessage},
+		{name: "invalid flags diagnostic write failure", args: []string{cliFormatFlag, cliUnsupportedFormat}, stderrFail: true, code: 1},
+		{name: "positional", args: []string{testExtraIdentity}, code: 2, message: cliInvalidFlagsMessage},
+		{name: "check and write", args: []string{cliCheckFlag, cliWriteFlag}, code: 2, message: cliInvalidFlagsMessage},
+		{name: "subset write prohibited", args: []string{cliWriteFlag, cliSelectFlag, testServiceSMKMSPGSelector}, code: 2, message: cliInvalidFlagsMessage},
+		{name: "alternate run check prohibited", args: []string{cliCheckFlag, cliRunFlag, cliTrialRun}, code: 2, message: cliInvalidFlagsMessage},
+		{name: "json format write prohibited", args: []string{cliWriteFlag, cliFormatFlag, jsonOutputFormat}, code: 2, message: cliInvalidFlagsMessage},
+		{name: "missing model", readFault: k8sModelFileName, code: 1, message: "read model"},
+		{name: "invalid model", badModel: true, code: 1, message: testModelContext},
+		{name: "invalid bounds", badBounds: true, code: 1, message: testReplicasKey},
+		{name: "missing registry", readFault: k8sRegistryFileName, code: 1, message: "read registry"},
+		{name: "invalid registry", badYAML: true, code: 1, message: testRegistryContext},
+		{name: "unknown selector", args: []string{cliSelectFlag, "p:pki:pg"}, code: 1, message: "matched no release"},
+		{name: "missing tree", args: []string{cliCheckFlag}, readFault: k8sDeployTreeFileName, code: 1, message: cliStaleArtifactMessage},
+		{name: "stale tree", args: []string{cliCheckFlag}, staleArtifact: k8sDeployTreeFileName, code: 1, message: cliStaleArtifactMessage},
+		{name: "missing expected inventory", args: []string{cliCheckFlag}, readFault: k8sExpectedInventoryFileName, code: 1, message: cliStaleArtifactMessage},
+		{name: "stale expected inventory", args: []string{cliCheckFlag}, staleArtifact: k8sExpectedInventoryFileName, code: 1, message: cliStaleArtifactMessage},
+		{name: "tree write failure", args: []string{cliWriteFlag}, writeFailArtifact: k8sDeployTreeFileName, code: 1, message: cliWriteArtifactMessage, writes: 1},
+		{name: "expected inventory write failure", args: []string{cliWriteFlag}, writeFailArtifact: k8sExpectedInventoryFileName, code: 1, message: cliWriteArtifactMessage, writes: 2},
 		{name: "stdout failure", stdoutFail: true, code: 1, message: "write output"},
-		{name: "check status stdout failure", args: []string{"-check"}, stdoutFail: true, code: 1, message: "write status"},
-		{name: "write status stdout failure", args: []string{"-write"}, stdoutFail: true, code: 1, message: "write status", writes: 2},
+		{name: "check status stdout failure", args: []string{cliCheckFlag}, stdoutFail: true, code: 1, message: cliWriteStatusMessage},
+		{name: "write status stdout failure", args: []string{cliWriteFlag}, stdoutFail: true, code: 1, message: cliWriteStatusMessage, writes: 2},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -89,40 +107,48 @@ func TestGeneratorCLI(t *testing.T) {
 			m, r := fixture(t)
 			inv, err := build(m, r, "")
 			require.NoError(t, err)
+
 			tree := render(m, r, inv)
 			if tc.badBounds {
 				m.Replicas.Min = 0
 			}
+
 			inventoryJSON, err := marshalCanonicalJSON(inv)
 			require.NoError(t, err)
+
 			artifacts := map[string][]byte{
-				"k8s-deploy-tree.md":          tree,
-				"k8s-expected-inventory.json": inventoryJSON,
+				k8sDeployTreeFileName:        tree,
+				k8sExpectedInventoryFileName: inventoryJSON,
 			}
 			if tc.staleArtifact != "" {
 				artifacts[tc.staleArtifact] = append(append([]byte(nil), artifacts[tc.staleArtifact]...), '\n')
 			}
+
 			mBytes, err := json.Marshal(m)
 			require.NoError(t, err)
 			rBytes, err := yaml.Marshal(r)
 			require.NoError(t, err)
+
 			if tc.badModel {
 				mBytes = []byte("{")
 			}
+
 			if tc.badYAML {
 				rBytes = []byte("suites: [")
 			}
+
 			read := func(path string) ([]byte, error) {
 				name := filepath.Base(path)
 				if name == tc.readFault {
 					return nil, fmt.Errorf("injected read failure")
 				}
+
 				switch name {
-				case "k8s-model.json":
+				case k8sModelFileName:
 					return mBytes, nil
-				case "registry.yaml":
+				case k8sRegistryFileName:
 					return rBytes, nil
-				case "k8s-deploy-tree.md", "k8s-expected-inventory.json":
+				case k8sDeployTreeFileName, k8sExpectedInventoryFileName:
 					return artifacts[name], nil
 				default:
 					return nil, fmt.Errorf("unexpected path: %s", path)
@@ -135,22 +161,33 @@ func TestGeneratorCLI(t *testing.T) {
 				want, ok := artifacts[name]
 				require.True(t, ok, "unexpected artifact path: %s", path)
 				require.Equal(t, want, data)
+
 				if tc.writeFailArtifact == name {
 					return fmt.Errorf("injected write failure")
 				}
+
 				return nil
 			}
+
 			var stdout, stderr bytes.Buffer
+
 			code := 0
 			if tc.stdoutFail {
 				code = internalMain(tc.args, failingWriter{}, &stderr, read, write)
+			} else if tc.stderrFail {
+				code = internalMain(tc.args, &stdout, failingWriter{}, read, write)
 			} else {
 				code = internalMain(tc.args, &stdout, &stderr, read, write)
 			}
+
 			require.Equal(t, tc.code, code)
 			require.Equal(t, tc.writes, writes)
-			require.Contains(t, stdout.String()+stderr.String(), tc.message)
-			if tc.name == "json subset" {
+
+			if tc.message != "" {
+				require.Contains(t, stdout.String()+stderr.String(), tc.message)
+			}
+
+			if tc.name == cliJSONSubsetTest {
 				require.True(t, json.Valid(stdout.Bytes()))
 				require.Equal(t, byte('\n'), stdout.Bytes()[len(stdout.Bytes())-1])
 			}

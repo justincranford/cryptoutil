@@ -6,7 +6,7 @@ package main
 
 import (
 	"bytes"
-	json "encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -44,6 +44,16 @@ type model struct {
 		LGTM      int `json:"lgtm"`
 	} `json:"infrastructure"`
 }
+
+const (
+	tierService       = "s"
+	tierProduct       = "p"
+	tierSuite         = "u"
+	poolPG            = "pg"
+	poolMem           = "mem"
+	poolDisk          = "disk"
+	poolBackendSQLite = "sqlite"
+)
 
 type suite struct {
 	ID          string `yaml:"id"`
@@ -118,130 +128,31 @@ type infraTool struct {
 	GrafanaPort       int    `yaml:"grafana_port"`
 }
 
-func decodeModel(data []byte) (model, error) {
-	var m model
-	if err := validateJSONDocument(data); err != nil {
-		return m, fmt.Errorf("model: %w", err)
-	}
-
-	d := json.NewDecoder(bytes.NewReader(data))
-	d.DisallowUnknownFields()
-
-	if err := d.Decode(&m); err != nil {
-		return m, fmt.Errorf("model: %w", err)
-	}
-
-	return m, nil
-}
-
-func validateJSONDocument(data []byte) error {
-	d := json.NewDecoder(bytes.NewReader(data))
-	d.UseNumber()
-
-	first, err := d.Token()
-	if err != nil {
-		return err
-	}
-	if first != json.Delim('{') {
-		return fmt.Errorf("expected a top-level JSON object")
-	}
-	if err := scanJSONValue(d, first); err != nil {
-		return err
-	}
-
-	if _, err := d.Token(); err != io.EOF {
-		if err != nil {
-			return fmt.Errorf("expected exactly one JSON document: %w", err)
-		}
-		return fmt.Errorf("expected exactly one JSON document")
-	}
-
-	return nil
-}
-
-func scanJSONValue(d *json.Decoder, token json.Token) error {
-	delim, ok := token.(json.Delim)
-	if !ok {
-		return nil
-	}
-
-	switch delim {
-	case '{':
-		seen := map[string]struct{}{}
-		for d.More() {
-			keyToken, err := d.Token()
-			if err != nil {
-				return err
-			}
-			key, ok := keyToken.(string)
-			if !ok {
-				return fmt.Errorf("expected a JSON object key")
-			}
-			if _, duplicate := seen[key]; duplicate {
-				return fmt.Errorf("duplicate JSON object key: %q", key)
-			}
-			seen[key] = struct{}{}
-
-			valueToken, err := d.Token()
-			if err != nil {
-				return err
-			}
-			if err := scanJSONValue(d, valueToken); err != nil {
-				return err
-			}
-		}
-
-		end, err := d.Token()
-		if err != nil {
-			return err
-		}
-		if end != json.Delim('}') {
-			return fmt.Errorf("expected end of JSON object")
-		}
-	case '[':
-		for d.More() {
-			valueToken, err := d.Token()
-			if err != nil {
-				return err
-			}
-			if err := scanJSONValue(d, valueToken); err != nil {
-				return err
-			}
-		}
-
-		end, err := d.Token()
-		if err != nil {
-			return err
-		}
-		if end != json.Delim(']') {
-			return fmt.Errorf("expected end of JSON array")
-		}
-	default:
-		return fmt.Errorf("unexpected JSON delimiter: %q", delim)
-	}
-
-	return nil
-}
-
 func decodeRegistry(data []byte) (registry, error) {
 	var r registry
+
 	shapeDecoder := yaml.NewDecoder(bytes.NewReader(data))
+
 	var document yaml.Node
 	if err := shapeDecoder.Decode(&document); err != nil {
 		return r, fmt.Errorf("registry: %w", err)
 	}
+
 	if err := requireSingleYAMLDocument(shapeDecoder); err != nil {
 		return r, fmt.Errorf("registry: %w", err)
 	}
+
 	if document.Kind != yaml.DocumentNode || len(document.Content) != 1 || document.Content[0].Kind != yaml.MappingNode {
 		return r, fmt.Errorf("registry: expected exactly one non-null YAML mapping document")
 	}
+
 	if key, duplicate := duplicateYAMLMappingKey(document.Content[0]); duplicate {
 		return r, fmt.Errorf("registry: duplicate YAML mapping key: %q", key)
 	}
 
 	d := yaml.NewDecoder(bytes.NewReader(data))
 	d.KnownFields(true)
+
 	if err := d.Decode(&r); err != nil {
 		return r, fmt.Errorf("registry: %w", err)
 	}
@@ -255,9 +166,10 @@ func decodeRegistry(data []byte) (registry, error) {
 
 func requireSingleYAMLDocument(d *yaml.Decoder) error {
 	err := d.Decode(new(yaml.Node))
-	if err == io.EOF {
+	if errors.Is(err, io.EOF) {
 		return nil
 	}
+
 	if err != nil {
 		return fmt.Errorf("expected exactly one YAML document: %w", err)
 	}
@@ -268,6 +180,7 @@ func requireSingleYAMLDocument(d *yaml.Decoder) error {
 func duplicateYAMLMappingKey(node *yaml.Node) (string, bool) {
 	if node.Kind == yaml.MappingNode {
 		seen := map[string]struct{}{}
+
 		for i := 0; i+1 < len(node.Content); i += 2 {
 			key := node.Content[i]
 			if key.Kind == yaml.ScalarNode {
@@ -275,6 +188,7 @@ func duplicateYAMLMappingKey(node *yaml.Node) (string, bool) {
 				if _, duplicate := seen[identity]; duplicate {
 					return key.Value, true
 				}
+
 				seen[identity] = struct{}{}
 			}
 		}
@@ -313,6 +227,7 @@ func dnsName(value string) bool {
 	if len(value) == 0 || len(value) > cryptoutilSharedMagic.FQDNMaxLength {
 		return false
 	}
+
 	for _, part := range strings.Split(value, ".") {
 		if !dnsLabel(part) {
 			return false
@@ -348,6 +263,7 @@ func validate(m model, r registry) error {
 		if !label(p.ID) || products[p.ID] {
 			return fmt.Errorf("invalid or duplicate product: %s", p.ID)
 		}
+
 		products[p.ID] = true
 	}
 
@@ -356,6 +272,7 @@ func validate(m model, r registry) error {
 		if !label(s.ID) || suites[s.ID] {
 			return fmt.Errorf("invalid or duplicate suite: %s", s.ID)
 		}
+
 		suites[s.ID] = true
 	}
 
@@ -364,6 +281,7 @@ func validate(m model, r registry) error {
 		if !label(s.PSID) || members[s.PSID] || !products[s.Product] {
 			return fmt.Errorf("invalid, duplicate, or orphan PS-ID: %s", s.PSID)
 		}
+
 		members[s.PSID] = true
 	}
 
@@ -371,7 +289,9 @@ func validate(m model, r registry) error {
 	for product := range products {
 		productIDs = append(productIDs, product)
 	}
+
 	slices.Sort(productIDs)
+
 	for _, product := range productIDs {
 		if !slices.ContainsFunc(r.Members, func(s member) bool { return s.Product == product }) {
 			return fmt.Errorf("empty product: %s", product)
@@ -379,17 +299,22 @@ func validate(m model, r registry) error {
 	}
 
 	allBounds := []bounds{m.Replicas}
+
 	overrideKeys := make([]string, 0, len(m.Overrides))
 	for key := range m.Overrides {
 		overrideKeys = append(overrideKeys, key)
 	}
+
 	slices.Sort(overrideKeys)
+
 	for _, key := range overrideKeys {
 		value := m.Overrides[key]
+
 		parts := strings.Split(key, "/")
-		if len(parts) != 2 || !members[parts[0]] || !slices.Contains([]string{"pg", "mem", "disk"}, parts[1]) {
+		if len(parts) != 2 || !members[parts[0]] || !slices.Contains([]string{poolPG, poolMem, poolDisk}, parts[1]) {
 			return fmt.Errorf("unknown override (expected PSID/pool): %s", key)
 		}
+
 		allBounds = append(allBounds, value)
 	}
 
@@ -404,12 +329,15 @@ func validate(m model, r registry) error {
 		if !label(v.Name) || seenModes[v.Name] || len(v.Pools) == 0 {
 			return fmt.Errorf("invalid, duplicate, or empty mode: %s", v.Name)
 		}
+
 		seenModes[v.Name] = true
+
 		seenPools := map[string]bool{}
 		for _, pool := range v.Pools {
-			if !slices.Contains([]string{"pg", "mem", "disk"}, pool) || seenPools[pool] {
+			if !slices.Contains([]string{poolPG, poolMem, poolDisk}, pool) || seenPools[pool] {
 				return fmt.Errorf("unknown or duplicate pool: %s", pool)
 			}
+
 			seenPools[pool] = true
 		}
 	}
