@@ -25,8 +25,7 @@ func TestContentKeysService_Shutdown(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -62,8 +61,7 @@ func TestNewRotationService_ValidationErrors(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenServiceWithTelemetry(t)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -128,8 +126,7 @@ func TestNewRotationService_Success(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenServiceWithTelemetry(t)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -150,8 +147,7 @@ func TestNewRotationService_Success(t *testing.T) {
 func TestGormRepository_AddRootKey_NilKey(t *testing.T) {
 	t.Parallel()
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -168,8 +164,7 @@ func TestGormRepository_AddRootKey_NilKey(t *testing.T) {
 func TestGormRepository_AddIntermediateKey_NilKey(t *testing.T) {
 	t.Parallel()
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -186,8 +181,7 @@ func TestGormRepository_AddIntermediateKey_NilKey(t *testing.T) {
 func TestGormRepository_AddContentKey_NilKey(t *testing.T) {
 	t.Parallel()
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -204,8 +198,7 @@ func TestGormRepository_AddContentKey_NilKey(t *testing.T) {
 func TestGormRepository_GetRootKey_NilUUID(t *testing.T) {
 	t.Parallel()
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -232,8 +225,7 @@ func TestGormRepository_GetRootKey_NilUUID(t *testing.T) {
 func TestGormRepository_GetIntermediateKey_NilUUID(t *testing.T) {
 	t.Parallel()
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -260,8 +252,7 @@ func TestGormRepository_GetIntermediateKey_NilUUID(t *testing.T) {
 func TestGormRepository_GetContentKey_NilUUID(t *testing.T) {
 	t.Parallel()
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)

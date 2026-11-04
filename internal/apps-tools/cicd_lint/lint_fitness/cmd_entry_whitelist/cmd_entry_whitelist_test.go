@@ -120,6 +120,10 @@ func TestFindViolationsInDir_InfraToolDirs_NoViolations(t *testing.T) {
 	tmpDir := t.TempDir()
 	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.CICDCmdDirCicdLint))
 	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.CICDCmdDirWorkflow))
+	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.CICDCmdDirDevSetup))
+	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.CICDCmdDirDeployment))
+	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.CICDCmdDirCheckov))
+	mkdir(t, filepath.Join(tmpDir, "cmd", cryptoutilSharedMagic.CICDCmdDirGolangci))
 
 	violations, err := lintFitnessCmdEntryWhitelist.FindViolationsInDir(tmpDir)
 
@@ -237,6 +241,9 @@ func TestAllowedCount_ReturnsExpectedCount(t *testing.T) {
 		cryptoutilSharedMagic.CICDCmdDirCicdLint,
 		cryptoutilSharedMagic.CICDCmdDirWorkflow,
 		cryptoutilSharedMagic.CICDCmdDirDevSetup,
+		cryptoutilSharedMagic.CICDCmdDirDeployment,
+		cryptoutilSharedMagic.CICDCmdDirCheckov,
+		cryptoutilSharedMagic.CICDCmdDirGolangci,
 	}
 	wantCount := len(lintFitnessRegistry.AllSuites()) + len(lintFitnessRegistry.AllProducts()) + len(lintFitnessRegistry.AllProductServices()) + len(infraTools)
 
@@ -264,6 +271,8 @@ func TestAllowedEntrySet_ContainsKnownEntries(t *testing.T) {
 
 	assert.True(t, set[cryptoutilSharedMagic.CICDCmdDirCicdLint])
 	assert.True(t, set[cryptoutilSharedMagic.CICDCmdDirWorkflow])
+	assert.True(t, set[cryptoutilSharedMagic.CICDCmdDirDeployment])
+	assert.True(t, set[cryptoutilSharedMagic.CICDCmdDirCheckov])
 	assert.True(t, set[cryptoutilSharedMagic.OTLPServiceSMKMS])
 	assert.False(t, set["identity-compose"])
 }

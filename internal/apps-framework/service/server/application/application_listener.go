@@ -15,6 +15,7 @@ import (
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
@@ -116,33 +117,65 @@ func (a *Listener) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
-	// Mark admin server as ready for health checks.
+	errChan := make(chan error, 2)
+	startedChan := make(chan struct{}, 2)
+
+	startServer := func(name string, server interface{ Start(context.Context) error }) {
+		go func() {
+			if startNotifier, ok := server.(interface{ Started() <-chan struct{} }); ok {
+				started := startNotifier.Started()
+				if started == nil {
+					startedChan <- struct{}{}
+				} else {
+					go func() {
+						select {
+						case <-started:
+							startedChan <- struct{}{}
+						case <-ctx.Done():
+						}
+					}()
+				}
+			} else {
+				startedChan <- struct{}{}
+			}
+
+			if err := server.Start(ctx); err != nil {
+				errChan <- fmt.Errorf("%s server failed: %w", name, err)
+			}
+		}()
+	}
+
+	startServer(cryptoutilSharedMagic.PublicLabel, a.PublicServer)
+	startServer("admin", a.AdminServer)
+
+	startedServers := 0
+	for startedServers < 2 {
+		select {
+		case <-startedChan:
+			startedServers++
+		case err := <-errChan:
+			_ = a.Shutdown(context.Background())
+
+			return err
+		case <-ctx.Done():
+			_ = a.Shutdown(context.Background())
+
+			return fmt.Errorf("application startup cancelled: %w", ctx.Err())
+		}
+	}
+
+	if startupAdmin, ok := a.AdminServer.(interface{ MarkStartupComplete() }); ok {
+		startupAdmin.MarkStartupComplete()
+	}
+
 	a.AdminServer.SetReady(true)
 
-	// Start servers in background.
-	errChan := make(chan error, 2)
-
-	go func() {
-		if err := a.PublicServer.Start(ctx); err != nil {
-			errChan <- fmt.Errorf("public server failed: %w", err)
-		}
-	}()
-
-	go func() {
-		if err := a.AdminServer.Start(ctx); err != nil {
-			errChan <- fmt.Errorf("admin server failed: %w", err)
-		}
-	}()
-
-	// Wait for startup errors or context cancellation.
 	select {
 	case err := <-errChan:
-		// One server failed, shutdown the other.
 		_ = a.Shutdown(context.Background())
 
 		return err
 	case <-ctx.Done():
-		// Context cancelled, shutdown gracefully.
 		_ = a.Shutdown(context.Background())
 
 		return fmt.Errorf("application startup cancelled: %w", ctx.Err())
@@ -157,23 +190,30 @@ func (a *Listener) Shutdown(ctx context.Context) error {
 
 	var shutdownErr error
 
-	// Shutdown admin server.
+	// Mark the process unready before draining public requests.
 	if a.AdminServer != nil {
-		a.AdminServer.SetReady(false)
-
-		if err := a.AdminServer.Shutdown(ctx); err != nil {
-			shutdownErr = fmt.Errorf("failed to shutdown admin server: %w", err)
+		if drainingAdmin, ok := a.AdminServer.(interface{ BeginDrain() }); ok {
+			drainingAdmin.BeginDrain()
+		} else {
+			a.AdminServer.SetReady(false)
 		}
 	}
 
-	// Shutdown public server.
+	// Shutdown public server first so admin probes remain available during request drain.
 	if a.PublicServer != nil {
 		if err := a.PublicServer.Shutdown(ctx); err != nil {
+			shutdownErr = fmt.Errorf("failed to shutdown public server: %w", err)
+		}
+	}
+
+	// Shutdown admin server after public requests have drained.
+	if a.AdminServer != nil {
+		if err := a.AdminServer.Shutdown(ctx); err != nil {
 			if shutdownErr != nil {
-				return fmt.Errorf("multiple shutdown errors: admin=%w, public=%w", shutdownErr, err)
+				return fmt.Errorf("multiple shutdown errors: public=%w, admin=%w", shutdownErr, err)
 			}
 
-			shutdownErr = fmt.Errorf("failed to shutdown public server: %w", err)
+			shutdownErr = fmt.Errorf("failed to shutdown admin server: %w", err)
 		}
 	}
 

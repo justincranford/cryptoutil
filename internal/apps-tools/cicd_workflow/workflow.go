@@ -125,7 +125,7 @@ func runWithWorkflowsDirAndDependencies(args []string, workflowsDir string, depe
 
 	workflows := fs.String("workflows", "", "Comma-separated list of workflows to run (benchmark,coverage,dast,e2e,fuzz,gitleaks,load,quality,race,sast)")
 	showHelp := fs.Bool(cryptoutilSharedMagic.CLIHelpCommand, false, "Show usage with list available workflows and exit")
-	outputDir := fs.String("output", "workflow-reports", "Output directory for logs and reports")
+	outputDir := fs.String(cryptoutilSharedMagic.CICDExcludeDirOutput, cryptoutilSharedMagic.CICDExcludeDirWorkflowReports, "Output directory for logs and reports")
 	dryRun := fs.Bool("dry-run", false, "Show what would be executed without running workflows")
 	actPath := fs.String("act-path", "act", "Path to act executable")
 	actArgs := fs.String("act-args", "", "Additional arguments to pass to act")

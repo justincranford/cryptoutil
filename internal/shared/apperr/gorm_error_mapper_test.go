@@ -5,7 +5,6 @@
 package apperr_test
 
 import (
-	"database/sql"
 	"io"
 	"log/slog"
 	http "net/http"
@@ -16,10 +15,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/require"
-	gsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	_ "modernc.org/sqlite" // CGO-free SQLite driver registration.
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
 // testModel is a minimal GORM model used to trigger real SQLite constraint errors.
@@ -39,17 +37,9 @@ func discardSlogger() *slog.Logger {
 func newSQLiteDBWithUniqueConstraint(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file::memory:?cache=private")
-	require.NoError(t, err)
-
-	db, err := gorm.Open(gsqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	require.NoError(t, db.AutoMigrate(&testModel{}))
-
-	t.Cleanup(func() { _ = sqlDB.Close() })
 
 	return db
 }

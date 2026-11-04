@@ -4,16 +4,14 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 	"time"
 
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServerDomain "cryptoutil/internal/apps-framework/service/server/domain"
@@ -22,34 +20,12 @@ import (
 // setupJoinRequestTestDB creates an isolated in-memory SQLite database for join request tests.
 // Each call creates a unique database to prevent test interference.
 func setupJoinRequestTestDB(t *testing.T) *gorm.DB {
-	t.Helper(
-	// Use unique database name to avoid sharing between parallel tests.
-	)
+	t.Helper()
 
-	dsn := fmt.Sprintf("file:memdb_%s?mode=memory&cache=shared", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	dialector := sqlite.Dialector{Conn: sqlDB}
-	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	sqlDB, err = db.DB()
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetConnMaxLifetime(0)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	// Run migrations for all required tables.
-	err = db.AutoMigrate(&Tenant{}, &User{}, &cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest{})
+	err := db.AutoMigrate(&Tenant{}, &User{}, &cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest{})
 	require.NoError(t, err)
 
 	return db

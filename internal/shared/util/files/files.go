@@ -7,11 +7,14 @@ package files
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedRepositoryScan "cryptoutil/internal/shared/util/repositoryscan"
 )
 
 // WriteFile writes content to a file with the specified permissions.
@@ -47,26 +50,174 @@ func WriteFile(filePath string, bytesOrString any, permissions os.FileMode) erro
 // Paths are normalized to use forward slashes for cross-platform compatibility.
 // Excluded directories are skipped entirely.
 func ListAllFiles(startDirectory string) (map[string][]string, error) {
-	exclusions := make([]string, 0, len(cryptoutilSharedMagic.DirectoryNameExclusions)+1)
-	exclusions = append(exclusions, cryptoutilSharedMagic.DirectoryNameExclusions...)
-	exclusions = append(exclusions, cryptoutilSharedMagic.DirectoryNameExclusionTestLoadTarget)
+	listing, err := ListRepositoryFilesWithOptions(startDirectory, cryptoutilSharedMagic.TextFilenameExtensionInclusions, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	return ListAllFilesWithOptions(startDirectory, cryptoutilSharedMagic.TextFilenameExtensionInclusions, exclusions)
+	return listing.FilesByExtension, nil
 }
 
 // ListAllFilesWithOptions walks the directory tree starting from startDirectory and returns files grouped by extension.
 // It uses the provided extension inclusions and directory exclusions.
 // Returns a map where keys are file extensions (without dot) and values are slices of relative file paths.
 // Paths are normalized to use forward slashes for cross-platform compatibility.
-// Excluded directories are skipped entirely.
+// Only the caller-provided exclusions are applied; nested Git checkout detection is intentionally opt-in through
+// ListRepositoryFilesWithOptions.
 func ListAllFilesWithOptions(startDirectory string, inclusions []string, exclusions []string) (map[string][]string, error) {
+	listing, err := listFilesWithOptions(startDirectory, inclusions, exclusions, false, os.Lstat)
+	if err != nil {
+		return nil, err
+	}
+
+	return listing.FilesByExtension, nil
+}
+
+// RepositoryFileListing contains repository-scoped files and root-relative nested checkout roots skipped by
+// repository-safe enumeration.
+type RepositoryFileListing struct {
+	FilesByExtension   map[string][]string
+	SkippedDirectories []string
+}
+
+// ListRepositoryFilesWithOptions walks the directory tree starting from startDirectory and returns files grouped by
+// extension. It applies the repository directory exclusions, caller exclusions, and nested Git checkout boundary.
+// The explicitly selected root is always scanned, even when its basename is normally excluded or it contains .git.
+func ListRepositoryFilesWithOptions(
+	startDirectory string,
+	inclusions []string,
+	exclusions []string,
+) (RepositoryFileListing, error) {
+	return ListRepositoryFilesWithOptionsAndLstat(startDirectory, inclusions, exclusions, os.Lstat)
+}
+
+// ListRepositoryFilesWithOptionsAndLstat is the Lstat-injectable form of
+// ListRepositoryFilesWithOptions. The supplied Lstat function is used for
+// nested marker inspection while traversal remains OS-backed.
+func ListRepositoryFilesWithOptionsAndLstat(
+	startDirectory string,
+	inclusions []string,
+	exclusions []string,
+	lstatFn func(string) (os.FileInfo, error),
+) (RepositoryFileListing, error) {
+	if lstatFn == nil {
+		return RepositoryFileListing{}, fmt.Errorf("missing Lstat function")
+	}
+
+	exclusions = repositoryFileExclusions(exclusions)
+
+	return listFilesWithOptions(startDirectory, inclusions, exclusions, true, lstatFn)
+}
+
+// ListRepositoryFilesFromFSWithOptions performs repository-safe enumeration using fsys for both walking and nested
+// .git marker inspection. It applies the repository directory exclusions and caller exclusions. Returned paths use
+// slash separators and are rooted at startDirectory; skipped checkout roots are relative to startDirectory.
+func ListRepositoryFilesFromFSWithOptions(
+	fsys fs.FS,
+	startDirectory string,
+	inclusions []string,
+	exclusions []string,
+) (RepositoryFileListing, error) {
+	if fsys == nil {
+		return RepositoryFileListing{}, fmt.Errorf("missing filesystem")
+	}
+
+	rootDir := path.Clean(startDirectory)
+	if !fs.ValidPath(rootDir) {
+		return RepositoryFileListing{}, fmt.Errorf("invalid filesystem root %q", rootDir)
+	}
+
+	exclusions = repositoryFileExclusions(exclusions)
+
+	includedExtensions := make(map[string]bool, len(inclusions))
+	for _, extension := range inclusions {
+		includedExtensions[extension] = true
+	}
+
+	listing := RepositoryFileListing{FilesByExtension: make(map[string][]string)}
+
+	err := fs.WalkDir(fsys, rootDir, func(walkPath string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+
+		if entry.IsDir() {
+			if path.Clean(walkPath) == rootDir {
+				return nil
+			}
+
+			if isExcludedFSDirectory(rootDir, walkPath, exclusions) {
+				return fs.SkipDir
+			}
+
+			shouldSkip, skipErr := cryptoutilSharedRepositoryScan.ShouldSkipDirFS(
+				fsys,
+				rootDir,
+				walkPath,
+				func(string) bool { return false },
+			)
+			if skipErr != nil {
+				return fmt.Errorf("inspect filesystem repository boundary %s: %w", walkPath, skipErr)
+			}
+
+			if shouldSkip {
+				relativePath := strings.TrimPrefix(path.Clean(walkPath), rootDir)
+				relativePath = strings.TrimPrefix(relativePath, "/")
+				listing.SkippedDirectories = append(listing.SkippedDirectories, relativePath)
+
+				return fs.SkipDir
+			}
+
+			return nil
+		}
+
+		extension := strings.TrimPrefix(path.Ext(walkPath), ".")
+		if extension == "" {
+			baseName := path.Base(walkPath)
+			if strings.HasPrefix(baseName, ".") {
+				extension = strings.TrimPrefix(baseName, ".")
+			}
+		}
+
+		if includedExtensions[extension] {
+			listing.FilesByExtension[extension] = append(listing.FilesByExtension[extension], path.Clean(walkPath))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return RepositoryFileListing{}, fmt.Errorf("failed to walk filesystem directory: %w", err)
+	}
+
+	return listing, nil
+}
+
+func repositoryFileExclusions(exclusions []string) []string {
+	repositoryExclusions := make([]string, 0, len(cryptoutilSharedMagic.DirectoryNameExclusions)+len(exclusions)+1)
+	repositoryExclusions = append(repositoryExclusions, cryptoutilSharedMagic.DirectoryNameExclusions...)
+	repositoryExclusions = append(repositoryExclusions, cryptoutilSharedMagic.DirectoryNameExclusionTestLoadTarget)
+	repositoryExclusions = append(repositoryExclusions, exclusions...)
+
+	return repositoryExclusions
+}
+
+func listFilesWithOptions(
+	startDirectory string,
+	inclusions []string,
+	exclusions []string,
+	skipNestedCheckouts bool,
+	lstatFn func(string) (os.FileInfo, error),
+) (RepositoryFileListing, error) {
 	matches := make(map[string][]string)
+	rootDir := filepath.Clean(startDirectory)
 
 	// Build a set of included extensions for fast lookup.
-	includedExtensions := make(map[string]bool)
+	includedExtensions := make(map[string]bool, len(inclusions))
 	for _, ext := range inclusions {
 		includedExtensions[ext] = true
 	}
+
+	listing := RepositoryFileListing{FilesByExtension: matches}
 
 	err := filepath.Walk(startDirectory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -77,22 +228,29 @@ func ListAllFilesWithOptions(startDirectory string, inclusions []string, exclusi
 		normalizedPath := filepath.ToSlash(path)
 
 		if info.IsDir() {
-			// Use relative path for exclusion matching so that both absolute
-			// and relative startDirectory values work correctly with relative
-			// exclusion names (e.g., "test-output"). Also keep the absolute
-			// normalizedPath check for callers that pass absolute exclusions.
-			relPath, relErr := filepath.Rel(startDirectory, path)
-			relSlash := ""
-
-			if relErr == nil {
-				relSlash = filepath.ToSlash(relPath)
+			shouldSkip, nestedCheckout, skipErr := shouldSkipDirectoryForFileListing(
+				rootDir,
+				path,
+				normalizedPath,
+				exclusions,
+				skipNestedCheckouts,
+				lstatFn,
+			)
+			if skipErr != nil {
+				return skipErr
 			}
 
-			for _, excl := range exclusions {
-				if relSlash == excl || strings.HasPrefix(relSlash, excl+"/") ||
-					normalizedPath == excl || strings.HasPrefix(normalizedPath, excl+"/") {
-					return filepath.SkipDir
+			if shouldSkip {
+				if nestedCheckout {
+					relativePath, relErr := filepath.Rel(rootDir, path)
+					if relErr != nil {
+						return fmt.Errorf("failed to determine relative path for %s: %w", path, relErr)
+					}
+
+					listing.SkippedDirectories = append(listing.SkippedDirectories, filepath.ToSlash(relativePath))
 				}
+
+				return filepath.SkipDir
 			}
 
 			return nil
@@ -112,16 +270,93 @@ func ListAllFilesWithOptions(startDirectory string, inclusions []string, exclusi
 
 		// Only include files with matching extensions.
 		if includedExtensions[ext] {
-			matches[ext] = append(matches[ext], normalizedPath)
+			listing.FilesByExtension[ext] = append(listing.FilesByExtension[ext], normalizedPath)
 		}
 
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to walk directory: %w", err)
+		return RepositoryFileListing{}, fmt.Errorf("failed to walk directory: %w", err)
 	}
 
-	return matches, nil
+	return listing, nil
+}
+
+func shouldSkipDirectoryForFileListing(
+	rootDir string,
+	candidateDir string,
+	normalizedPath string,
+	exclusions []string,
+	skipNestedCheckouts bool,
+	lstatFn func(string) (os.FileInfo, error),
+) (bool, bool, error) {
+	if filepath.Clean(candidateDir) == rootDir {
+		return false, false, nil
+	}
+
+	isExcludedDirectory := func(name string) bool {
+		for _, exclusion := range exclusions {
+			if !filepath.IsAbs(exclusion) && filepath.Base(exclusion) == exclusion && name == exclusion {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	if isExcludedDirectory(filepath.Base(candidateDir)) {
+		return true, false, nil
+	}
+
+	relPath, relErr := filepath.Rel(rootDir, candidateDir)
+	if relErr != nil {
+		return false, false, fmt.Errorf("failed to determine relative path for %s: %w", candidateDir, relErr)
+	}
+
+	relSlash := filepath.ToSlash(relPath)
+
+	for _, exclusion := range exclusions {
+		if relSlash == exclusion || strings.HasPrefix(relSlash, exclusion+"/") ||
+			normalizedPath == exclusion || strings.HasPrefix(normalizedPath, exclusion+"/") {
+			return true, false, nil
+		}
+	}
+
+	if skipNestedCheckouts {
+		shouldSkip, err := cryptoutilSharedRepositoryScan.ShouldSkipDirWithLstat(
+			rootDir,
+			candidateDir,
+			nil,
+			lstatFn,
+		)
+		if err != nil {
+			return false, false, fmt.Errorf("inspect repository boundary %s: %w", candidateDir, err)
+		}
+
+		return shouldSkip, shouldSkip, nil
+	}
+
+	return false, false, nil
+}
+
+func isExcludedFSDirectory(rootDir, candidateDir string, exclusions []string) bool {
+	if path.Clean(rootDir) == path.Clean(candidateDir) {
+		return false
+	}
+
+	for _, exclusion := range exclusions {
+		if !path.IsAbs(exclusion) && path.Base(exclusion) == exclusion && path.Base(candidateDir) == exclusion {
+			return true
+		}
+
+		relativePath := fsRelativePath(path.Clean(rootDir), path.Clean(candidateDir))
+
+		if relativePath == exclusion || strings.HasPrefix(relativePath, exclusion+"/") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ReadFilesBytes reads the contents of multiple files and returns them as byte slices.

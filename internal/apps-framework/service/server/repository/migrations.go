@@ -5,6 +5,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"embed"
 	"errors"
@@ -94,10 +95,49 @@ func newMigrationRunnerInternal(
 //
 // Returns error if migrations fail to apply.
 func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error {
+	return r.ApplyContext(context.Background(), db, dbType)
+}
+
+// ApplyContext reuses production migration drivers and signals graceful stop
+// between embedded migrations on cancellation. In-flight SQL still obeys the
+// driver's/database's statement and lock deadlines; it is not falsely reported
+// as an immediately cancellable query.
+func (r *MigrationRunner) ApplyContext(ctx context.Context, db *sql.DB, dbType DatabaseType) (result error) {
+	if ctx == nil || db == nil {
+		return errors.New("migration requires context and database")
+	}
+
+	view, closeView := migrationDatabaseView(ctx, db, nil, dbType == DatabaseTypePostgreSQL)
+	defer func() { result = errors.Join(result, closeView()) }()
+
+	return r.applyView(ctx, view, dbType)
+}
+
+// ApplyTransaction uses the same production migration drivers and embedded
+// source, while nested driver transactions remain savepoints of the owner's
+// transaction. The caller alone commits or rolls back that transaction.
+func (r *MigrationRunner) ApplyTransaction(ctx context.Context, tx *sql.Tx, dbType DatabaseType) (result error) {
+	if ctx == nil || tx == nil {
+		return errors.New("migration requires context and transaction")
+	}
+
+	view, closeView := migrationDatabaseView(ctx, nil, tx, dbType == DatabaseTypePostgreSQL)
+	defer func() { result = errors.Join(result, closeView()) }()
+
+	return r.applyView(ctx, view, dbType)
+}
+
+func (r *MigrationRunner) applyView(ctx context.Context, db *sql.DB, dbType DatabaseType) (result error) {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("migration context: %w", err)
+	}
+
 	sourceDriver, err := iofs.New(r.fsys, r.migrationsPath)
 	if err != nil {
 		return fmt.Errorf("failed to create iofs source driver: %w", err)
 	}
+
+	defer func() { result = errors.Join(result, sourceDriver.Close()) }()
 
 	var databaseDriver database.Driver
 
@@ -116,12 +156,32 @@ func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error {
 		return fmt.Errorf("unsupported database type: %s", dbType)
 	}
 
+	defer func() { result = errors.Join(result, databaseDriver.Close()) }()
+
 	m, err := r.migrateNewInstanceFn("iofs", sourceDriver, string(dbType), databaseDriver)
 	if err != nil {
 		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}
 
-	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("migration context: %w", err)
+	}
+
+	stop := context.AfterFunc(ctx, func() {
+		select {
+		case m.GracefulStop <- true:
+		default:
+		}
+	})
+	defer stop()
+
+	applyErr := m.Up()
+
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("migration context: %w", err)
+	}
+
+	if err := applyErr; err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 

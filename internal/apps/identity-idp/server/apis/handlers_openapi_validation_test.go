@@ -2,10 +2,7 @@
 package apis
 
 import (
-	"context"
-	"database/sql"
 	json "encoding/json"
-	"fmt"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,12 +12,10 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
-
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
@@ -266,52 +261,15 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := context.Background()
-
-			// Create unique in-memory database per test.
-			dbID, err := googleUuid.NewV7()
-			require.NoError(t, err)
-
-			dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
-
-			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-			require.NoError(t, err)
-
-			// Apply PRAGMA settings
-			if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-				require.FailNowf(t, "failed to enable WAL mode", "%v", err)
-			}
-
-			if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-				require.FailNowf(t, "failed to set busy timeout", "%v", err)
-			}
-
-			// Create GORM database
-			dialector := sqlite.Dialector{Conn: sqlDB}
-
-			db, err := gorm.Open(dialector, &gorm.Config{
-				Logger:                 logger.Default.LogMode(logger.Silent),
-				SkipDefaultTransaction: true,
-			})
-			require.NoError(t, err)
-
-			gormDB, err := db.DB()
-			require.NoError(t, err)
-
-			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+			db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+			db.Logger = logger.Default.LogMode(logger.Silent)
 
 			// Auto-migrate test schemas
-			err = db.AutoMigrate(
+			require.NoError(t, db.AutoMigrate(
 				&cryptoutilIdentityDomain.User{},
 				&cryptoutilIdentityDomain.Client{},
 				&cryptoutilIdentityDomain.Token{},
-			)
-			require.NoError(t, err)
-
-			t.Cleanup(func() {
-				_ = sqlDB.Close() //nolint:errcheck // Test cleanup
-			})
+			))
 
 			// Run setup function to create test data
 			tokenOrParam := tc.setupFunc(t, db)

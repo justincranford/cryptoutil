@@ -12,7 +12,6 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	lintGoTestCommon "cryptoutil/internal/apps-tools/cicd_lint/lint_gotest/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // enforceHardcodedPasswords enforces that tests don't contain hardcoded passwords.
@@ -102,7 +101,12 @@ func checkWithWalkDirFn(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, 
 		}
 
 		if d.IsDir() {
-			if d.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || d.Name() == cryptoutilSharedMagic.CICDExcludeDirGit {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
 				return filepath.SkipDir
 			}
 

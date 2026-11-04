@@ -122,6 +122,25 @@ func TestValidateConfiguration(t *testing.T) {
 			},
 			wantErrorMessage: testInvalidOtlpEndpointFormat,
 		},
+		{
+			name: "OTLP enabled requires explicit receiver health contract",
+			modify: func(s *ServiceFrameworkServerSettings) {
+				s.OTLPEnabled = true
+				s.OTLPHealthEndpoint = ""
+			},
+			wantErrorMessage: "OTLP receiver health endpoint is required",
+		},
+		{
+			name: "OTLP receiver health URL rejects query strings",
+			modify: func(s *ServiceFrameworkServerSettings) {
+				s.OTLPEnabled = true
+				s.OTLPHealthEndpoint = testOTLPHealthEndpoint + "?"
+				s.OTLPTLSCAFile = testOTLPTLSCAFile
+				s.OTLPTLSCertFile = testOTLPTLSCertFile
+				s.OTLPTLSKeyFile = testOTLPTLSKeyFile
+			},
+			wantErrorMessage: "invalid OTLP receiver health endpoint",
+		},
 		// Port edge cases.
 		{
 			name: "both ports 0 is valid (dynamic allocation)",

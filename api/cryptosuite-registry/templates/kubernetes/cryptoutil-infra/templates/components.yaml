@@ -1,0 +1,282 @@
+{{- $root := . -}}
+{{- if ne .Values.components.postgresLeader.enabled .Values.components.postgresFollower.enabled -}}
+{{- fail "postgresLeader and postgresFollower must be enabled or disabled together" -}}
+{{- end -}}
+{{- if not .Values.components.collector.enabled -}}
+{{- fail "the run-scoped collector is required" -}}
+{{- end -}}
+{{- if not .Values.components.lgtm.enabled -}}
+{{- fail "the run-scoped LGTM receiver is required" -}}
+{{- end -}}
+{{- $configMapNames := dict -}}
+{{- range $component := list .Values.components.postgresLeader .Values.components.postgresFollower .Values.components.collector .Values.components.lgtm -}}
+{{- if $component.enabled -}}
+{{- if hasKey $configMapNames $component.configMapName -}}
+{{- fail (printf "duplicate infrastructure ConfigMap name: %s" $component.configMapName) -}}
+{{- end -}}
+{{- $_ := set $configMapNames $component.configMapName true -}}
+{{- end -}}
+{{- end -}}
+{{- $postgresClients := list -}}
+{{- range .Values.clients -}}
+{{- if .postgres -}}
+{{- $postgresClients = append $postgresClients . -}}
+{{- end -}}
+{{- end -}}
+{{- if and $postgresClients (not .Values.components.postgresLeader.enabled) -}}
+{{- fail "PostgreSQL clients cannot be selected when PostgreSQL infrastructure is disabled" -}}
+{{- end -}}
+{{- if and .Values.components.postgresLeader.enabled (not .Values.databases) -}}
+{{- fail "PostgreSQL infrastructure requires a non-empty database catalog" -}}
+{{- end -}}
+{{- if and (not .Values.components.postgresLeader.enabled) .Values.databases -}}
+{{- fail "database catalog entries require PostgreSQL infrastructure" -}}
+{{- end -}}
+{{- if .Values.components.postgresLeader.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-catalog
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-infra.labels" (dict "root" $root "component" "postgres") | nindent 4 }}
+data:
+  databases.yaml: |
+    {{- toYaml $root.Values.databases | nindent 4 }}
+{{- end }}
+{{- $componentEntries := list
+  (dict "key" "postgresLeader" "name" "postgres-leader")
+  (dict "key" "postgresFollower" "name" "postgres-follower")
+  (dict "key" "collector" "name" "collector")
+  (dict "key" "lgtm" "name" "lgtm")
+-}}
+{{- range $entry := $componentEntries }}
+{{- $component := index $root.Values.components $entry.key -}}
+{{- if $component.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $component.configMapName }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-infra.labels" (dict "root" $root "component" $entry.name) | nindent 4 }}
+data:
+  {{- toYaml $component.configFiles | nindent 2 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $entry.name }}-pods
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-infra.labels" (dict "root" $root "component" $entry.name) | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector:
+    {{- include "cryptoutil-infra.selectorLabels" (dict "root" $root "component" $entry.name) | nindent 4 }}
+  ports:
+    {{- range $port := $component.servicePorts }}
+    - name: {{ $port.name }}
+      port: {{ $port.port }}
+      targetPort: {{ $port.targetPort }}
+      protocol: TCP
+    {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $entry.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-infra.labels" (dict "root" $root "component" $entry.name) | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "cryptoutil-infra.selectorLabels" (dict "root" $root "component" $entry.name) | nindent 4 }}
+  ports:
+    {{- range $port := $component.servicePorts }}
+    - name: {{ $port.name }}
+      port: {{ $port.port }}
+      targetPort: {{ $port.targetPort }}
+      protocol: TCP
+    {{- end }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $entry.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-infra.labels" (dict "root" $root "component" $entry.name) | nindent 4 }}
+  annotations:
+    cu.io/deployment-key: {{ $root.Values.releaseKey | quote }}
+    cu.io/revision: {{ $root.Values.revision | quote }}
+{{ if hasPrefix "postgres" $entry.name }}
+    checkov.io/skip1: "CKV_K8S_40=The pinned PostgreSQL image's initdb requires its declared UID 999; UID 10001 fails user lookup."
+{{ end }}
+spec:
+  serviceName: {{ $entry.name }}-pods
+  replicas: {{ $component.replicas }}
+  podManagementPolicy: Parallel
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  selector:
+    matchLabels:
+      {{- include "cryptoutil-infra.selectorLabels" (dict "root" $root "component" $entry.name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cryptoutil-infra.selectorLabels" (dict "root" $root "component" $entry.name) | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ $component.runAsUser }}
+        runAsGroup: {{ $component.runAsGroup }}
+        fsGroup: {{ $component.fsGroup }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ $entry.name }}
+          image: {{ $component.image | quote }}
+          imagePullPolicy: IfNotPresent
+          {{- if eq $entry.key "collector" }}
+          args:
+            - --config={{ $component.configMountPath }}/config.yaml
+          {{- else if hasPrefix "postgres" $entry.name }}
+          args:
+            {{- toYaml $component.containerArgs | nindent 12 }}
+          env:
+            - name: PGDATA
+              value: {{ printf "%s/pgdata" (trimSuffix "/" $component.storage.mountPath) | quote }}
+            - name: POSTGRES_USER_FILE
+              value: /run/cryptoutil/bootstrap/{{ $component.bootstrapUsernameKey }}
+            - name: POSTGRES_PASSWORD_FILE
+              value: /run/cryptoutil/bootstrap/{{ $component.bootstrapPasswordKey }}
+          {{- else }}
+          env:
+            - name: GF_SERVER_PROTOCOL
+              value: https
+            - name: GF_SERVER_HTTP_PORT
+              value: "3000"
+            - name: GF_SERVER_CERT_FILE
+              value: /run/cryptoutil/pki/server/tls.crt
+            - name: GF_SERVER_CERT_KEY
+              value: /run/cryptoutil/pki/server/tls.key
+            - name: OTELCOL_CLIENT_CA_FILE
+              value: /run/cryptoutil/pki/client-ca/ca.crt
+            - name: OTELCOL_EXTRA_ARGS
+              value: --config=file:{{ $component.configMountPath }}/otelcol-tls-override.yaml
+            - name: GF_SECURITY_ADMIN_PASSWORD__FILE
+              value: /run/cryptoutil/admin/{{ $component.adminPasswordKey }}
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+          {{- end }}
+          ports:
+            {{- range $port := $component.servicePorts }}
+            - name: {{ $port.name }}
+              containerPort: {{ $port.targetPort }}
+              protocol: TCP
+            {{- end }}
+          startupProbe:
+            {{- include "cryptoutil-infra.probe" $component.probes.startup | nindent 12 }}
+          livenessProbe:
+            {{- include "cryptoutil-infra.probe" $component.probes.liveness | nindent 12 }}
+          readinessProbe:
+            {{- include "cryptoutil-infra.probe" $component.probes.readiness | nindent 12 }}
+          resources:
+            {{- toYaml $component.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: {{ $component.runAsUser }}
+            runAsGroup: {{ $component.runAsGroup }}
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: config
+              mountPath: {{ $component.configMountPath }}
+              readOnly: true
+            - name: data
+              mountPath: {{ $component.storage.mountPath }}
+            {{- range $index, $secret := $component.secretMounts }}
+            - name: secret-{{ $index }}
+              mountPath: {{ $secret.mountPath }}
+              readOnly: true
+            {{- end }}
+            {{- range $scratch := $component.scratch }}
+            - name: {{ $scratch.name }}
+              mountPath: {{ $scratch.mountPath }}
+            {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ $component.configMapName }}
+            defaultMode: 292
+        {{- range $index, $secret := $component.secretMounts }}
+        - name: secret-{{ $index }}
+          secret:
+            secretName: {{ $secret.secretName }}
+            defaultMode: {{ $secret.defaultMode }}
+        {{- end }}
+        {{- range $scratch := $component.scratch }}
+        - name: {{ $scratch.name }}
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ $scratch.sizeLimit }}
+        {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        annotations:
+          helm.sh/resource-policy: keep
+          cu.io/retention: "retain-on-scale-down-uninstall"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ $root.Values.storage.className | quote }}
+        resources:
+          requests:
+            storage: {{ $component.storage.size | quote }}
+{{- if eq $entry.name "collector" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: collector
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-infra.labels" (dict "root" $root "component" "collector") | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "cryptoutil-infra.selectorLabels" (dict "root" $root "component" "collector") | nindent 6 }}
+{{- end }}
+{{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: budget
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  hard:
+    pods: {{ .Values.quota.pods | quote }}
+    requests.cpu: {{ .Values.quota.requestsCPU | quote }}
+    requests.memory: {{ .Values.quota.requestsMemory | quote }}
+    limits.cpu: {{ .Values.quota.limitsCPU | quote }}
+    limits.memory: {{ .Values.quota.limitsMemory | quote }}

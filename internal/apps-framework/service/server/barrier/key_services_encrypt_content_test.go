@@ -30,8 +30,7 @@ func TestContentKeysService_EncryptContent_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)
@@ -82,8 +81,7 @@ func TestContentKeysService_EncryptContent_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)
@@ -146,8 +144,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)
@@ -192,8 +189,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)
@@ -256,8 +252,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)
@@ -307,8 +302,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)
@@ -393,8 +387,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)

@@ -7,7 +7,6 @@ package barrier
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	json "encoding/json"
 	"errors"
 	"fmt"
@@ -17,6 +16,7 @@ import (
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -25,9 +25,6 @@ import (
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
 )
 
 const (
@@ -154,32 +151,8 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 
 	ctx := context.Background()
 
-	// Create in-memory database
-	dbID, _ := googleUuid.NewV7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
-
-	testSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = testSQLDB.Close() })
-
-	// Configure SQLite
-	_, err = testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-	_, err = testSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM
-	testDB, err := gorm.Open(sqlite.Dialector{Conn: testSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	// Create barrier tables
-	err = testDB.AutoMigrate(&RootKey{}, &IntermediateKey{}, &ContentKey{})
-	require.NoError(t, err)
+	testDB := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, testDB.AutoMigrate(&RootKey{}, &IntermediateKey{}, &ContentKey{}))
 
 	// Initialize telemetry
 	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())

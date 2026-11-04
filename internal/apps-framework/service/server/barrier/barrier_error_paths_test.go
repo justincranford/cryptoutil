@@ -5,12 +5,11 @@ package barrier
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -19,7 +18,6 @@ import (
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-	gormSqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -32,20 +30,7 @@ const (
 func createBarrierNoTablesDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbUUID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbUUID.String())
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	db, err := gorm.Open(gormSqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = sqlDB.Close() })
-
-	return db
+	return cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 }
 
 // createBarrierRootOnlyDB creates an in-memory SQLite DB with only the barrier_root_keys table.

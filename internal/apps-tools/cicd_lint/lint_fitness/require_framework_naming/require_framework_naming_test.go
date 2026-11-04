@@ -4,6 +4,7 @@ package require_framework_naming
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -279,6 +280,72 @@ var _ = cryptoutilTemplateServer.Something
 	require.NoError(t, err)
 }
 
+func TestCheckInDir_SkipsTestOutputDir(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	writeFile(t, filepath.Join(
+		tmp, cryptoutilSharedMagic.CICDExcludeDirTestOutput, "phase2-worktrees", "copy", "pkg", "bad.go",
+	), `package pkg
+
+import (
+	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+)
+
+var _ = cryptoutilTemplateServer.Something
+`)
+
+	err := CheckInDir(newTestLogger(), tmp)
+	require.NoError(t, err)
+}
+
+func TestCheckInDir_ScanScope(t *testing.T) {
+	t.Parallel()
+
+	const bannedImportFixture = `package pkg
+
+import (
+	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+)
+
+var _ = cryptoutilTemplateServer.Something
+`
+
+	tests := []struct {
+		name         string
+		relativePath string
+		wantErr      bool
+	}{
+		{
+			name:         "prunes generated test output",
+			relativePath: filepath.Join(cryptoutilSharedMagic.CICDExcludeDirTestOutput, "phase2-worktrees", "copy", "pkg", "bad.go"),
+		},
+		{
+			name:         "continues scanning test source",
+			relativePath: filepath.Join("test", "unit", "bad.go"),
+			wantErr:      true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			root := t.TempDir()
+			writeFile(t, filepath.Join(root, tc.relativePath), bannedImportFixture)
+
+			err := CheckInDir(newTestLogger(), root)
+			if tc.wantErr {
+				require.ErrorContains(t, err, "found 1 banned internal/apps/template/ imports")
+
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestCheckInDir_SkipsNonGoFiles(t *testing.T) {
 	t.Parallel()
 
@@ -318,11 +385,11 @@ func TestCheckInDir_EmptyDir_Passes(t *testing.T) {
 func TestCheckInDir_WalkError(t *testing.T) {
 	t.Parallel()
 
-	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
+	stubWalkDirFn := func(_ string, _ fs.WalkDirFunc) error {
 		return errors.New("simulated walk error")
 	}
 
-	err := checkInDir(newTestLogger(), ".", stubWalkFn)
+	err := checkInDir(newTestLogger(), ".", stubWalkDirFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "walking directory tree")
 }
@@ -330,11 +397,11 @@ func TestCheckInDir_WalkError(t *testing.T) {
 func TestCheckInDir_WalkCallbackError(t *testing.T) {
 	t.Parallel()
 
-	stubWalkFn := func(_ string, fn filepath.WalkFunc) error {
+	stubWalkDirFn := func(_ string, fn fs.WalkDirFunc) error {
 		return fn("fake.go", nil, errors.New("simulated callback error"))
 	}
 
-	err := checkInDir(newTestLogger(), ".", stubWalkFn)
+	err := checkInDir(newTestLogger(), ".", stubWalkDirFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "walking directory tree")
 }
@@ -342,19 +409,24 @@ func TestCheckInDir_WalkCallbackError(t *testing.T) {
 func TestCheckInDir_FileReadError(t *testing.T) {
 	t.Parallel()
 
-	existingFile := filepath.Join(t.TempDir(), "existing.go")
+	root := t.TempDir()
+	existingFile := filepath.Join(root, "existing.go")
 	writeFile(t, existingFile, "package test\n")
-	info, err := os.Stat(existingFile)
-	require.NoError(t, err)
 
-	stubWalkFn := func(_ string, fn filepath.WalkFunc) error {
-		return fn("missing.go", info, nil)
+	stubWalkDirFn := func(walkRoot string, fn fs.WalkDirFunc) error {
+		return filepath.WalkDir(walkRoot, func(path string, entry fs.DirEntry, err error) error {
+			if path == existingFile {
+				return fn(filepath.Join(root, "missing.go"), entry, nil)
+			}
+
+			return fn(path, entry, err)
+		})
 	}
 
-	err = checkInDir(newTestLogger(), ".", stubWalkFn)
+	err := checkInDir(newTestLogger(), root, stubWalkDirFn)
 
 	require.ErrorContains(t, err, "walking directory tree")
-	require.ErrorContains(t, err, "open missing.go")
+	require.ErrorContains(t, err, "missing.go")
 }
 
 // --- Integration test against real workspace ---

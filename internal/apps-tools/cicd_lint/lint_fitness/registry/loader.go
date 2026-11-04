@@ -41,14 +41,21 @@ func LoadRegistry(path string) (*RegistryFile, error) {
 // registry YAML file at "api/cryptosuite-registry/registry.yaml". Returns the absolute
 // path on success or an error if the file is not found.
 func findRegistryYAMLPath() (string, error) {
-	dir, err := os.Getwd()
+	return findRegistryYAMLPathWithDeps(os.Getwd, os.Stat)
+}
+
+func findRegistryYAMLPathWithDeps(
+	getwdFn func() (string, error),
+	statFn func(string) (os.FileInfo, error),
+) (string, error) {
+	dir, err := getwdFn()
 	if err != nil {
 		return "", fmt.Errorf("getwd: %w", err)
 	}
 
 	for {
 		candidate := filepath.Join(dir, defaultRegistryRelPath)
-		if _, statErr := os.Stat(candidate); statErr == nil {
+		if _, statErr := statFn(candidate); statErr == nil {
 			return candidate, nil
 		}
 
@@ -276,6 +283,29 @@ func validateProductServices(pss []RegistryProductService) []string {
 				start: ps.MigrationRangeStart,
 				end:   ps.MigrationRangeEnd,
 			})
+		}
+	}
+
+	for _, ps := range pss {
+		seenDependencies := make(map[string]bool, len(ps.APIDependencies))
+		prefix := fmt.Sprintf("product_services (%s).api_dependencies", ps.PSID)
+
+		for _, targetPSID := range ps.APIDependencies {
+			switch {
+			case targetPSID == "":
+				errs = append(errs, prefix+": target PS-ID must not be empty")
+			case seenDependencies[targetPSID]:
+				errs = append(errs, prefix+": duplicate target PS-ID "+targetPSID)
+			case targetPSID == ps.PSID:
+				seenDependencies[targetPSID] = true
+
+				errs = append(errs, prefix+": service must not depend on its own API")
+			case !seenPSID[targetPSID]:
+				seenDependencies[targetPSID] = true
+				errs = append(errs, prefix+": unknown target PS-ID "+targetPSID)
+			default:
+				seenDependencies[targetPSID] = true
+			}
 		}
 	}
 

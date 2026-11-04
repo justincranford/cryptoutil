@@ -7,6 +7,11 @@
 // The YAML file is the machine-readable SSOT; this package exposes Go-typed accessors.
 package registry
 
+import (
+	"slices"
+	"strings"
+)
+
 // Product represents a cryptoutil product (e.g. "sm").
 type Product struct {
 	// ID is the canonical product identifier (e.g. "sm").
@@ -154,6 +159,34 @@ func AllAPIResources() []APIResourceInfo {
 			Resources: resources,
 		}
 	}
+
+	return result
+}
+
+// AllAPIServiceDependencies returns the canonical directed PS-ID API call edges.
+func AllAPIServiceDependencies() []APIServiceDependencyInfo {
+	return apiServiceDependencies(allRegistryFile.ProductServices)
+}
+
+func apiServiceDependencies(services []RegistryProductService) []APIServiceDependencyInfo {
+	result := make([]APIServiceDependencyInfo, 0)
+
+	for _, service := range services {
+		for _, targetPSID := range service.APIDependencies {
+			result = append(result, APIServiceDependencyInfo{
+				SourcePSID: service.PSID,
+				TargetPSID: targetPSID,
+			})
+		}
+	}
+
+	slices.SortFunc(result, func(left, right APIServiceDependencyInfo) int {
+		if sourceOrder := strings.Compare(left.SourcePSID, right.SourcePSID); sourceOrder != 0 {
+			return sourceOrder
+		}
+
+		return strings.Compare(left.TargetPSID, right.TargetPSID)
+	})
 
 	return result
 }

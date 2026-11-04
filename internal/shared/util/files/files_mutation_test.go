@@ -232,7 +232,7 @@ func TestListAllFilesWithOptions_ExtensionFiltering(t *testing.T) {
 		},
 		{
 			name:       "dotfile without extension matched by name",
-			files:      map[string]string{testGitignore: "*.o", ".dockerignore": "node_modules"},
+			files:      map[string]string{testGitignore: "*.o", ".dockerignore": cryptoutilSharedMagic.CICDExcludeDirNodeModules},
 			inclusions: []string{testGitignoreValueA1AA6596},
 			wantKeys:   []string{testGitignoreValueA1AA6596},
 			wantAbsent: []string{"dockerignore"},

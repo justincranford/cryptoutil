@@ -117,7 +117,7 @@ func (r *TenantRepositoryImpl) Delete(ctx context.Context, id googleUuid.UUID) e
 	if users > 0 || clients > 0 {
 		summary := fmt.Sprintf("cannot delete tenant: has %d users and %d clients", users, clients)
 
-		return cryptoutilSharedApperr.NewHTTP409Conflict(&summary, nil)
+		return fmt.Errorf("delete tenant: %w", cryptoutilSharedApperr.NewHTTP409Conflict(&summary, nil))
 	}
 
 	if err := r.db.WithContext(ctx).Delete(&Tenant{}, "id = ?", id).Error; err != nil {
@@ -149,13 +149,13 @@ func toAppErr(err error) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		summary := errSummaryRecordNotFound
 
-		return cryptoutilSharedApperr.NewHTTP404NotFound(&summary, err)
+		return fmt.Errorf("repository lookup: %w: %w", cryptoutilSharedApperr.NewHTTP404NotFound(&summary, err), err)
 	}
 
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		summary := errSummaryDuplicateKeyViolation
 
-		return cryptoutilSharedApperr.NewHTTP409Conflict(&summary, err)
+		return fmt.Errorf("repository constraint: %w: %w", cryptoutilSharedApperr.NewHTTP409Conflict(&summary, err), err)
 	}
 
 	// Check for SQLite UNIQUE constraint violations (error code 2067 or message contains "UNIQUE constraint")
@@ -163,10 +163,10 @@ func toAppErr(err error) error {
 	if strings.Contains(errMsg, "UNIQUE constraint") || strings.Contains(errMsg, "(2067)") {
 		summary := errSummaryDuplicateKeyViolation
 
-		return cryptoutilSharedApperr.NewHTTP409Conflict(&summary, err)
+		return fmt.Errorf("repository constraint: %w: %w", cryptoutilSharedApperr.NewHTTP409Conflict(&summary, err), err)
 	}
 
 	summary := errSummaryDatabaseError
 
-	return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, err)
+	return fmt.Errorf("repository operation: %w: %w", cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, err), err)
 }

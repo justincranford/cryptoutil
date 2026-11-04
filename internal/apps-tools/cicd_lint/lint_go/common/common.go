@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -42,10 +43,6 @@ const MagicDefaultDir = "internal/shared/magic"
 // MagicMinStringLen is the minimum unquoted length of a string literal to flag as a magic-value issue.
 // Strings shorter than this are too common (e.g. "", ".", "/") to report reliably.
 const MagicMinStringLen = 3
-
-const (
-	magicExcludeDirWorkflowReports = "workflow-reports"
-)
 
 var magicTrivialStrings = map[string]bool{
 	"yml":  true,
@@ -245,16 +242,13 @@ func MagicShouldSkipPath(path string) bool {
 			continue
 		}
 
-		// Skip Go-convention excluded directories (start with _ or .).
-		// Matches what the Go build tool does: directories named _ or . are not compiled.
-		if strings.HasPrefix(part, "_") || strings.HasPrefix(part, ".") {
+		// Skip Go-convention exclusions and machine-owned repository scan directories.
+		if strings.HasPrefix(part, "_") || strings.HasPrefix(part, ".") ||
+			cryptoutilCmdCicdCommon.IsRepositoryScanExcludedDir(part) {
 			return true
 		}
 
 		switch part {
-		case cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirTestOutput, magicExcludeDirWorkflowReports:
-			return true
-
 		case "api":
 			if i+1 < len(parts) && magicGeneratedAPIDirs[parts[i+1]] {
 				return true

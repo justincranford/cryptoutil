@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	testComposeEnvFile                    = ".env"
+	testComposeEnvFile                    = cryptoutilSharedMagic.CICDExcludeDirDotEnv
 	testEnvFileHardcodedCredentialCompose = `services:
   mydb:
     image: postgres:latest

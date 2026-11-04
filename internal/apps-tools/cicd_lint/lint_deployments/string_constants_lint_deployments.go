@@ -2,7 +2,6 @@ package lint_deployments
 
 const (
 	valueMd                     = ".md"
-	valueOpaque                 = "Opaque"
 	valueReadmeMd               = "README.md"
 	valueAPIKey                 = "api-key"
 	valueAPIKeyValue2E9BC6C9    = "api_key"

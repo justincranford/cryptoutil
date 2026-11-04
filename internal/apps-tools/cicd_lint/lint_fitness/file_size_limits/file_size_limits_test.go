@@ -87,6 +87,35 @@ func TestCheckInDir_APIDir_Excluded(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheckInDir_MachineOwnedDirectories_Excluded(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			filePath := filepath.Join(rootDir, "nested", tc.dirName, "nested", "large.go")
+			require.NoError(t, os.MkdirAll(filepath.Dir(filePath), cryptoutilSharedMagic.DirPermissions))
+			require.NoError(t, os.WriteFile(filePath, []byte(makeLines(510)), cryptoutilSharedMagic.CacheFilePermissions))
+
+			require.NoError(t, CheckInDir(newTestLogger(), rootDir))
+		})
+	}
+}
+
 func TestCheckInDir_MagicDir_Excluded(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()

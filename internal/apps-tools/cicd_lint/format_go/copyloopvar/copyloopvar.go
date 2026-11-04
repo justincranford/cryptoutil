@@ -42,6 +42,15 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, goVersion strin
 		}
 
 		if info.IsDir() {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary %s: %w", path, skipErr)
+			}
+
+			if shouldSkip {
+				return filepath.SkipDir
+			}
+
 			relativePath, relErr := filepath.Rel(rootDir, path)
 			if relErr != nil {
 				return fmt.Errorf("failed to determine relative path for %s: %w", path, relErr)

@@ -1,0 +1,32 @@
+{
+  "images": {
+    "lgtm": {
+      "reference": "grafana/otel-lgtm:0.36.0@sha256:57c04cbd8e7022f32bb84c4ac005d79baf8b08e2c5be44facf11f5f1f9944ba2"
+    },
+    "otelCollector": {
+      "reference": "otel/opentelemetry-collector-contrib:0.162.0@sha256:39923a8e431bd1f57be82411999d389fcfe40857492e4365456d97a4c1f74be6"
+    },
+    "postgres": {
+      "reference": "postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
+    }
+  },
+  "kubernetes": {
+    "helm": {
+      "linuxAmd64TarGzSha256": "0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b",
+      "version": "v4.3.1",
+      "windowsAmd64ZipSha256": "fcfd7b796dcf0f225abc40b5636a3b01f55f3de2fb1dfb18475df94e62c14112"
+    },
+    "k3s": {
+      "image": "rancher/k3s:v1.37.1-k3s1@sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+      "ociManifestDigest": "sha256:8d298cb81ca94e875d31e804e5aa10b56355d1d7d95d7e1ef8a8d9239f15ada0",
+      "version": "v1.37.1-k3s1"
+    },
+    "kubectl": {
+      "linuxAmd64Sha256": "629d3f410e09bf49b64ae7079f7f0bda1191efed311f7d37fdbab0ad5b0ec2b7",
+      "version": "v1.36.1",
+      "windowsAmd64Sha256": "538f4229eee91a17b34724da7daade7687393d6988e33b723c6c306572c13900"
+    }
+  },
+  "platform": "linux/amd64",
+  "schemaVersion": 1
+}

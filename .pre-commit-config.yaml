@@ -101,7 +101,15 @@ repos:
       - id: check-yaml
         name: Check YAML syntax
         args: ['--allow-multiple-documents', '--unsafe']  # --unsafe allows custom YAML tags (e.g. !override for Docker Compose)
-        exclude: '(\.github/workflows/.*\.yml|api/cryptosuite-registry/templates/.*)$'  # Workflows checked by actionlint; templates have computed placeholders
+        # Rendered/template-aware validators cover paths excluded from raw YAML parsing.
+        exclude: >-
+          (?x)
+          (
+            \.github/workflows/.*\.yml
+            | api/cryptosuite-registry/templates/kubernetes/[^/]+/templates/.*
+            | api/cryptosuite-registry/templates/deployments/__(PRODUCT|SUITE)__/(compose-apps-overrides|compose-postgres)\.yml
+            | deployments/k8s/charts/[^/]+/templates/.*
+          )$
         require_serial: false
         stages: [pre-commit]
 
@@ -199,6 +207,7 @@ repos:
       # Mixed line endings
       - id: mixed-line-ending
         name: Fix mixed line endings
+        args: [--fix=lf]
         require_serial: false
 
   # Custom CI/CD lint checks — ONE bulk hook per stage for ALL linters.
@@ -208,7 +217,23 @@ repos:
       - id: cicd-lint-all-pre-commit
         name: Run custom CI/CD lint checks (pre-commit)
         entry: go
-        args: [run, cmd/cicd-lint/main.go, -q, lint-fitness, lint-text, lint-go, lint-go-test, lint-golangci, lint-compose, lint-openapi, lint-ports, lint-workflow, lint-deployments, lint-docs, lint-java-test, lint-python-test]
+        args:
+          - run
+          - cmd/cicd-lint/main.go
+          - -q
+          - lint-fitness
+          - lint-text
+          - lint-go
+          - lint-go-test
+          - lint-golangci
+          - lint-compose
+          - lint-openapi
+          - lint-ports
+          - lint-workflow
+          - lint-deployments
+          - lint-docs
+          - lint-java-test
+          - lint-python-test
         language: system
         pass_filenames: false  # linters handle file scanning internally; no filenames needed
         require_serial: false  # linters are read-only and support concurrency
@@ -217,7 +242,24 @@ repos:
       - id: cicd-lint-all-pre-push
         name: Run custom CI/CD lint checks (pre-push)
         entry: go
-        args: [run, cmd/cicd-lint/main.go, -q, lint-fitness, lint-text, lint-go, lint-go-test, lint-go-mod, lint-golangci, lint-compose, lint-openapi, lint-ports, lint-workflow, lint-deployments, lint-docs, lint-java-test, lint-python-test]
+        args:
+          - run
+          - cmd/cicd-lint/main.go
+          - -q
+          - lint-fitness
+          - lint-text
+          - lint-go
+          - lint-go-test
+          - lint-go-mod
+          - lint-golangci
+          - lint-compose
+          - lint-openapi
+          - lint-ports
+          - lint-workflow
+          - lint-deployments
+          - lint-docs
+          - lint-java-test
+          - lint-python-test
         language: system
         pass_filenames: false  # linters handle file scanning internally; no filenames needed
         require_serial: false  # linters are read-only and support concurrency
@@ -308,7 +350,7 @@ repos:
         name: YAML strict lint
         args: [-c, .yamllint.yaml]
         files: '\.(yaml|yml)$'
-        exclude: 'api/cryptosuite-registry/templates/'
+        exclude: '(api/cryptosuite-registry/templates/kubernetes/[^/]+/templates/|deployments/k8s/charts/[^/]+/templates/)'
         stages: [pre-commit]
 
   # YAML file formatting (consistent indentation, trailing newlines)
@@ -318,7 +360,7 @@ repos:
       - id: yamlfmt
         name: Format YAML files
         files: '\.(yaml|yml)$'
-        exclude: '\.github/|\.pre-commit-config\.yaml|api/cryptosuite-registry/templates/'
+        exclude: '\.github/|\.pre-commit-config\.yaml|api/cryptosuite-registry/templates/kubernetes/[^/]+/templates/|deployments/k8s/(charts|generated)/'
         stages: [pre-commit]
 
   # Specialized file linting: GitHub Actions workflow linting
@@ -335,20 +377,23 @@ repos:
     hooks:
       - id: hadolint-docker
         files: 'Dockerfile.*|Dockerfile$'
-        exclude: '\.tmpl$|api/cryptosuite-registry/templates/'
+        exclude: '\.tmpl$|api/cryptosuite-registry/templates/|(^|/)Dockerfile\.dockerignore$'
         require_serial: false
 
   # Semgrep static analysis with project-local rules (no cloud, no telemetry). See .semgrep/rules/.
-  # Uses language: python so pre-commit pip-installs semgrep in a virtualenv — works natively on
-  # Windows and Linux without Docker. DO NOT change to docker_image (breaks Windows without Docker).
+  # Do not impose a local RLIMIT_STACK cap: upstream issue #11979 / open PR #11987 describe a
+  # Python 3.15 / Semgrep 1.178 startup failure with RLIM_INFINITY. Its 5.12 MB candidate does not
+  # justify a local bound; validate the actual configured Semgrep version/runtime with this hook.
+  # language: python installs Semgrep in a virtualenv — works on Windows and Linux without Docker.
   - repo: local
     hooks:
       - id: semgrep
         name: Semgrep project rules
         language: python
-        additional_dependencies: [semgrep]
+        language_version: python3.14
+        additional_dependencies: [semgrep==1.183.0]
         entry: semgrep
-        args: [--config=.semgrep/rules/, --error, --quiet, --no-autofix]
+        args: [--config=.semgrep/rules/, --error, --quiet, --no-autofix, --metrics, 'off']
         pass_filenames: false
         require_serial: false
 
@@ -408,13 +453,55 @@ repos:
         require_serial: false
         stages: [commit-msg]
 
+  # Run real Checkov Kubernetes analysis on production-rendered charts before excluding raw Helm templates.
+  - repo: local
+    hooks:
+      - id: checkov-rendered-runtime
+        name: Checkov Kubernetes scan of rendered runtime and infrastructure charts
+        entry: go
+        args:
+          - test
+          - -tags=integration,checkov
+          - -run=^(TestHelmRuntimeCheckovScansProductionRenderedFullMatrix|TestHelmInfrastructureCheckovScansProductionRenderedSelections)$
+          - -count=1
+          - -timeout=20m
+          - ./internal/apps-tools/deploymentgen
+        language: python
+        additional_dependencies: [checkov==3.3.29]
+        files: >-
+          (?x)
+          (
+            ^\.pre-commit-config\.yaml$
+            | ^api/cryptosuite-registry/(k8s/|registry\.yaml$|templates/kubernetes/cryptoutil-(runtime|infra)/)
+            | ^deployments/k8s/charts/cryptoutil-(runtime|infra)/
+            | ^internal/apps-tools/deploymentgen/
+            | ^internal/apps-tools/cicd_deployment/
+            | ^internal/shared/magic/
+            | ^cmd/cicd-deployment/
+          )
+        pass_filenames: false
+        require_serial: true
+        stages: [pre-commit]
+
   # IaC / Container security scanning (Dockerfiles, Docker Compose, Kubernetes)
   - repo: https://github.com/bridgecrewio/checkov
     rev: 3.3.29
     hooks:
       - id: checkov
         name: Checkov IaC security scan
+        # The pinned Python hook environment supplies Checkov on PATH; the Go runner adds exact
+        # exclusions for nested .git checkouts while preserving the full repository directory scan.
+        entry: go
+        pass_filenames: false
         args:
+          - run
+          - ./cmd/cicd-checkov
+          - --
+          # Keep scans local: do not upload results or download Prisma Cloud data.
+          # Preserve the complete installed policy set without requiring platform credentials.
+          - --skip-results-upload
+          - --skip-download
+          - --include-all-checkov-policies
           # Single --skip-check arg (checkov overwrites, not appends, on multiple --skip-check flags):
           # CKV_DOCKER_2,CKV_DOCKER_3: HEALTHCHECK optional (using wget in compose healthchecks instead)
           # CKV2_GHA_1: GH Actions top-level permissions — handled by actionlint, not checkov scope
@@ -422,9 +509,28 @@ repos:
           # CKV_SECRET_4: Basic Auth false positive; gitleaks handles secrets at pre-push
           - --skip-check=CKV_DOCKER_2,CKV_DOCKER_3,CKV2_GHA_1,CKV_OPENAPI_3,CKV_OPENAPI_4,CKV_OPENAPI_5,CKV_OPENAPI_21,CKV_SECRET_4
           - --quiet
+          - -d
+          - .
+          # Checkov skip-path regexes are relative to the hook's repository-root working directory.
+          # Optional ./ handles directory-mode paths while anchors keep nested source paths included.
+          # Raw, non-renderable Helm templates are checked through production renders above.
+          - '--skip-path=^(?:\.[\\/])?api[\\/]cryptosuite-registry[\\/]templates[\\/]kubernetes[\\/]cryptoutil-infra[\\/]templates(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?api[\\/]cryptosuite-registry[\\/]templates[\\/]kubernetes[\\/]cryptoutil-runtime[\\/]templates(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?deployments[\\/]k8s[\\/]charts[\\/]cryptoutil-infra[\\/]templates(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?deployments[\\/]k8s[\\/]charts[\\/]cryptoutil-runtime[\\/]templates(?:[\\/]|$)'
+          # Only root machine-owned metadata, caches, and generated reports are statically excluded.
+          # Generic build/source names and credential-shaped file extensions remain eligible for scanning.
+          - '--skip-path=^(?:\.[\\/])?(?:\.git|\.worktree|worktree)(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?(?:\.Python|__pycache__|htmlcov|\.tox|\.nox|\.cache|\.hypothesis|\.pytest_cache|venv|\.venv)(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?(?:test-output|dast-reports|e2e-reports|load-reports|test-results|workflow-reports)(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?(?:\.cicd|\.cicd-lint|\.ruff_cache|\.mypy_cache|\.gremlins)(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?\.semgrep[\\/](?:tmp|results)(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?\.zap[\\/](?:reports|session)(?:[\\/]|$)'
+          - '--skip-path=^(?:\.[\\/])?deployments[\\/]k8s[\\/]local[\\/]secrets(?:[\\/]|$)'
         files: '(deployments/.*\.(yml|yaml)$|Dockerfile.*|Dockerfile$)'
-        exclude: 'api/cryptosuite-registry/templates/'
-        require_serial: false
+        # Only raw Helm templates are excluded from the trigger; other deployment files remain scanned.
+        exclude: '(api/cryptosuite-registry/templates/kubernetes/cryptoutil-(runtime|infra)/templates/|deployments/k8s/charts/cryptoutil-(runtime|infra)/templates/)'
+        require_serial: true
         stages: [pre-commit]
 
   # SQL migration linting (PostgreSQL dialect)

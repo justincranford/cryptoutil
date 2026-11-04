@@ -122,10 +122,15 @@ func skipDirWithRel(rootDir, path string, relFn func(string, string) (string, er
 		return filepath.SkipDir
 	}
 
-	// Skip vendor, .git, testdata, api (generated code).
+	// Skip common repository-scan exclusions and testdata.
 	base := filepath.Base(path)
-	switch base {
-	case cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CICDExcludeDirVendor, "testdata":
+
+	shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+	if skipErr != nil {
+		return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+	}
+
+	if shouldSkip || base == "testdata" {
 		return filepath.SkipDir
 	}
 

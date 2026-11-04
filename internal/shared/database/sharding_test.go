@@ -4,7 +4,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"os"
 	"testing"
@@ -18,10 +17,9 @@ import (
 	postgresModule "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	_ "modernc.org/sqlite" // SQLite driver.
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
 var testPostgresDB *gorm.DB
@@ -82,14 +80,7 @@ func TestMain(m *testing.M) {
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
-	require.NoError(t, err)
-
-	dialector := sqlite.Dialector{Conn: sqlDB}
-	db, err := gorm.Open(dialector, &gorm.Config{})
-	require.NoError(t, err)
-
-	return db
+	return cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 }
 
 func TestDefaultShardConfig(t *testing.T) {

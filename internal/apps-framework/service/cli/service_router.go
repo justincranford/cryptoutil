@@ -40,6 +40,8 @@ type ServiceConfig struct {
 	UsageHealth string
 	// UsageLivez is the usage text for the livez subcommand.
 	UsageLivez string
+	// UsageStartupz is the usage text for the startupz subcommand.
+	UsageStartupz string
 	// UsageReadyz is the usage text for the readyz subcommand.
 	UsageReadyz string
 	// UsageShutdown is the usage text for the shutdown subcommand.
@@ -99,6 +101,8 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 		return HealthCommand(args[1:], stdout, stderr, cfg.UsageHealth, cfg.DefaultPublicPort)
 	case "livez":
 		return LivezCommand(args[1:], stdout, stderr, cfg.UsageLivez)
+	case "startupz":
+		return StartupzCommand(args[1:], stdout, stderr, cfg.UsageStartupz)
 	case "readyz":
 		return ReadyzCommand(args[1:], stdout, stderr, cfg.UsageReadyz)
 	case "shutdown":

@@ -63,6 +63,33 @@ func TestCheckInDir_TLS12Production_Fails(t *testing.T) {
 	require.Contains(t, err.Error(), "TLS minimum version violation")
 }
 
+func TestCheckInDir_MachineOwnedDirectories_Skipped(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			writeGoFile(t, filepath.Join(rootDir, "nested", tc.dirName, "nested"), "server.go", tls12GoContent)
+
+			require.NoError(t, CheckInDir(newTestLogger(), rootDir, filepath.Walk, os.Open))
+		})
+	}
+}
+
 func TestCheckInDir_TLS12InTestFile_Skipped(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()

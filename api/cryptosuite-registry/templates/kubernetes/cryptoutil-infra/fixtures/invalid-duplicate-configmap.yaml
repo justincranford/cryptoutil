@@ -1,0 +1,3 @@
+components:
+  postgresFollower:
+    configMapName: postgres-leader

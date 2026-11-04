@@ -94,6 +94,8 @@ test_*.db-wal
 /$coverageFile
 /$outFile
 /$outPath
+/$html
+/$profile
 
 # Output of test or workflow reports
 dast-reports/
@@ -103,6 +105,9 @@ test-results/
 test-output/
 workflow-reports/
 tmp/
+
+# Local K3s join-token Docker Secret source; never version token material.
+/deployments/k8s/local/secrets/
 
 # Virtual environments
 venv/

@@ -39,6 +39,8 @@ type PublicHTTPServer struct {
 	actualPort    int
 	listener      net.Listener
 	tlsMaterial   *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
+	startedCh     chan struct{}
+	started       bool
 	listenFn      func(ctx context.Context, network, address string) (net.Listener, error)
 	appListenerFn func(app *fiber.App, ln net.Listener) error
 	mu            sync.RWMutex
@@ -103,6 +105,7 @@ func newPublicHTTPServerInternal(
 	server := &PublicHTTPServer{
 		settings:      settings,
 		tlsMaterial:   tlsMaterial,
+		startedCh:     make(chan struct{}),
 		listenFn:      listenFn,
 		appListenerFn: appListenerFn,
 	}
@@ -235,6 +238,7 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	}
 
 	s.actualPort = tcpAddr.Port
+	s.signalStarted()
 	s.mu.Unlock()
 
 	// Create TLS listener using configured TLS material.

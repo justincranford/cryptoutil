@@ -35,6 +35,16 @@ func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int
 		http.StatusOK, "Service is alive", "Liveness check failed", "Service is not alive")
 }
 
+// StartupzCommand implements the startupz subcommand.
+// Calls GET /admin/api/v1/startupz on the admin server.
+func StartupzCommand(args []string, stdout, stderr io.Writer, usageText string) int {
+	startupzPath := cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminStartupzRequestPath
+	defaultURL := fmt.Sprintf("https://127.0.0.1:%d%s", cryptoutilSharedMagic.DefaultPrivatePortCryptoutil, startupzPath)
+
+	return httpGetCommand(args, stdout, stderr, usageText, defaultURL, startupzPath,
+		http.StatusOK, "Service startup complete", "Startup check failed", "Service startup is incomplete")
+}
+
 // ReadyzCommand implements the readyz subcommand.
 // Calls GET /admin/api/v1/readyz on the admin server.
 // Supports --cert and --key flags for admin mTLS client certificate presentation.

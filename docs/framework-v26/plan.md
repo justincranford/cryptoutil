@@ -1,10 +1,108 @@
 # Framework v26 — Kubernetes HA Deployment and In-Process PKI CA Reload
 
-**Status**: Phase 1 lifetime/placement closure is complete. The user authorized Phase 2 on
-2026-11-01, but Phase 2 implementation has not started. The registry-backed three-product
-scope is unchanged; authorization does not approve any new product membership.
+**Status**: Phase 1 lifetime/placement closure is complete. Phase 2 is user-authorized and
+underway, but no framework integration checkpoint or runtime acceptance exists. The accepted
+isolated tooling checkpoint is `e9f312cfb214eb9bf1fed49e2ffdb617ca93d537`
+(`fix(tooling): pin supported Semgrep runtime`): it changes only `.pre-commit-config.yaml` to
+pin Python 3.14+ and Semgrep 1.183.0; supported Semgrep and normal configured commit hooks passed,
+and its isolated worktree was clean. It weakened no source/policy and bypassed no hook. The active
+scanner worker owns the next isolated eight-file checkpoint; the five older component workers are
+frozen/idle, and no primary integration is active. Scanner work does not establish root integration.
+The latest root `TestLint_Integration` run failed at its 600s timeout in
+`require-framework-naming` filesystem walking; a later rerun was aborted with exit 137. The old
+helper was explicitly killed and destroyed, which is not proof of OOM. The focused package test
+passes in 5.768s after changing per-entry `Lstat` to `WalkDir`; existing artifact pruning remains,
+and a regression confirms `test/` sources are still scanned. Neither result establishes root
+integration or a broad-gate pass. Earlier broad validation predates substantial source changes
+and is historical. An earlier disk read found 940,208,128 bytes free on `R:` and 621,630,750,720 bytes
+free on `C:`; later reads found about 397 MiB free on `R:`. The parent then verified 17,607,114,752
+bytes free and removed 48 explicitly inventoried stale `go-build*` directories under
+`R:\Go\GOTMP`, reclaiming 62,537,728 bytes; no active build processes, reparse points, caches,
+modules, binaries, or other temporary files were removed. Go is 1.27.3 on Windows/amd64 with
+inherited `CGO_ENABLED=0`. Historical normal and
+tagged full-repository build passes used process-scoped Go cache/temp overrides; they are not current
+gates. The user prohibits changing any inherited Go/tool environment values, including `GOCACHE`,
+`GOTMPDIR`, `TMP`, `TEMP`, `CGO_ENABLED`, and `GOTOOLCHAIN`. No shared caches, persistent
+environment variables, helper container, or global Docker resources were changed. The Docker host
+reports 14 CPUs and 8.33 GB total. Locked Helm v4.3.1 is installed under ignored
+`test-output/framework-v26-toolchain-helm-v4.3.1/` but was not added to PATH. The repository does
+not pin K3D; the selected Compose-hosted target uses locked K3s, so no unpinned K3D was installed.
+Production graph/tooling, canonical charts, typed projections, protected import, lifecycle-aware
+admission and a node-only Compose template have prerequisite validation described below.
+Full rendered lifecycle parity is validated; PKI/migration/ownership execution acceptance, framework integration, runtime, workflow, Compose
+cutover, and the main-agent postmortem remain incomplete. No app image or cluster deployment has
+started; no Phase 2 integration/runtime checkpoint or push exists.
+
+Earlier broad validation ran in the owned clean Linux validator while `R:` was reported
+constrained; the latest read confirms that `R:` remains constrained. No host cache/temp paths,
+Docker VM allocation, or container CPU quota were changed. Earlier
+normal/tagged builds, the full shuffled suite (333 packages passed; 37 have no
+test files), normal/tagged `golangci-lint` and `go vet`, all 52 deployment validators, `lint-go`,
+`lint-fitness`, `lint-text`, and `lint-docs` passed before the latest source changes; these are
+historical, not current gate evidence. `deploymentgen` statement coverage was 99.0%. An earlier
+production CLI run passed chart-mirror, infrastructure-values, and graph checks; Helm 4.3.1
+strict lint/render passed for generated mirrors with canonical infrastructure
+values and the supported runtime fixture. Real configured pre-commit hooks passed for the
+isolated tooling checkpoint; framework implementation commits and a clean integration checkpoint
+remain pending. Capacity estimation rejects the full matrix against the measured host budget
+after explicit reserves and accepts a selected PostgreSQL projection, but no live host probe or
+scheduler admission has run. No runtime/lifecycle acceptance is claimed.
 **Created**: 2026-10-21
-**Last Updated**: 2026-11-01
+**Last Updated**: 2026-11-03
+
+## 2026-11-03 Lifecycle Prerequisite Continuation
+
+The earlier identity-only lifecycle notes below are historical. The typed lifecycle operator
+contract, restricted Job/RBAC chart, file-backed in-memory importer, content revisions, Job quota
+headroom, generated third-chart mirrors, full-registry combined parity, and rendered Secret
+reference checks are now implemented. Prior closure evidence is recorded in `tasks.md`.
+
+This continuation implements a protected physical source boundary and actual CLI import-check:
+clean absolute root, rooted filesystem, checked handles, strict current-user ownership,
+Windows DACL or Unix mode enforcement, no symlink/reparse/hard-linked files, bounded sizes,
+classified errors, and no Secret output/persistence. The source owner must not concurrently
+replace material; production must not repair permissions on the operator's behalf.
+
+Physical host admission must require the explicit lifecycle input and include all selected Jobs
+concurrently with maximum application/init and infrastructure requests plus explicit reserves.
+Quota projection alone cannot prove host capacity. Existing read-only resource-collision and
+port checks remain mandatory. The operator must provide pins, protected material, commands,
+configuration, and a model revision matching the non-secret contract.
+
+The orthogonal execution worker owns only new `deploymentrun/lifecycle` transport/DAG files.
+The outer `lifecycle-execute` CLI now loads current rooted projections, gates current lifecycle
+budgets, performs protected physical imports, and invokes that adapter without a dependency cycle.
+It requires explicit owned target paths/context/policy and prior-admission operator attestation,
+not a live host probe. The real Windows filesystem/ACL/schema/admission/dispatch pipeline passes
+with only the final executor injected. Combined validation exposed scheduling-sensitive short
+test deadlines before Prepare; the owner corrected test policy budgets while preserving real
+timeout cases and asserting the call was reached. Post-fix combined shuffled repeated tests,
+subsequent focused timeouts, tagged coupled checks, scoped lint/vet and artifact checks pass;
+current coverage is deploymentgen 98.1%, outer CLI 98.8%, adapter 98.5%. `tasks.md` records
+the exact remaining operator inputs and runtime command/publication acceptance requirements.
+No cluster is started and no runtime acceptance is claimed.
+Inherited staged tracking/source work is preserved; no commit slot has been authorized.
+
+## 2026-11-03 Host PKI Publication
+
+The production `pki-publish` host bridge now validates existing protected pki-init outputs
+against the unchanged materializer consumer policy, constructs exact graph-bound materializer
+labels/key bundles in memory and uses the existing lifecycle namespace/verify-or-create client.
+An explicit non-secret manifest binds every reserved pod to approved DNS/PG identities and
+same-namespace imported trust anchors. The command retains explicit admission/target/policy
+inputs and performs no key generation, secret rewriting, file staging or broader RBAC.
+The supported suite generation command uses `--domain`/`--output-dir`; test fixtures no longer
+pretend positional PKI arguments are executable.
+
+This is an explicit pre-Job host prerequisite, not an in-Job publisher or replacement for the
+existing completion DAG. In-Job Secret create remains forbidden; Job Complete is not a
+certificate-output attestation. The remaining consumer binary/chart contract (absent entry,
+token path mismatch, missing init trust and identity inputs) and executable database migration/
+replication adapters are missing production wiring, separate from explicit operator certification.
+Current new publication functions have 100% coverage; four owning packages pass shuffled
+repeated tests at 99.5%/98.1%/98.3%/98.5%. Evidence and limitations are recorded in tasks.md
+and the lifecycle contract. Runtime acceptance and safe parent-owned integration remain open.
+
 **Purpose**: Replace Docker Compose as the service deployment/test path with K3D/K3S and
 Helm, prove real client operations across multiple service pods sharing PostgreSQL, and
 define safe in-process activation of supported PKI CA configuration changes.
@@ -15,20 +113,45 @@ define safe in-process activation of supported PKI CA configuration changes.
 - [Versioned, non-secret deployment model](../../api/cryptosuite-registry/k8s/k8s-model.json)
 - [Deterministically generated exhaustive deployment tree](../../api/cryptosuite-registry/k8s/k8s-deploy-tree.md)
 - [Deterministically generated machine-readable expected inventory](../../api/cryptosuite-registry/k8s/k8s-expected-inventory.json)
-- Planning-only Go generator under
-  [`api/cryptosuite-registry/tools/k8s-plan`](../../api/cryptosuite-registry/tools/k8s-plan/),
-  with named-file input, inventory and CLI tests. These files retain `//go:build ignore`
-  and remain outside production package discovery until Phase 2 promotion.
+- Production Go generator under
+  [`internal/apps-tools/deploymentgen`](../../internal/apps-tools/deploymentgen/), with a thin
+  [`cmd/cicd-deployment`](../../cmd/cicd-deployment/) entry, typed model schema, pinned local
+  toolchain inputs, registry-derived graph, typed runtime and infrastructure chart-values
+  projections, canonical runtime/infra Helm charts, generated chart mirrors, and K3s-node-only
+  Compose template. The
+  obsolete build-ignored prototype was removed after promotion. Focused Go tests validate the
+  runtime projection against its strict schema across all 55 releases and the infrastructure
+  projection against its schema for full and SQLite-only inventories. Registry-derived API edge
+  projection and negative dependency validation are also covered. Production CLI chart-values
+  preview/write/check is now implemented and focused-tested. The production `charts` mode writes
+  and checks exact canonical chart mirrors. An identity-only, non-deployable lifecycle inventory
+  now projects external Secret, PKI/DB Job, and bootstrap RBAC identities from the validated
+  graph. A focused combined parity check joins those identities to chart-rendered runtime and
+  infrastructure objects and controller-created PVC identities for selected PostgreSQL and
+  SQLite releases plus full infrastructure. Actual Secret provisioning, restricted Job specs and
+  execution, bootstrap RBAC policy/rendering, full-matrix combined parity, complete
+  lifecycle/orchestration, and runtime acceptance remain pending. Helm integration tests now
+  render all 55 runtime releases and match chart-owned object identities to the independent
+  graph; infrastructure chart-owned identities match for full and SQLite-only inventories.
+  The typed infrastructure projection rejects a collector replica mismatch against canonical
+  chart defaults and PostgreSQL pod identities in a SQLite-only selection. Earlier focused
+  package coverage was 99.0%; the capacity estimator additionally tests projection mismatches, malformed
+  resources, arithmetic overflow, max-replica budgets, and explicit host reserves. Both canonical
+  charts passed strict Helm lint when supplied their supported values inputs. An earlier
+  standalone Linux CLI run passed exact chart-mirror, generated infrastructure-values, and graph
+  checks; it predates the latest source changes and is not current integration evidence. The
+  An earlier native Windows CLI-link attempt failed for insufficient `R:` scratch space. At the
+  current checkpoint, the full normal build also failed while resizing linker output on `R:`; a
+  tagged full-repository build has not passed under the unchanged inherited environment.
 - [Phase 1 validation evidence](../../test-output/framework-v26-phase1-evidence.log)
 
-This Phase 1 request authorizes only the deployment contract and planning inventory generator.
-No Helm runtime, cluster bootstrap, reusable-framework code, deployment config or workflow is
-implemented here. Phase 1 completion is technical planning acceptance only; it is not runtime
-certification or approval of a new product. The user explicitly authorized Phase 2 on
-2026-11-01 with: “Then implement phase 2, including post-mortem and fixes at the end. Ensure all
-work is committed.” This worker's bounded assignment is Phase 1 lifetime/placement cleanup;
-the separately orchestrated Phase 2 is authorized but not started. The existing PKI reload
-track remains future scope.
+Phase 1 completion is technical planning acceptance only; it is not runtime certification or
+approval of a new product. The user explicitly authorized Phase 2 on 2026-11-01 with: “Then
+implement phase 2, including post-mortem and fixes at the end. Ensure all work is committed.”
+Phase 2 implementation is underway, but the isolated tooling checkpoint is not a clean framework
+integration checkpoint or runtime acceptance. The framework worker owns existing shared application
+lifecycle/configuration files; the runtime owner must coordinate any typed migration policy
+interface without changing those files. The existing PKI hot-reload track remains future scope.
 
 **Draft scope assumption**: use the registry's three products (sm, identity, skeleton),
 treating the requested fourth as a count mismatch rather than inventing membership.
@@ -133,22 +256,30 @@ pure model. Keep the three-product scope assumption explicit; it is registry-bac
 approval. The main-agent technical postmortem and Phase 1 acceptance are complete. Close the
 prototype's lifetime/placement gap by keeping reusable code and planning inputs outside ephemeral
 tracking directories. The four-section lifetime/placement postmortem is in
-[lessons.md](lessons.md#phase-1-lifetimeplacement-postmortem). Phase 2 is user-authorized but
-implementation remains unstarted.
+[lessons.md](lessons.md#phase-1-lifetimeplacement-postmortem). Phase 2 is user-authorized and
+underway; its runtime acceptance remains incomplete.
 
 ### Phase 2: Replace Compose Service Deployment and Test Orchestration
 
 The user explicitly authorized Phase 2 on 2026-11-01 with: “Then implement phase 2, including
-post-mortem and fixes at the end. Ensure all work is committed.” Authorization is recorded, not
-implementation progress: all Phase 2 implementation work remains pending and unchecked.
+post-mortem and fixes at the end. Ensure all work is committed.” Authorization and partial
+implementation progress are recorded separately. The current generator/chart/bootstrap work is
+not runtime certification, does not include app-image deployment, and is not the required clean
+framework-merge checkpoint.
 
-Implement reviewed Go graph/rendering tooling and canonical Helm templates, rather than
-hand-editing generated charts/values. Extend shared-framework startup/liveness/readiness
-and every CLI/template surface. Implement K3S-only Compose bootstrap and Helm lifecycle/DAG
-for apps, PKI, DB migrations/replication and telemetry; default bounds are 2/2.
-Preserve data claims and material, and constrain destructive cleanup to verified disposable
-ownership. Render/schema-check future Kubernetes provider values without claiming runtime
-certification. Retire application Compose only after replacement acceptance.
+The production graph/CLI and model schema have been promoted; canonical runtime and infrastructure
+charts, typed runtime/infra projections, a toolchain lock, K3S-only Compose template, and pure
+request-capacity estimator/probe are partial foundation work. A deterministic identity-only
+lifecycle inventory and runtime ResourceQuota projection/template now close selected identity
+gaps; neither is full lifecycle provisioning. Remaining work includes provider-configured chart
+values and actual combined lifecycle-resource specifications/parity. Controller-created PVC identities
+match the graph, while actual capacity/lifecycle execution and ownership controls, restricted PKI
+and migration helpers,
+framework-owned startup/drain integration, actual post-merge K3S acceptance, and only then
+Compose cutover. Default bounds remain 2/2. Preserve data claims and material, constrain
+destructive cleanup to verified disposable ownership, and render future Kubernetes provider
+values without claiming runtime certification. Keep workflow integration and the final
+postmortem with the main agent after interfaces stabilize.
 
 ### Phase 3: Verify Multi-Pod Client Behavior
 
@@ -211,7 +342,7 @@ blocker. Record phase post-mortems and completion evidence before archiving this
 - Normal and tagged builds, focused tests, repository validators, and applicable CI quality gates
   pass; operations documentation describes both deployment and reload paths.
 
-## Planning Verification
+## Historical Phase 1 Planning Verification
 
 Named-file shuffled planner tests pass at **98.3% statement coverage**, with named-file `go vet`.
 The generator checks exact bytes for both the exhaustive tree and full expected JSON; repeated

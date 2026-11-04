@@ -99,7 +99,7 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 	_, _ = io.ReadAll(shutdownResp.Body)
 	_ = shutdownResp.Body.Close()
 
-	// During the drain delay, the listener remains available but reports shutdown.
+	// During the drain delay, the listener remains available and liveness stays successful.
 	livezURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/livez"
 	livezReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, livezURL, nil)
 	require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 
 	defer func() { _ = livezResp.Body.Close() }()
 
-	require.Equal(t, http.StatusServiceUnavailable, livezResp.StatusCode)
+	require.Equal(t, http.StatusOK, livezResp.StatusCode)
 }
 
 // TestAdminServer_Readyz_DuringHTTPShutdown covers handleReadyz's "return nil" after
@@ -127,6 +127,7 @@ func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
 
 	// Mark server ready before testing shutdown response.
 	server.SetReady(true)
+	server.MarkStartupComplete()
 
 	// POST to /admin/api/v1/shutdown and probe readiness during the drain delay.
 	shutdownURL := "https://" + net.JoinHostPort(cryptoutilSharedMagic.IPv4Loopback, strconv.Itoa(port)) + "/admin/api/v1/shutdown"

@@ -155,6 +155,40 @@ func TestFindViolationsInDir_BannedDir_ReturnsPath(t *testing.T) {
 	require.Equal(t, bannedPath, violations[0])
 }
 
+func TestFindViolationsInDir_ExcludedDirectoriesDoNotContaminateScan(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			root := t.TempDir()
+			realBannedPath := filepath.Join(root, "repository", "archived")
+			excludedBannedPath := filepath.Join(root, "nested", cryptoutilSharedMagic.CICDExcludeDirWorktree, tc.dirName, "nested", "archived")
+
+			mkdir(t, realBannedPath)
+			mkdir(t, excludedBannedPath)
+
+			violations, err := FindViolationsInDir(root)
+
+			require.NoError(t, err)
+			require.Equal(t, []string{realBannedPath}, violations)
+		})
+	}
+}
+
 func TestFindViolationsInDir_WalkError_NonExistentRoot_ReturnsError(t *testing.T) {
 	t.Parallel()
 

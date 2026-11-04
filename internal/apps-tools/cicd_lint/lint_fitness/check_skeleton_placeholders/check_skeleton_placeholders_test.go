@@ -185,6 +185,12 @@ func TestFindViolations_ExcludedPaths(t *testing.T) {
 			content: "package myservice\n\nfunc TestSkeletonService(t *testing.T) {}\n",
 		},
 		{
+			name:    "suite-routed embedded migrations",
+			subDir:  filepath.Join("internal", "apps-tools", "deploymentrun", cryptoutilSharedMagic.RealmStorageTypeDatabase),
+			file:    "migrations.go",
+			content: "package database\n\n// Route skeleton-template embedded migrations.\n",
+		},
+		{
 			name:    "internal/apps/skeleton dir excluded",
 			subDir:  filepath.Join("internal", "apps", cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName),
 			file:    "template.go",
@@ -205,6 +211,36 @@ func TestFindViolations_ExcludedPaths(t *testing.T) {
 		{
 			name:    "vendor dir excluded",
 			subDir:  filepath.Join(cryptoutilSharedMagic.CICDExcludeDirVendor, "somelib"),
+			file:    "skeleton.go",
+			content: "package somelib\n\ntype SkeletonServer struct{}\n",
+		},
+		{
+			name:    "git dir excluded",
+			subDir:  filepath.Join("nested", cryptoutilSharedMagic.CICDExcludeDirGit, "somelib"),
+			file:    "skeleton.go",
+			content: "package somelib\n\ntype SkeletonServer struct{}\n",
+		},
+		{
+			name:    "test-output dir excluded",
+			subDir:  filepath.Join("nested", cryptoutilSharedMagic.CICDExcludeDirTestOutput, "somelib"),
+			file:    "skeleton.go",
+			content: "package somelib\n\ntype SkeletonServer struct{}\n",
+		},
+		{
+			name:    "Python virtual environment excluded",
+			subDir:  filepath.Join("nested", cryptoutilSharedMagic.CICDExcludeDirVenv, "somelib"),
+			file:    "skeleton.go",
+			content: "package somelib\n\ntype SkeletonServer struct{}\n",
+		},
+		{
+			name:    "Node.js dependencies excluded",
+			subDir:  filepath.Join("nested", cryptoutilSharedMagic.CICDExcludeDirNodeModules, "somelib"),
+			file:    "skeleton.go",
+			content: "package somelib\n\ntype SkeletonServer struct{}\n",
+		},
+		{
+			name:    "workflow reports excluded",
+			subDir:  filepath.Join("nested", cryptoutilSharedMagic.CICDExcludeDirWorkflowReports, "somelib"),
 			file:    "skeleton.go",
 			content: "package somelib\n\ntype SkeletonServer struct{}\n",
 		},

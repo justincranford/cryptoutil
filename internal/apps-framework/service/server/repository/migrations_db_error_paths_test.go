@@ -15,7 +15,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/stretchr/testify/require"
-	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -245,8 +244,8 @@ func TestDatabaseInitialization_InjectedFailures(t *testing.T) {
 
 					return *sqlDB, err
 				}
-				operations.openGORM = func(_ gorm.Dialector, options ...gorm.Option) (*gorm.DB, error) {
-					return gorm.Open(sqliteTestDialector(*sqlDB), options...)
+				operations.openGORM = func(_ gorm.Dialector, _ ...gorm.Option) (*gorm.DB, error) {
+					return &gorm.DB{Config: &gorm.Config{ConnPool: *sqlDB}}, nil
 				}
 				operations.applyMigrations = func(*sql.DB, DatabaseType, fs.FS) error {
 					return errors.New("injected PostgreSQL migration error")
@@ -343,10 +342,6 @@ func TestDatabaseInitialization_InjectedFailures(t *testing.T) {
 			}
 		})
 	}
-}
-
-func sqliteTestDialector(db *sql.DB) gorm.Dialector {
-	return gormsqlite.Dialector{Conn: db}
 }
 
 func TestCloseSQLDBAfterInitializationError_CloseFailure(t *testing.T) {

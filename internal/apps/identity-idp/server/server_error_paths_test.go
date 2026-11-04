@@ -38,6 +38,8 @@ func (idpServerErrorPathAdminServer) Shutdown(context.Context) error {
 	return nil
 }
 
+func (idpServerErrorPathAdminServer) SetReady(bool) {}
+
 func TestIDPServer_NewFromConfigBuildFailure(t *testing.T) {
 	t.Parallel()
 

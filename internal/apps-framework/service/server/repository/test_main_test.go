@@ -9,6 +9,7 @@ import (
 	cryptoutilAppsFrameworkServiceTestHelpBootstrap "cryptoutil/internal/apps-framework/service/test_help_bootstrap"
 	cryptoutilAppsFrameworkServiceTestHelpTLS "cryptoutil/internal/apps-framework/service/test_help_tls"
 
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps-framework/service/server/testutil"
 )
 
@@ -29,5 +30,15 @@ func TestMain(m *testing.M) {
 
 	cryptoutilAppsFrameworkServiceServerTestutil.ConfigureTestFixtures(settings, publicTLS, privateTLS, publicMaterial.RootCAPool, privateMaterial.RootCAPool)
 
-	os.Exit(m.Run())
+	cleanup, err := cryptoutilAppsFrameworkServiceServerRepository.InitContextMigrationFixture()
+	if err != nil {
+		panic(err)
+	}
+
+	exitCode := m.Run()
+	if err := cleanup(); err != nil {
+		exitCode = 1
+	}
+
+	os.Exit(exitCode)
 }

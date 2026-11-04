@@ -1,0 +1,329 @@
+{{- $postgresClients := list -}}
+{{- range .Values.clients -}}
+{{- if .postgres -}}
+{{- $postgresClients = append $postgresClients . -}}
+{{- end -}}
+{{- end -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-bootstrap-api
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+      cu.io/component: bootstrap
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: {{ printf "%s/32" .Values.apiServerIP | quote }}
+      ports:
+        - protocol: TCP
+          port: 443
+{{- if .Values.components.collector.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-client-telemetry
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+      cu.io/component: collector
+  policyTypes:
+    - Ingress
+  ingress:
+    {{- if .Values.clients }}
+    - from:
+        {{- range $client := .Values.clients }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $client.namespace | quote }}
+              cu.io/run: {{ $.Values.run | quote }}
+              cu.io/release: {{ $client.release | quote }}
+          podSelector:
+            matchLabels:
+              cu.io/run: {{ $.Values.run | quote }}
+              cu.io/release: {{ $client.release | quote }}
+      {{- end }}
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
+    {{- else }}
+    []
+    {{- end }}
+{{- end }}
+{{- if and .Values.components.postgresLeader.enabled .Values.components.postgresFollower.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-bootstrap-postgres-egress
+  namespace: {{ .Values.namespace }}
+  labels:
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+      cu.io/component: bootstrap
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/release: {{ .Values.helmRelease | quote }}
+            matchExpressions:
+              - key: cu.io/component
+                operator: In
+                values: [postgres-leader, postgres-follower]
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-from-bootstrap
+  namespace: {{ .Values.namespace }}
+  labels:
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+    matchExpressions:
+      - key: cu.io/component
+        operator: In
+        values: [postgres-leader, postgres-follower]
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/release: {{ .Values.helmRelease | quote }}
+              cu.io/component: bootstrap
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-edges
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+      cu.io/component: postgres-leader
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/release: {{ .Values.helmRelease | quote }}
+              cu.io/component: postgres-follower
+      ports:
+        - protocol: TCP
+          port: 5432
+    {{- if $postgresClients }}
+    - from:
+        {{- range $client := $postgresClients }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $client.namespace | quote }}
+              cu.io/run: {{ $.Values.run | quote }}
+              cu.io/release: {{ $client.release | quote }}
+          podSelector:
+            matchLabels:
+              cu.io/run: {{ $.Values.run | quote }}
+              cu.io/release: {{ $client.release | quote }}
+              cu.io/pool: pg
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: 5432
+    {{- end }}
+{{- end }}
+{{- if .Values.components.postgresFollower.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-follower-to-leader
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+      cu.io/component: postgres-follower
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/release: {{ .Values.helmRelease | quote }}
+              cu.io/component: postgres-leader
+      ports:
+        - protocol: TCP
+          port: 5432
+{{- end }}
+{{- if and .Values.components.collector.enabled .Values.components.lgtm.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-collector-egress-to-lgtm
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+      cu.io/component: collector
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/release: {{ .Values.helmRelease | quote }}
+              cu.io/component: lgtm
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
+{{- end }}
+{{- if and .Values.components.collector.enabled .Values.components.lgtm.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-collector-ingress-to-lgtm
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cryptoutil
+    cu.io/run: {{ .Values.run | quote }}
+    cu.io/release: {{ .Values.helmRelease | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+      cu.io/component: lgtm
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/release: {{ .Values.helmRelease | quote }}
+              cu.io/component: collector
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
+{{- end }}

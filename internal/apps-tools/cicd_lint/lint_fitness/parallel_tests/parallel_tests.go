@@ -180,7 +180,12 @@ func checkWithWalkDir(
 		}
 
 		if d.IsDir() {
-			if d.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || d.Name() == cryptoutilSharedMagic.CICDExcludeDirGit {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(".", path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
 				return filepath.SkipDir
 			}
 

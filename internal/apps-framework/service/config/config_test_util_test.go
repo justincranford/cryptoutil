@@ -63,6 +63,7 @@ func TestRequireNewForTest_TypeAssertionPanics(t *testing.T) {
 		{"otlpEnvironment", &otlpEnvironment},
 		{"otlpHostname", &otlpHostname},
 		{"otlpEndpoint", &otlpEndpoint},
+		{"otlpHealthEndpoint", &otlpHealthEndpoint},
 		{"unsealMode", &unsealMode},
 		{"unsealFiles", &unsealFiles},
 		{"browserSessionAlgorithm", &browserSessionAlgorithm},

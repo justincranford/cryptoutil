@@ -20,9 +20,9 @@ import (
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps-framework/service/server"
 	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps-framework/service/server/application"
 	cryptoutilAppsFrameworkServiceServerListener "cryptoutil/internal/apps-framework/service/server/listener"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite"
 )
@@ -72,6 +72,8 @@ func TestBuild_SimpleErrors(t *testing.T) {
 // TestBuild_PublicRouteRegistrationError tests Build failure when route registration fails.
 func TestBuild_OperationErrors(t *testing.T) {
 	t.Parallel()
+
+	testDB := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	tests := []struct {
 		name             string
@@ -138,22 +140,8 @@ func TestBuild_OperationErrors(t *testing.T) {
 		{
 			name: "public server creation error",
 			configure: func(operations *serverBuilderOperations) {
-				operations.startCore = func(_ context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error) {
-					sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, settings.DatabaseURL)
-					if err != nil {
-						return nil, err
-					}
-
-					db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
-					if err != nil {
-						_ = sqlDB.Close()
-
-						return nil, err
-					}
-
-					sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-
-					return &cryptoutilAppsFrameworkServiceServerApplication.Core{DB: db}, nil
+				operations.startCore = func(context.Context, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error) {
+					return &cryptoutilAppsFrameworkServiceServerApplication.Core{DB: testDB}, nil
 				}
 				operations.initServicesOnCore = func(_ context.Context, core *cryptoutilAppsFrameworkServiceServerApplication.Core, _ *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices, error) {
 					return &cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices{Core: core}, nil

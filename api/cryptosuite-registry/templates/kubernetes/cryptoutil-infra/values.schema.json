@@ -1,0 +1,715 @@
+{
+  "$defs": {
+    "client": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "$ref": "#/$defs/dnsLabel"
+        },
+        "postgres": {
+          "type": "boolean"
+        },
+        "release": {
+          "$ref": "#/$defs/dnsLabel"
+        }
+      },
+      "required": [
+        "namespace",
+        "release",
+        "postgres"
+      ],
+      "type": "object"
+    },
+    "collectorComponent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/component"
+        },
+        {
+          "properties": {
+            "enabled": {
+              "const": true
+            },
+            "replicas": {
+              "const": 2
+            },
+            "runAsUser": {
+              "minimum": 10000
+            }
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "component": {
+      "additionalProperties": false,
+      "properties": {
+        "adminPasswordKey": {
+          "maxLength": 253,
+          "minLength": 1,
+          "type": "string"
+        },
+        "adminSecretName": {
+          "$ref": "#/$defs/dnsLabel"
+        },
+        "bootstrapPasswordKey": {
+          "maxLength": 253,
+          "minLength": 1,
+          "type": "string"
+        },
+        "bootstrapSecretName": {
+          "$ref": "#/$defs/dnsLabel"
+        },
+        "bootstrapUsernameKey": {
+          "maxLength": 253,
+          "minLength": 1,
+          "type": "string"
+        },
+        "configFiles": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-zA-Z0-9._-]+$"
+          },
+          "type": "object"
+        },
+        "configMapName": {
+          "$ref": "#/$defs/dnsLabel"
+        },
+        "configMountPath": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "containerArgs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "fsGroup": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        },
+        "probes": {
+          "additionalProperties": false,
+          "properties": {
+            "liveness": {
+              "$ref": "#/$defs/probe"
+            },
+            "readiness": {
+              "$ref": "#/$defs/probe"
+            },
+            "startup": {
+              "$ref": "#/$defs/probe"
+            }
+          },
+          "required": [
+            "startup",
+            "liveness",
+            "readiness"
+          ],
+          "type": "object"
+        },
+        "replicas": {
+          "maximum": 2,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "resources": {
+          "$ref": "#/$defs/resourceRequirements"
+        },
+        "runAsGroup": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "runAsUser": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "scratch": {
+          "items": {
+            "$ref": "#/$defs/scratch"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "secretMounts": {
+          "items": {
+            "$ref": "#/$defs/secretMount"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "servicePorts": {
+          "items": {
+            "$ref": "#/$defs/servicePort"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "storage": {
+          "additionalProperties": false,
+          "properties": {
+            "mountPath": {
+              "pattern": "^/",
+              "type": "string"
+            },
+            "size": {
+              "$ref": "#/$defs/size"
+            }
+          },
+          "required": [
+            "size",
+            "mountPath"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "enabled",
+        "image",
+        "replicas",
+        "configMapName",
+        "configMountPath",
+        "configFiles",
+        "containerArgs",
+        "servicePorts",
+        "probes",
+        "storage",
+        "secretMounts",
+        "scratch",
+        "runAsUser",
+        "runAsGroup",
+        "fsGroup",
+        "resources"
+      ],
+      "type": "object"
+    },
+    "cpuQuantity": {
+      "pattern": "^[1-9][0-9]*(m)?$",
+      "type": "string"
+    },
+    "database": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/sqlIdentifier"
+        },
+        "psid": {
+          "$ref": "#/$defs/dnsLabel"
+        },
+        "publication": {
+          "$ref": "#/$defs/sqlIdentifier"
+        },
+        "role": {
+          "$ref": "#/$defs/sqlIdentifier"
+        },
+        "subscription": {
+          "$ref": "#/$defs/sqlIdentifier"
+        }
+      },
+      "required": [
+        "psid",
+        "name",
+        "role",
+        "publication",
+        "subscription"
+      ],
+      "type": "object"
+    },
+    "dnsLabel": {
+      "maxLength": 63,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "image": {
+      "pattern": "^.+@sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "lgtmComponent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/component"
+        },
+        {
+          "properties": {
+            "enabled": {
+              "const": true
+            },
+            "replicas": {
+              "const": 1
+            },
+            "runAsUser": {
+              "minimum": 10000
+            }
+          },
+          "required": [
+            "adminSecretName",
+            "adminPasswordKey"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "memoryQuantity": {
+      "pattern": "^[1-9][0-9]*(Ki|Mi|Gi|Ti)$",
+      "type": "string"
+    },
+    "postgresComponent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/component"
+        },
+        {
+          "properties": {
+            "replicas": {
+              "const": 1
+            }
+          },
+          "required": [
+            "bootstrapSecretName",
+            "bootstrapUsernameKey",
+            "bootstrapPasswordKey"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "probe": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "http"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "path"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "tcp"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "path"
+                  ]
+                },
+                {
+                  "required": [
+                    "scheme"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "properties": {
+        "failureThreshold": {
+          "maximum": 120,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "periodSeconds": {
+          "maximum": 300,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "port": {
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "scheme": {
+          "enum": [
+            "HTTP",
+            "HTTPS"
+          ]
+        },
+        "timeoutSeconds": {
+          "maximum": 30,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "type": {
+          "enum": [
+            "http",
+            "tcp"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "port",
+        "periodSeconds",
+        "timeoutSeconds",
+        "failureThreshold"
+      ],
+      "type": "object"
+    },
+    "resourceRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "limits": {
+          "additionalProperties": false,
+          "properties": {
+            "cpu": {
+              "$ref": "#/$defs/cpuQuantity"
+            },
+            "memory": {
+              "$ref": "#/$defs/memoryQuantity"
+            }
+          },
+          "required": [
+            "cpu",
+            "memory"
+          ],
+          "type": "object"
+        },
+        "requests": {
+          "additionalProperties": false,
+          "properties": {
+            "cpu": {
+              "$ref": "#/$defs/cpuQuantity"
+            },
+            "memory": {
+              "$ref": "#/$defs/memoryQuantity"
+            }
+          },
+          "required": [
+            "cpu",
+            "memory"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "requests",
+        "limits"
+      ],
+      "type": "object"
+    },
+    "scratch": {
+      "additionalProperties": false,
+      "properties": {
+        "mountPath": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 63,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "type": "string"
+        },
+        "sizeLimit": {
+          "$ref": "#/$defs/size"
+        }
+      },
+      "required": [
+        "name",
+        "mountPath",
+        "sizeLimit"
+      ],
+      "type": "object"
+    },
+    "secretMount": {
+      "additionalProperties": false,
+      "properties": {
+        "defaultMode": {
+          "maximum": 511,
+          "minimum": 256,
+          "type": "integer"
+        },
+        "mountPath": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "secretName": {
+          "$ref": "#/$defs/dnsLabel"
+        }
+      },
+      "required": [
+        "secretName",
+        "mountPath",
+        "defaultMode"
+      ],
+      "type": "object"
+    },
+    "servicePort": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 15,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "type": "string"
+        },
+        "port": {
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "targetPort": {
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "port",
+        "targetPort"
+      ],
+      "type": "object"
+    },
+    "size": {
+      "pattern": "^[1-9][0-9]*(Mi|Gi|Ti)$",
+      "type": "string"
+    },
+    "sqlIdentifier": {
+      "maxLength": 63,
+      "minLength": 1,
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "type": "string"
+    },
+    "storageClassName": {
+      "maxLength": 63,
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "components": {
+            "properties": {
+              "postgresFollower": {
+                "properties": {
+                  "enabled": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "components": {
+            "properties": {
+              "postgresLeader": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "components": {
+            "properties": {
+              "postgresFollower": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "components": {
+            "properties": {
+              "postgresLeader": {
+                "properties": {
+                  "enabled": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "clients": {
+            "items": {
+              "properties": {
+                "postgres": {
+                  "const": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "apiServerIP": {
+      "format": "ipv4",
+      "type": "string"
+    },
+    "clients": {
+      "items": {
+        "$ref": "#/$defs/client"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "clusterDomain": {
+      "maxLength": 253,
+      "minLength": 1,
+      "pattern": "^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$",
+      "type": "string"
+    },
+    "components": {
+      "additionalProperties": false,
+      "properties": {
+        "collector": {
+          "$ref": "#/$defs/collectorComponent"
+        },
+        "lgtm": {
+          "$ref": "#/$defs/lgtmComponent"
+        },
+        "postgresFollower": {
+          "$ref": "#/$defs/postgresComponent"
+        },
+        "postgresLeader": {
+          "$ref": "#/$defs/postgresComponent"
+        }
+      },
+      "required": [
+        "postgresLeader",
+        "postgresFollower",
+        "collector",
+        "lgtm"
+      ],
+      "type": "object"
+    },
+    "databases": {
+      "items": {
+        "$ref": "#/$defs/database"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "helmRelease": {
+      "$ref": "#/$defs/dnsLabel"
+    },
+    "namespace": {
+      "$ref": "#/$defs/dnsLabel"
+    },
+    "quota": {
+      "additionalProperties": false,
+      "properties": {
+        "limitsCPU": {
+          "$ref": "#/$defs/cpuQuantity"
+        },
+        "limitsMemory": {
+          "$ref": "#/$defs/memoryQuantity"
+        },
+        "pods": {
+          "pattern": "^[1-9][0-9]*$",
+          "type": "string"
+        },
+        "requestsCPU": {
+          "$ref": "#/$defs/cpuQuantity"
+        },
+        "requestsMemory": {
+          "$ref": "#/$defs/memoryQuantity"
+        }
+      },
+      "required": [
+        "pods",
+        "requestsCPU",
+        "requestsMemory",
+        "limitsCPU",
+        "limitsMemory"
+      ],
+      "type": "object"
+    },
+    "releaseKey": {
+      "maxLength": 200,
+      "minLength": 5,
+      "type": "string"
+    },
+    "revision": {
+      "$ref": "#/$defs/dnsLabel"
+    },
+    "run": {
+      "maxLength": 8,
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9]*$",
+      "type": "string"
+    },
+    "storage": {
+      "additionalProperties": false,
+      "properties": {
+        "className": {
+          "$ref": "#/$defs/storageClassName"
+        }
+      },
+      "required": [
+        "className"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "run",
+    "helmRelease",
+    "releaseKey",
+    "revision",
+    "namespace",
+    "clusterDomain",
+    "apiServerIP",
+    "storage",
+    "components",
+    "clients",
+    "databases",
+    "quota"
+  ],
+  "type": "object"
+}

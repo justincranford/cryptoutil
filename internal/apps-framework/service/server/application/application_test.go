@@ -79,17 +79,16 @@ func TestProvisionDatabase_ContainerSuccess(t *testing.T) {
 
 	defer basic.Shutdown()
 
-	// Container "succeeds" with injected fake URL. openPostgreSQL will fail
-	// because the containerURL is actually SQLite, but lines 303-307 are covered.
-	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) {
-		return gorm.Open(d, c)
+	// Container succeeds and PostgreSQL opening fails via the injected GORM
+	// opener, covering the successful-container branch without opening a DB.
+	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(gorm.Dialector, *gorm.Config) (*gorm.DB, error) {
+		return nil, fmt.Errorf("injected GORM opener failure")
 	})
 	if cleanup != nil {
 		defer cleanup()
 	}
 
-	// Error expected because fake container URL is not a valid postgres URL.
-	_ = err
+	require.ErrorContains(t, err, "failed to open database")
 }
 
 // TestProvisionDatabase_ContainerPreferredFallback tests the preferred container fallback path.
@@ -122,8 +121,8 @@ func TestProvisionDatabase_ContainerPreferredFallback(t *testing.T) {
 
 	// Container fails (preferred mode), falls back to external DB URL.
 	// External DB URL is invalid so openPostgreSQL will fail, but line 309 is covered.
-	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) {
-		return gorm.Open(d, c)
+	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(gorm.Dialector, *gorm.Config) (*gorm.DB, error) {
+		return nil, fmt.Errorf("injected GORM opener failure")
 	})
 	if cleanup != nil {
 		defer cleanup()
@@ -161,8 +160,10 @@ func TestProvisionDatabase_ContainerRequiredFailure(t *testing.T) {
 
 	defer basic.Shutdown()
 
-	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) {
-		return gorm.Open(d, c)
+	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(gorm.Dialector, *gorm.Config) (*gorm.DB, error) {
+		t.Fatal("GORM opener must not be called when PostgreSQL container startup fails")
+
+		return nil, fmt.Errorf("unexpected GORM opener call")
 	})
 	if cleanup != nil {
 		defer cleanup()
@@ -183,8 +184,10 @@ func TestOpenSQLite_SqlOpenError(t *testing.T) {
 		return nil, fmt.Errorf("forced sql.Open failure")
 	}
 
-	_, err := openSQLiteInternal(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false, stubSQLOpen, func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) {
-		return gorm.Open(d, c)
+	_, err := openSQLiteInternal(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false, stubSQLOpen, func(gorm.Dialector, *gorm.Config) (*gorm.DB, error) {
+		t.Fatal("GORM opener must not be called when sql.Open fails")
+
+		return nil, fmt.Errorf("unexpected GORM opener call")
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to open SQLite database")

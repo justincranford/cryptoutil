@@ -22,6 +22,9 @@ import (
 	"crypto/x509"
 	"fmt"
 	"sync"
+
+	cryptoutilAppsFrameworkServiceServerReadiness "cryptoutil/internal/apps-framework/service/server/readiness"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Application represents a unified service application managing both public and admin servers.
@@ -32,10 +35,11 @@ import (
 //
 // Both servers run concurrently and have independent lifecycles managed by the Application.
 type Application struct {
-	publicServer IPublicServer
-	adminServer  IAdminServer
-	mu           sync.RWMutex
-	shutdown     bool
+	publicServer     IPublicServer
+	adminServer      IAdminServer
+	readinessMonitor *cryptoutilAppsFrameworkServiceServerReadiness.Monitor
+	mu               sync.RWMutex
+	shutdown         bool
 }
 
 // IPublicServer interface defines the contract for public HTTPS servers.
@@ -120,22 +124,69 @@ func (a *Application) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
-	// Start servers in background.
 	errChan := make(chan error, 2)
+	startedChan := make(chan struct{}, 2)
 
-	go func() {
-		if err := a.publicServer.Start(ctx); err != nil {
-			errChan <- fmt.Errorf("public server failed: %w", err)
+	startServer := func(name string, server interface{ Start(context.Context) error }) {
+		go func() {
+			if startNotifier, ok := server.(interface{ Started() <-chan struct{} }); ok {
+				started := startNotifier.Started()
+				if started != nil {
+					go func() {
+						select {
+						case <-started:
+							startedChan <- struct{}{}
+						case <-ctx.Done():
+						}
+					}()
+				} else {
+					startedChan <- struct{}{}
+				}
+			} else {
+				startedChan <- struct{}{}
+			}
+
+			if err := server.Start(ctx); err != nil {
+				errChan <- fmt.Errorf("%s server failed: %w", name, err)
+			}
+		}()
+	}
+
+	startServer(cryptoutilSharedMagic.PublicLabel, a.publicServer)
+	startServer("admin", a.adminServer)
+
+	startedServers := 0
+	for startedServers < 2 {
+		select {
+		case <-startedChan:
+			startedServers++
+		case err := <-errChan:
+			_ = a.Shutdown(context.Background())
+
+			return err
+		case <-ctx.Done():
+			_ = a.Shutdown(context.Background())
+
+			return fmt.Errorf("application startup cancelled: %w", ctx.Err())
 		}
-	}()
+	}
 
-	go func() {
-		if err := a.adminServer.Start(ctx); err != nil {
-			errChan <- fmt.Errorf("admin server failed: %w", err)
+	if startupAdmin, ok := a.adminServer.(interface{ MarkStartupComplete() }); ok {
+		if err := a.startReadinessMonitor(ctx); err != nil {
+			_ = a.Shutdown(context.Background())
+
+			return err
 		}
-	}()
 
-	// Wait for startup errors or context cancellation.
+		startupAdmin.MarkStartupComplete()
+	} else if err := a.startReadinessMonitor(ctx); err != nil {
+		_ = a.Shutdown(context.Background())
+
+		return err
+	}
+
+	a.SetReady(true)
+
 	select {
 	case err := <-errChan:
 		// One server failed, shutdown the other.
@@ -171,14 +222,31 @@ func (a *Application) Shutdown(ctx context.Context) error {
 
 	a.mu.Lock()
 	a.shutdown = true
+	readinessMonitor := a.readinessMonitor
 	a.mu.Unlock()
 
 	var shutdownErr error
+
+	if drainingAdmin, ok := a.adminServer.(interface{ BeginDrain() }); ok {
+		drainingAdmin.BeginDrain()
+	} else if a.adminServer != nil {
+		a.adminServer.SetReady(false)
+	}
 
 	// Shutdown public server.
 	if a.publicServer != nil {
 		if err := a.publicServer.Shutdown(ctx); err != nil {
 			shutdownErr = fmt.Errorf("failed to shutdown public server: %w", err)
+		}
+	}
+
+	if readinessMonitor != nil {
+		if err := readinessMonitor.Stop(ctx); err != nil {
+			if shutdownErr != nil {
+				shutdownErr = fmt.Errorf("multiple shutdown errors: public=%w, monitor=%w", shutdownErr, err)
+			} else {
+				shutdownErr = fmt.Errorf("failed to stop readiness monitor: %w", err)
+			}
 		}
 	}
 
@@ -194,6 +262,43 @@ func (a *Application) Shutdown(ctx context.Context) error {
 	}
 
 	return shutdownErr
+}
+
+// SetReadinessMonitor installs dependency observations before Start. The monitor is
+// also exposed to the admin server so readiness reads only its in-memory snapshot.
+func (a *Application) SetReadinessMonitor(monitor *cryptoutilAppsFrameworkServiceServerReadiness.Monitor) {
+	a.mu.Lock()
+	a.readinessMonitor = monitor
+	a.mu.Unlock()
+
+	if adminMonitorSetter, ok := a.adminServer.(interface {
+		SetReadinessMonitor(*cryptoutilAppsFrameworkServiceServerReadiness.Monitor)
+	}); ok {
+		adminMonitorSetter.SetReadinessMonitor(monitor)
+	}
+}
+
+func (a *Application) startReadinessMonitor(ctx context.Context) error {
+	a.mu.RLock()
+	monitor := a.readinessMonitor
+	a.mu.RUnlock()
+
+	if monitor == nil {
+		return nil
+	}
+
+	if err := monitor.Start(ctx); err != nil {
+		return fmt.Errorf("failed to start readiness monitor: %w", err)
+	}
+
+	startupCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.ReadinessStartupTimeout)
+	defer cancel()
+
+	if err := monitor.WaitReady(startupCtx); err != nil {
+		return fmt.Errorf("required dependency observations failed during startup: %w", err)
+	}
+
+	return nil
 }
 
 // PublicPort returns the actual port the public server is listening on.

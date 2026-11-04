@@ -27,6 +27,14 @@ func isExemptedFile(filePath string) bool {
 	// Normalize to forward slashes for cross-platform path matching.
 	filePath = filepath.ToSlash(filePath)
 
+	// These client-flow tests live next to CLI/deployment orchestration, not
+	// under client/. They exercise outgoing HTTP, deadlines and authentication;
+	// replacing their remote endpoint with app.Test would not test that transport.
+	if strings.HasSuffix(filePath, "/apps-framework/service/cli/startupz_command_test.go") ||
+		strings.HasSuffix(filePath, "/apps-tools/cicd_deployment/dev_smoke_test.go") {
+		return true
+	}
+
 	// HTTP client tests: mocking remote OAuth2/OIDC/federation endpoints.
 	if strings.Contains(filePath, "/client/") {
 		return true

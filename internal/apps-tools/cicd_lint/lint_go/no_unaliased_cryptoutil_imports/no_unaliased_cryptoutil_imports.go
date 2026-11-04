@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -46,8 +45,7 @@ func FindUnaliasedCryptoutilImports(walkFn func(string, filepath.WalkFunc) error
 			return err
 		}
 
-		// Skip vendor directories.
-		if info.IsDir() && (info.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || info.Name() == cryptoutilSharedMagic.CICDExcludeDirGit) {
+		if info.IsDir() && cryptoutilCmdCicdCommon.IsRepositoryScanExcludedDir(info.Name()) {
 			return filepath.SkipDir
 		}
 

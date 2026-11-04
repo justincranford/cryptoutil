@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cryptoutil-runtime
+description: Registry-derived Cryptoutil application workloads with retained identity and storage.
+type: application
+version: 0.1.0
+appVersion: "1"
+kubeVersion: ">=1.34.0-0 <1.38.0-0"

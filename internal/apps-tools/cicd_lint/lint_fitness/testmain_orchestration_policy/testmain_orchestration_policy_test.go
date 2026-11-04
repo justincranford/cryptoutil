@@ -338,11 +338,18 @@ func TestWalkTestMainFiles_SkipsGitAndVendorDirs(t *testing.T) {
 	// Testmain files inside .git and vendor directories (must be skipped).
 	gitDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CMD_SERVER)
 	vendorDir := filepath.Join(dir, "internal", "apps", cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CMD_SERVER)
+	nestedCheckoutDir := filepath.Join(dir, "internal", "apps", "nested-checkout")
+	nestedCheckoutServerDir := filepath.Join(nestedCheckoutDir, cryptoutilSharedMagic.CMD_SERVER)
 
 	require.NoError(t, os.MkdirAll(gitDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.MkdirAll(vendorDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(nestedCheckoutServerDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(gitDir, "testmain_test.go"), []byte(compliantTestMain), cryptoutilSharedMagic.FilePermissionsDefault))
 	require.NoError(t, os.WriteFile(filepath.Join(vendorDir, "testmain_test.go"), []byte(compliantTestMain), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(filepath.Join(nestedCheckoutDir, cryptoutilSharedMagic.CICDExcludeDirGit),
+		[]byte("gitdir: elsewhere"), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(filepath.Join(nestedCheckoutServerDir, "testmain_test.go"),
+		[]byte(compliantTestMain), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	paths, err := lintFitnessTestmainOrchestrationPolicy.WalkTestMainFiles(dir)
 
@@ -353,5 +360,5 @@ func TestWalkTestMainFiles_SkipsGitAndVendorDirs(t *testing.T) {
 		require.NotContains(t, p, cryptoutilSharedMagic.CICDExcludeDirVendor, "should not walk into vendor")
 	}
 
-	require.Len(t, paths, 1, "only sm-kms/server testmain should be found")
+	require.Len(t, paths, 1, "only sm-kms/server testmain should be found; nested checkouts must be skipped")
 }

@@ -1,0 +1,233 @@
+{
+  "$defs": {
+    "job": {
+      "additionalProperties": false,
+      "properties": {
+        "activeDeadlineSeconds": {
+          "maximum": 3600,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "apiToken": {
+          "type": "boolean"
+        },
+        "args": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "backoffLimit": {
+          "maximum": 3,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "command": {
+          "const": [
+            "/app/cryptoutil"
+          ]
+        },
+        "configMapNames": {
+          "$ref": "#/$defs/names"
+        },
+        "image": {
+          "pattern": "^.+@sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "namespace": {
+          "$ref": "#/$defs/name"
+        },
+        "release": {
+          "$ref": "#/$defs/name"
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        },
+        "secretNames": {
+          "$ref": "#/$defs/names"
+        },
+        "writeSecretNames": {
+          "$ref": "#/$defs/names"
+        }
+      },
+      "required": [
+        "namespace",
+        "name",
+        "image",
+        "command",
+        "args",
+        "resources",
+        "activeDeadlineSeconds",
+        "backoffLimit",
+        "secretNames",
+        "writeSecretNames",
+        "configMapNames",
+        "release",
+        "apiToken"
+      ],
+      "type": "object"
+    },
+    "name": {
+      "maxLength": 63,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "names": {
+      "items": {
+        "$ref": "#/$defs/name"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "namespace": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "readSecretNames": {
+          "$ref": "#/$defs/names"
+        },
+        "release": {
+          "$ref": "#/$defs/name"
+        },
+        "writeSecretNames": {
+          "$ref": "#/$defs/names"
+        }
+      },
+      "required": [
+        "name",
+        "release",
+        "readSecretNames",
+        "writeSecretNames"
+      ],
+      "type": "object"
+    },
+    "resourceSet": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu": {
+          "pattern": "^[1-9][0-9]*m?$",
+          "type": "string"
+        },
+        "memory": {
+          "pattern": "^[1-9][0-9]*(Ki|Mi|Gi|Ti)?$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpu",
+        "memory"
+      ],
+      "type": "object"
+    },
+    "resources": {
+      "additionalProperties": false,
+      "properties": {
+        "limits": {
+          "$ref": "#/$defs/resourceSet"
+        },
+        "requests": {
+          "$ref": "#/$defs/resourceSet"
+        }
+      },
+      "required": [
+        "requests",
+        "limits"
+      ],
+      "type": "object"
+    },
+    "secret": {
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "additionalProperties": {
+            "pattern": "^[a-zA-Z0-9_-][a-zA-Z0-9._/-]*$",
+            "type": "string"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-zA-Z0-9._-]{1,253}$"
+          },
+          "type": "object"
+        },
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "namespace": {
+          "$ref": "#/$defs/name"
+        },
+        "type": {
+          "enum": [
+            "Opaque",
+            "kubernetes.io/tls"
+          ]
+        }
+      },
+      "required": [
+        "namespace",
+        "name",
+        "type",
+        "files"
+      ],
+      "type": "object"
+    },
+    "strings": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "apiAudience": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "externalSecrets": {
+      "items": {
+        "$ref": "#/$defs/secret"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "jobs": {
+      "items": {
+        "$ref": "#/$defs/job"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "namespaces": {
+      "items": {
+        "$ref": "#/$defs/namespace"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "revision": {
+      "pattern": "^r[0-9a-f]{16}$",
+      "type": "string"
+    },
+    "run": {
+      "pattern": "^[a-z][a-z0-9]{0,7}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run",
+    "revision",
+    "apiAudience",
+    "namespaces",
+    "jobs",
+    "externalSecrets"
+  ],
+  "type": "object"
+}

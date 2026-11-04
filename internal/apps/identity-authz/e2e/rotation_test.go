@@ -3,21 +3,17 @@ package e2e
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	_ "modernc.org/sqlite"
-
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityJobs "cryptoutil/internal/apps/identity/jobs"
 	cryptoutilIdentityRotation "cryptoutil/internal/apps/identity/rotation"
@@ -220,33 +216,8 @@ func TestGracePeriodOverlap(t *testing.T) {
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	ctx := context.Background()
-
-	// Create unique in-memory database for each test
-	dbID := googleUuid.Must(googleUuid.NewV7())
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
-
-	// Open database connection using modernc.org/sqlite (CGO-free)
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	// Apply SQLite PRAGMA settings
-	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		require.FailNowf(t, "failed to enable WAL mode", "%v", err)
-	}
-
-	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-		require.FailNowf(t, "failed to set busy timeout", "%v", err)
-	}
-
-	// Create GORM database with explicit connection
-	dialector := sqlite.Dialector{Conn: sqlDB}
-
-	db, err := gorm.Open(dialector, &gorm.Config{
-		Logger:                 logger.Default.LogMode(logger.Silent),
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	db.Logger = logger.Default.LogMode(logger.Silent)
 
 	// Match the production SQLite pool: database/sql serializes transactions on its single connection.
 	// The caller-level goroutines in TestMultiClientConcurrentRotation remain concurrent.
@@ -255,19 +226,13 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	dbSQL.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	dbSQL.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	dbSQL.SetConnMaxLifetime(0) // In-memory DB: never close connections.
-	dbSQL.SetConnMaxIdleTime(0)
 
 	// Apply migrations
-	err = db.AutoMigrate(
+	require.NoError(t, db.AutoMigrate(
 		&cryptoutilIdentityDomain.Client{},
 		&cryptoutilIdentityDomain.ClientSecretVersion{},
 		&cryptoutilIdentityDomain.KeyRotationEvent{},
-	)
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		_ = sqlDB.Close() //nolint:errcheck // Test cleanup - error not critical.
-	})
+	))
 
 	return db
 }

@@ -129,6 +129,42 @@ func TestCheckInDir_EmptyDir_Passes(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheckInDir_MachineOwnedDirectories_Skipped(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			writeFile(
+				t,
+				filepath.Join(rootDir, "nested", tc.dirName, "nested", "domain", "bad.go"),
+				`package domain
+
+import "cryptoutil/internal/apps/sm-kms/server/repository"
+
+var _ = repository.User{}
+`,
+			)
+
+			require.NoError(t, CheckInDir(newTestLogger(), rootDir))
+		})
+	}
+}
+
 func TestIsDomainFile_Various(t *testing.T) {
 	t.Parallel()
 

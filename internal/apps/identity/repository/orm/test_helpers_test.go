@@ -6,19 +6,16 @@ package orm
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	_ "modernc.org/sqlite" // Import CGO-free SQLite driver
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
@@ -36,33 +33,8 @@ type testDB struct {
 func setupTestDB(t *testing.T) *testDB {
 	t.Helper()
 
-	// Create unique in-memory database per test using UUIDv7.
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
-
-	// Open database connection using modernc.org/sqlite (CGO-free).
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	// Apply SQLite PRAGMA settings for WAL mode and busy timeout.
-	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;"); err != nil {
-		require.FailNowf(t, "failed to enable WAL mode", "%v", err)
-	}
-
-	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;"); err != nil {
-		require.FailNowf(t, "failed to set busy timeout", "%v", err)
-	}
-
-	// Create GORM database with explicit connection.
-	dialector := sqlite.Dialector{Conn: sqlDB}
-
-	db, err := gorm.Open(dialector, &gorm.Config{
-		Logger:                 logger.Default.LogMode(logger.Silent),
-		SkipDefaultTransaction: true, // Disable automatic transactions.
-	})
-	require.NoError(t, err)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	db.Logger = logger.Default.LogMode(logger.Silent)
 
 	// Get underlying sql.DB for connection pool configuration.
 	gormDB, err := db.DB()
@@ -93,11 +65,6 @@ func setupTestDB(t *testing.T) *testDB {
 		&cryptoutilIdentityDomain.KeyRotationEvent{},
 	)
 	require.NoError(t, err)
-
-	// Cleanup function to close database.
-	t.Cleanup(func() {
-		_ = sqlDB.Close() //nolint:errcheck // Test cleanup - error not critical for test teardown
-	})
 
 	return &testDB{db: db}
 }

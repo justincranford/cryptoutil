@@ -6,7 +6,6 @@ package realm
 
 import (
 	"context"
-	"database/sql"
 	"encoding/base64"
 	json "encoding/json"
 	"fmt"
@@ -21,10 +20,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	gormsqlite "gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 
-	_ "modernc.org/sqlite" // Use modernc CGO-free SQLite.
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
 // errReader is a reader that always returns an error.
@@ -372,12 +369,8 @@ func TestCreateTenantSchema_DBError(t *testing.T) {
 	t.Parallel()
 
 	// Open a real SQLite DB then close the underlying sql.DB to force errors.
-	dbName := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, googleUuid.Must(googleUuid.NewV7()).String())
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
-	require.NoError(t, err)
-
-	db, err := gorm.Open(gormsqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
 	err = sqlDB.Close()
@@ -402,12 +395,8 @@ func TestCreateTenantSchema_DBError(t *testing.T) {
 func TestDropTenantSchema_DBError(t *testing.T) {
 	t.Parallel()
 
-	dbName := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, googleUuid.Must(googleUuid.NewV7()).String())
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
-	require.NoError(t, err)
-
-	db, err := gorm.Open(gormsqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
 	err = sqlDB.Close()

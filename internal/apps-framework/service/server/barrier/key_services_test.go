@@ -5,46 +5,30 @@ package barrier_test
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // createKeyServiceTestDB creates an isolated in-memory SQLite database with barrier tables.
-func createKeyServiceTestDB(t *testing.T) (*gorm.DB, func()) {
+func createKeyServiceTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	ctx := context.Background()
-
-	dbUUID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbUUID.String())
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetConnMaxLifetime(0)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
 
 	// Create barrier tables.
 	schema := `
@@ -75,11 +59,7 @@ func createKeyServiceTestDB(t *testing.T) (*gorm.DB, func()) {
 	_, err = sqlDB.ExecContext(ctx, schema)
 	require.NoError(t, err)
 
-	cleanup := func() {
-		require.NoError(t, sqlDB.Close())
-	}
-
-	return db, cleanup
+	return db
 }
 
 // TestNewRootKeysService_ValidationErrors tests constructor validation paths.
@@ -93,8 +73,7 @@ func TestNewRootKeysService_ValidationErrors(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -176,8 +155,7 @@ func TestNewIntermediateKeysService_ValidationErrors(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -264,8 +242,7 @@ func TestNewContentKeysService_ValidationErrors(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -355,8 +332,7 @@ func TestRootKeysService_Shutdown(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -386,8 +362,7 @@ func TestIntermediateKeysService_Shutdown(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)

@@ -51,7 +51,11 @@ func checkInDirWithAbs(
 	var violations []string
 
 	for _, svc := range services {
-		svcViolations := checkServiceHealth(svc, appsDir, readFileFn)
+		svcViolations, healthErr := checkServiceHealth(svc, appsDir, readFileFn)
+		if healthErr != nil {
+			return fmt.Errorf("failed to inspect health endpoints for %s/%s: %w", svc.product, svc.service, healthErr)
+		}
+
 		violations = append(violations, svcViolations...)
 	}
 
@@ -124,18 +128,31 @@ func discoverServices(appsDir string, readDirFn func(string) ([]os.DirEntry, err
 }
 
 // checkServiceHealth checks that a service references all required health patterns.
-func checkServiceHealth(svc serviceID, appsDir string, readFileFn func(string) ([]byte, error)) []string {
+func checkServiceHealth(svc serviceID, appsDir string, readFileFn func(string) ([]byte, error)) ([]string, error) {
 	svcDir := filepath.Join(appsDir, svc.product, svc.service)
 
 	// Collect all Go file content in the service directory.
 	foundPatterns := make(map[string]bool)
 
-	_ = filepath.Walk(svcDir, func(path string, info os.FileInfo, err error) error {
+	walkErr := filepath.Walk(svcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if info.IsDir() || !strings.HasSuffix(path, ".go") {
+		if info.IsDir() {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(svcDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
+		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
 
@@ -152,6 +169,9 @@ func checkServiceHealth(svc serviceID, appsDir string, readFileFn func(string) (
 
 		return nil
 	})
+	if walkErr != nil && !os.IsNotExist(walkErr) {
+		return nil, fmt.Errorf("failed to walk service directory %s: %w", svcDir, walkErr)
+	}
 
 	var violations []string
 
@@ -162,5 +182,5 @@ func checkServiceHealth(svc serviceID, appsDir string, readFileFn func(string) (
 		}
 	}
 
-	return violations
+	return violations, nil
 }

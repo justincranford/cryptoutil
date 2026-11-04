@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -141,20 +140,20 @@ func TestPostgresConnectionAdapters(t *testing.T) {
 	_, err := getSQLDBFromGORM(&gorm.DB{Config: &gorm.Config{}})
 	require.Error(t, err)
 
-	gormDB, err := gorm.Open(postgresDriver.Open("host=127.0.0.1 port=1 user=test dbname=test sslmode=disable"), &gorm.Config{
-		DisableAutomaticPing: true,
-	})
-	require.NoError(t, err)
-
-	sqlDB, err := getSQLDBFromGORM(gormDB)
-	require.NoError(t, err)
-	require.NoError(t, sqlDB.Close())
-
 	connectionlessDB := sql.OpenDB(connectionlessSQLConnector{})
 
 	t.Cleanup(func() {
 		require.NoError(t, connectionlessDB.Close())
 	})
+
+	gormDB := &gorm.DB{
+		Config:    &gorm.Config{ConnPool: connectionlessDB},
+		Statement: &gorm.Statement{ConnPool: connectionlessDB},
+	}
+
+	sqlDB, err := getSQLDBFromGORM(gormDB)
+	require.NoError(t, err)
+	require.Same(t, connectionlessDB, sqlDB)
 
 	require.Error(t, pingPostgresSQLDB(connectionlessDB))
 

@@ -21,6 +21,7 @@ func TestIsStructuralMetaFile(t *testing.T) {
 		{name: "manifest yaml is meta", relPath: "internal/apps/__PS_ID__/MANIFEST.yaml", want: true},
 		{name: "readme md is meta", relPath: "internal/apps/__PS_ID__/README.md", want: true},
 		{name: "usage go in internal is meta", relPath: "internal/apps/__PS_ID__/__SERVICE___usage.go", want: true},
+		{name: "Kubernetes source is rendered by deploymentgen", relPath: cryptoutilSharedMagic.CICDTemplatesKubernetesDir + "cryptoutil-runtime/Chart.yaml", want: true},
 		{name: "dockerfile is not meta", relPath: "deployments/__PS_ID__/Dockerfile", want: false},
 		{name: "compose yml is not meta", relPath: "deployments/__PS_ID__/compose.yml", want: false},
 		{name: "cmd main go is meta (non-usage internal)", relPath: "cmd/__PS_ID__/main.go", want: true},

@@ -6,7 +6,6 @@ package orm_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -14,10 +13,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
@@ -28,31 +25,8 @@ import (
 func setupRecoveryCodeTestDB(t *testing.T) cryptoutilIdentityRepository.RecoveryCodeRepository {
 	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
-	require.NoError(t, err)
-
-	ctx := context.Background()
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	dialector := sqlite.Dialector{Conn: sqlDB}
-
-	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.RecoveryCode{})
-	require.NoError(t, err)
-
-	underlyingDB, err := db.DB()
-	require.NoError(t, err)
-
-	underlyingDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	underlyingDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	underlyingDB.SetConnMaxLifetime(0)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, db.AutoMigrate(&cryptoutilIdentityDomain.RecoveryCode{}))
 
 	return cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
 }

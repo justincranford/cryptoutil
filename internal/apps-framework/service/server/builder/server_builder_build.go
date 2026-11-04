@@ -263,6 +263,20 @@ func (b *ServerBuilder) buildWithOperations(operations serverBuilderOperations) 
 		return nil, fmt.Errorf("failed to create application: %w", err)
 	}
 
+	readinessMonitor, err := newReadinessMonitor(
+		applicationCore.DB,
+		publicServerBase,
+		b.config,
+		b.readinessChecks,
+	)
+	if err != nil {
+		applicationCore.Shutdown()
+
+		return nil, fmt.Errorf("failed to configure readiness monitor: %w", err)
+	}
+
+	app.SetReadinessMonitor(readinessMonitor)
+
 	resources.Application = app
 
 	return resources, nil

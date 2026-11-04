@@ -21,8 +21,7 @@ func TestGormRepository_ConcurrentTransactions(t *testing.T) {
 	const numGoroutines = 5
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -69,8 +68,7 @@ func TestGormRepository_Shutdown(t *testing.T) {
 	t.Parallel()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -85,8 +83,7 @@ func TestGormTransaction_Context(t *testing.T) {
 	t.Parallel()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -120,8 +117,7 @@ func TestGormTransaction_AddRootKey_NilKey(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -142,8 +138,7 @@ func TestGormTransaction_AddIntermediateKey_NilKey(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -164,8 +159,7 @@ func TestGormTransaction_AddContentKey_NilKey(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -186,8 +180,7 @@ func TestGormTransaction_GetRootKey_NilUUID(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -210,8 +203,7 @@ func TestGormTransaction_GetIntermediateKey_NilUUID(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -234,8 +226,7 @@ func TestGormTransaction_GetContentKey_NilUUID(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)

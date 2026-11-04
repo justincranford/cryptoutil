@@ -45,8 +45,9 @@ type AliasMap struct {
 
 // ExcludedDirs lists directory names that are never walked.
 var ExcludedDirs = map[string]bool{
-	cryptoutilSharedMagic.CICDExcludeDirVendor: true,
-	cryptoutilSharedMagic.CICDExcludeDirGit:    true,
+	cryptoutilSharedMagic.CICDExcludeDirVendor:     true,
+	cryptoutilSharedMagic.CICDExcludeDirGit:        true,
+	cryptoutilSharedMagic.CICDExcludeDirTestOutput: true,
 }
 
 // codeGeneratedCheckBytes is the number of bytes to scan for the "Code generated" marker.
@@ -131,7 +132,12 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFile
 		}
 
 		if d.IsDir() {
-			if ExcludedDirs[d.Name()] {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip || ExcludedDirs[d.Name()] {
 				return filepath.SkipDir
 			}
 

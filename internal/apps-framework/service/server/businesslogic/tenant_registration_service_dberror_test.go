@@ -5,7 +5,6 @@ package businesslogic
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -14,12 +13,10 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilAppsFrameworkServiceServerDomain "cryptoutil/internal/apps-framework/service/server/domain"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
 func TestListJoinRequests(t *testing.T) {
@@ -82,12 +79,8 @@ func TestRegisterUserWithTenant_JoinFlow(t *testing.T) {
 func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
-	require.NoError(t, err)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
 	// Auto-migrate tables.
@@ -120,12 +113,8 @@ func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 func TestRegisterClientWithTenant_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
-	require.NoError(t, err)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
 	// Auto-migrate tables.
@@ -190,12 +179,8 @@ func TestRegisterClientWithTenant_JoinRequestCreateError(t *testing.T) {
 func TestAuthorizeJoinRequest_GetByID_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
-	require.NoError(t, err)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
 	// Auto-migrate tables.
@@ -228,12 +213,8 @@ func TestAuthorizeJoinRequest_GetByID_DBError(t *testing.T) {
 func TestAuthorizeJoinRequest_Update_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
-	require.NoError(t, err)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
 	// Auto-migrate tables.
@@ -280,12 +261,8 @@ func TestAuthorizeJoinRequest_Update_DBError(t *testing.T) {
 func TestListJoinRequests_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
-	require.NoError(t, err)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
 	// Auto-migrate tables.

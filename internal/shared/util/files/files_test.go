@@ -275,11 +275,125 @@ func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
 	require.Contains(t, result[testGo][0], "included", "File should be from included directory")
 }
 
+func TestListRepositoryFilesWithOptions_SelectedWorktreeRootsRemainScannable(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+	}{
+		{name: cryptoutilSharedMagic.CICDExcludeDirDotWorktree},
+		{name: cryptoutilSharedMagic.CICDExcludeDirWorktree},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := filepath.Join(t.TempDir(), tc.name)
+			require.NoError(t, os.MkdirAll(rootDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+				filepath.Join(rootDir, "included.txt"),
+				"selected root contents",
+				cryptoutilSharedMagic.CacheFilePermissions,
+			))
+
+			result, err := cryptoutilSharedUtilFiles.ListRepositoryFilesWithOptions(
+				rootDir,
+				[]string{testTxt},
+				[]string{filepath.ToSlash(rootDir), tc.name},
+			)
+
+			require.NoError(t, err)
+			require.Len(t, result.FilesByExtension[testTxt], 1)
+			require.Contains(t, result.FilesByExtension[testTxt][0], "included.txt")
+		})
+	}
+}
+
+func TestListAllFilesWithOptions_PreservesGenericNestedCheckoutContents(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		markerIsDir bool
+	}{
+		{name: testGitMarkerFile},
+		{name: testGitMarkerDirectory, markerIsDir: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			checkoutDir := filepath.Join(rootDir, "ordinary-named-checkout")
+			require.NoError(t, os.MkdirAll(checkoutDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+				filepath.Join(rootDir, "included.txt"),
+				"selected root contents",
+				cryptoutilSharedMagic.CacheFilePermissions,
+			))
+			require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+				filepath.Join(checkoutDir, "excluded.txt"),
+				"nested checkout contents",
+				cryptoutilSharedMagic.CacheFilePermissions,
+			))
+
+			gitMarkerPath := filepath.Join(checkoutDir, cryptoutilSharedMagic.CICDExcludeDirGit)
+			if tc.markerIsDir {
+				require.NoError(t, os.Mkdir(gitMarkerPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			} else {
+				require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+					gitMarkerPath,
+					"gitdir: ../.git/worktrees/ordinary-named-checkout",
+					cryptoutilSharedMagic.CacheFilePermissions,
+				))
+			}
+
+			result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(rootDir, []string{testTxt}, nil)
+
+			require.NoError(t, err)
+			require.Len(t, result[testTxt], 2)
+			require.ElementsMatch(t, []string{
+				filepath.ToSlash(filepath.Join(rootDir, "included.txt")),
+				filepath.ToSlash(filepath.Join(checkoutDir, "excluded.txt")),
+			}, result[testTxt])
+		})
+	}
+}
+
+func TestListAllFilesWithOptions_PreservesRelativePathExclusions(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(rootDir, "source"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(rootDir, testGeneratedDirectory, testNestedDirectory), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+		filepath.Join(rootDir, "source", "included.go"),
+		"package source",
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+	require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+		filepath.Join(rootDir, testGeneratedDirectory, testNestedDirectory, "excluded.go"),
+		"package generated",
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+
+	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(
+		rootDir,
+		[]string{testGo},
+		[]string{testGeneratedDirectory},
+	)
+
+	require.NoError(t, err)
+	require.Equal(t, []string{filepath.ToSlash(filepath.Join(rootDir, "source", "included.go"))}, filesByExtension[testGo])
+}
+
 func TestListAllFiles_ExcludesVenv(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	venvDir := filepath.Join(tempDir, ".venv")
+	venvDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirVenv)
 	require.NoError(t, os.MkdirAll(venvDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(filepath.Join(tempDir, "included.go"), "package included", cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(filepath.Join(venvDir, "excluded.go"), "package excluded", cryptoutilSharedMagic.CacheFilePermissions))
@@ -290,12 +404,113 @@ func TestListAllFiles_ExcludesVenv(t *testing.T) {
 	require.Contains(t, filesByExtension[testGo][0], "included.go")
 }
 
+func TestListAllFiles_ExcludesMachineOwnedDirectories(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: "git metadata", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: "hidden worktree container", dirName: cryptoutilSharedMagic.CICDExcludeDirDotWorktree},
+		{name: "worktree container", dirName: cryptoutilSharedMagic.CICDExcludeDirWorktree},
+		{name: "DAST reports", dirName: cryptoutilSharedMagic.CICDExcludeDirDastReports},
+		{name: "E2E reports", dirName: cryptoutilSharedMagic.CICDExcludeDirE2EReports},
+		{name: "load reports", dirName: cryptoutilSharedMagic.CICDExcludeDirLoadReports},
+		{name: "test results", dirName: cryptoutilSharedMagic.CICDExcludeDirTestResults},
+		{name: "temporary output", dirName: cryptoutilSharedMagic.CICDExcludeDirTemp},
+		{name: "legacy CI cache", dirName: cryptoutilSharedMagic.CICDExcludeDirDotCICD},
+		{name: "CI lint cache", dirName: cryptoutilSharedMagic.CICDExcludeDirDotCICDLint},
+		{name: "build output", dirName: cryptoutilSharedMagic.CICDExcludeDirBuild},
+		{name: "distribution output", dirName: cryptoutilSharedMagic.CICDExcludeDirDist},
+		{name: "generated output", dirName: cryptoutilSharedMagic.CICDExcludeDirOutput},
+		{name: "legacy Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenvLegacy},
+		{name: "Python environment", dirName: cryptoutilSharedMagic.CICDExcludeDirEnv},
+		{name: "hidden environment", dirName: cryptoutilSharedMagic.CICDExcludeDirDotEnv},
+		{name: "cache", dirName: cryptoutilSharedMagic.CICDExcludeDirCache},
+		{name: "Gatling Maven target output", dirName: cryptoutilSharedMagic.DirectoryNameExclusionTestLoadTarget},
+		{name: "Python bytecode cache", dirName: cryptoutilSharedMagic.CICDExcludeDirPycache},
+		{name: "pytest cache", dirName: cryptoutilSharedMagic.CICDExcludeDirPytestCache},
+		{name: "tox environment", dirName: cryptoutilSharedMagic.CICDExcludeDirTox},
+		{name: "nox environment", dirName: cryptoutilSharedMagic.CICDExcludeDirNox},
+		{name: "Hypothesis cache", dirName: cryptoutilSharedMagic.CICDExcludeDirHypothesis},
+		{name: "HTML coverage output", dirName: cryptoutilSharedMagic.CICDExcludeDirHTMLCov},
+		{name: "Ruff cache", dirName: cryptoutilSharedMagic.CICDExcludeDirRuffCache},
+		{name: "mypy cache", dirName: cryptoutilSharedMagic.CICDExcludeDirMypyCache},
+		{name: "mutation test output", dirName: cryptoutilSharedMagic.CICDExcludeDirGremlins},
+		{name: "vendored dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: "generated test output", dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			excludedDir := filepath.Join(rootDir, tc.dirName)
+			require.NoError(t, os.MkdirAll(excludedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+				filepath.Join(rootDir, "included.go"),
+				"package included",
+				cryptoutilSharedMagic.CacheFilePermissions,
+			))
+			require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+				filepath.Join(excludedDir, "excluded.go"),
+				"package excluded",
+				cryptoutilSharedMagic.CacheFilePermissions,
+			))
+
+			filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(rootDir)
+
+			require.NoError(t, err)
+			require.Len(t, filesByExtension[testGo], 1)
+			require.Contains(t, filesByExtension[testGo][0], "included.go")
+		})
+	}
+}
+
+func TestListAllFiles_ExcludesNestedMachineOwnedOutput(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	nestedOutputDirs := []string{
+		filepath.Join(testGeneratedDirectory, cryptoutilSharedMagic.CICDExcludeDirTemp),
+		filepath.Join("reports", cryptoutilSharedMagic.CICDExcludeDirDastReports),
+		filepath.Join("artifacts", cryptoutilSharedMagic.CICDExcludeDirBuild),
+	}
+
+	require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+		filepath.Join(rootDir, "included.go"),
+		"package included",
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+
+	for _, directory := range nestedOutputDirs {
+		outputDir := filepath.Join(rootDir, directory)
+		require.NoError(t, os.MkdirAll(outputDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, cryptoutilSharedUtilFiles.WriteFile(
+			filepath.Join(outputDir, "generated.go"),
+			"package generated",
+			cryptoutilSharedMagic.CacheFilePermissions,
+		))
+	}
+
+	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(rootDir)
+
+	require.NoError(t, err)
+	require.Len(t, filesByExtension[testGo], 1)
+	require.Contains(t, filesByExtension[testGo][0], "included.go")
+}
+
 func TestListAllFiles_ExcludesGatlingOutputOnly(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
-	gatlingOutput := filepath.Join(root, "test", cryptoutilSharedMagic.WorkflowNameLoad, "target", "gatling", "simulation.log")
-	otherTargetOutput := filepath.Join(root, "other", "target", "keep.log")
+	gatlingOutput := filepath.Join(root, "test", cryptoutilSharedMagic.WorkflowNameLoad, cryptoutilSharedMagic.CICDExcludeDirTarget, "gatling", "simulation.log")
+	otherTargetOutput := filepath.Join(root, "other", cryptoutilSharedMagic.CICDExcludeDirTarget, "keep.log")
 	otherLoadOutput := filepath.Join(root, "test", cryptoutilSharedMagic.WorkflowNameLoad, "reports", "keep.log")
 
 	for _, path := range []string{gatlingOutput, otherTargetOutput, otherLoadOutput} {

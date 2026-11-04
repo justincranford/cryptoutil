@@ -7,9 +7,7 @@ package clientauth
 import (
 	"context"
 	rsa "crypto/rsa"
-	"database/sql"
 	json "encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -20,11 +18,10 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	joseJwt "github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	_ "modernc.org/sqlite"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
@@ -34,34 +31,11 @@ import (
 func setupPrivateKeyTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Create unique in-memory database per test.
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	// Configure SQLite for concurrent writes (WAL mode, busy timeout).
-	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;"); err != nil {
-		require.NoError(t, fmt.Errorf("failed to enable WAL mode: %w", err))
-	}
-
-	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;"); err != nil {
-		require.NoError(t, fmt.Errorf("failed to set busy timeout: %w", err))
-	}
-
-	// Open GORM with modernc SQLite dialector.
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-		Logger:                 logger.Default.LogMode(logger.Silent),
-	})
-	require.NoError(t, err)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	db.Logger = logger.Default.LogMode(logger.Silent)
 
 	// Auto-migrate JTI replay cache table.
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.JTIReplayCache{})
-	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&cryptoutilIdentityDomain.JTIReplayCache{}))
 
 	return db
 }

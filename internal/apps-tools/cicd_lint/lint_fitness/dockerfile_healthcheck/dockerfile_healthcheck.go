@@ -23,6 +23,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilCmdCicdRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // bannedHealthcheckTools lists tools that MUST NOT appear in HEALTHCHECK commands.
@@ -76,9 +77,22 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 			continue
 		}
 
+		if deploymentName == cryptoutilSharedMagic.KubernetesSuiteImageDeployment {
+			// Helm supplies service-specific probes. A default suite livez route
+			// would be invalid until the runtime service selection is known.
+			healthcheckCMD, readErr := extractHealthcheckCMD(dockerfilePath)
+			if readErr != nil {
+				violations = append(violations, fmt.Sprintf("%s: failed to read Dockerfile: %v", deploymentName, readErr))
+			} else if healthcheckCMD != "" {
+				violations = append(violations, fmt.Sprintf("%s: suite image must use Helm service-specific probes, not a default HEALTHCHECK", deploymentName))
+			}
+
+			continue
+		}
+
 		if _, isPSID := psidBinaryMap[deploymentName]; !isPSID {
 			violations = append(violations, fmt.Sprintf(
-				"%s: non-PS-ID deployment MUST NOT define Dockerfile %q; only deployments/{PS-ID}/Dockerfile is allowed",
+				"%s: non-PS-ID deployment MUST NOT define Dockerfile %q; only PS-ID images and the local Kubernetes suite image are allowed",
 				deploymentName, dockerfilePath,
 			))
 

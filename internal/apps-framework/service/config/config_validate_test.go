@@ -12,6 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testOTLPHealthEndpoint = "https://otel-health:13133/health"
+	testOTLPTLSCAFile      = "/run/secrets/otel-ca.pem"
+	testOTLPTLSCertFile    = "/run/secrets/otel-client.pem"
+	testOTLPTLSKeyFile     = "/run/secrets/otel-client-key.pem"
+)
+
 func TestValidateConfiguration_HappyPath(t *testing.T) {
 	t.Parallel()
 
@@ -31,6 +38,10 @@ func TestValidateConfiguration_HappyPath(t *testing.T) {
 		ServiceIPRateLimit:  200,
 		OTLPEnabled:         true,
 		OTLPEndpoint:        "grpc://otel:4317",
+		OTLPHealthEndpoint:  testOTLPHealthEndpoint,
+		OTLPTLSCAFile:       testOTLPTLSCAFile,
+		OTLPTLSCertFile:     testOTLPTLSCertFile,
+		OTLPTLSKeyFile:      testOTLPTLSKeyFile,
 	}
 
 	err := validateConfiguration(s)
@@ -239,6 +250,10 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
 				OTLPEnabled:         true,
 				OTLPEndpoint:        "invalid-no-scheme:4317",
+				OTLPHealthEndpoint:  testOTLPHealthEndpoint,
+				OTLPTLSCAFile:       testOTLPTLSCAFile,
+				OTLPTLSCertFile:     testOTLPTLSCertFile,
+				OTLPTLSKeyFile:      testOTLPTLSKeyFile,
 			},
 			errMsg: testInvalidOtlpEndpointFormat,
 		},

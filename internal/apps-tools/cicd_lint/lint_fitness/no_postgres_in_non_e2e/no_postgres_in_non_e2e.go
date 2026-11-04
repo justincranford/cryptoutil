@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // bannedPatterns contains lowercase patterns indicating a PostgreSQL container is being started.
@@ -60,8 +59,12 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		}
 
 		if d.IsDir() {
-			switch d.Name() {
-			case cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CICDExcludeDirVendor:
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
 				return filepath.SkipDir
 			}
 

@@ -1,0 +1,509 @@
+{
+  "$defs": {
+    "appImage": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "command": {
+          "$ref": "#/$defs/command"
+        },
+        "drain": {
+          "$ref": "#/$defs/command"
+        },
+        "image": {
+          "pattern": "^.+@sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "probes": {
+          "additionalProperties": false,
+          "properties": {
+            "liveness": {
+              "$ref": "#/$defs/command"
+            },
+            "readiness": {
+              "$ref": "#/$defs/command"
+            },
+            "startup": {
+              "$ref": "#/$defs/command"
+            }
+          },
+          "required": [
+            "startup",
+            "liveness",
+            "readiness"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "image",
+        "command",
+        "drain",
+        "probes"
+      ],
+      "type": "object"
+    },
+    "command": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "configurationMap": {
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-zA-Z0-9._-]+$"
+          },
+          "type": "object"
+        },
+        "kind": {
+          "enum": [
+            "framework",
+            "domain"
+          ]
+        },
+        "name": {
+          "maxLength": 63,
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "type": "string"
+        },
+        "psid": {
+          "maxLength": 63,
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "psid",
+        "kind",
+        "files"
+      ],
+      "type": "object"
+    },
+    "pkiImage": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "const": [
+            "pki-materialize",
+            "--instance=/etc/cryptoutil/instance/instance.yaml",
+            "--input=/etc/cryptoutil/instance/materializer.json"
+          ],
+          "type": "array"
+        },
+        "command": {
+          "items": {
+            "const": "/app/cryptoutil"
+          },
+          "maxItems": 1,
+          "minItems": 1,
+          "type": "array"
+        },
+        "image": {
+          "pattern": "^.+@sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        }
+      },
+      "required": [
+        "image",
+        "command",
+        "args",
+        "resources"
+      ],
+      "type": "object"
+    },
+    "resourceSet": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu": {
+          "pattern": "^[1-9][0-9]*m?$",
+          "type": "string"
+        },
+        "memory": {
+          "pattern": "^[1-9][0-9]*(Ki|Mi|Gi|Ti)?$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpu",
+        "memory"
+      ],
+      "type": "object"
+    },
+    "resources": {
+      "additionalProperties": false,
+      "properties": {
+        "limits": {
+          "$ref": "#/$defs/resourceSet"
+        },
+        "requests": {
+          "$ref": "#/$defs/resourceSet"
+        }
+      },
+      "required": [
+        "requests",
+        "limits"
+      ],
+      "type": "object"
+    },
+    "runtimeQuota": {
+      "additionalProperties": false,
+      "properties": {
+        "limitsCPU": {
+          "pattern": "^[1-9][0-9]*m?$",
+          "type": "string"
+        },
+        "limitsMemory": {
+          "pattern": "^[1-9][0-9]*(Ki|Mi|Gi|Ti)?$",
+          "type": "string"
+        },
+        "pods": {
+          "pattern": "^[1-9][0-9]*$",
+          "type": "string"
+        },
+        "requestsCPU": {
+          "pattern": "^[1-9][0-9]*m?$",
+          "type": "string"
+        },
+        "requestsMemory": {
+          "pattern": "^[1-9][0-9]*(Ki|Mi|Gi|Ti)?$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pods",
+        "requestsCPU",
+        "requestsMemory",
+        "limitsCPU",
+        "limitsMemory"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "apiServerAudience": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "apiServerIP": {
+      "format": "ipv4",
+      "type": "string"
+    },
+    "approvedAPIEdges": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "sourcePsid": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "targetPsid": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourcePsid",
+          "targetPsid"
+        ],
+        "type": "object"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "clusterDomain": {
+      "maxLength": 253,
+      "minLength": 1,
+      "type": "string"
+    },
+    "configurationMaps": {
+      "items": {
+        "$ref": "#/$defs/configurationMap"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "hasPostgres": {
+      "type": "boolean"
+    },
+    "helmRelease": {
+      "maxLength": 53,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "infraNamespace": {
+      "maxLength": 63,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "namespace": {
+      "maxLength": 63,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "pkiMaterializer": {
+      "$ref": "#/$defs/pkiImage"
+    },
+    "quota": {
+      "$ref": "#/$defs/runtimeQuota"
+    },
+    "releaseKey": {
+      "maxLength": 200,
+      "minLength": 5,
+      "type": "string"
+    },
+    "revision": {
+      "maxLength": 63,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "run": {
+      "maxLength": 8,
+      "pattern": "^[a-z][a-z0-9]*$",
+      "type": "string"
+    },
+    "storage": {
+      "additionalProperties": false,
+      "properties": {
+        "className": {
+          "maxLength": 63,
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+          "type": "string"
+        },
+        "size": {
+          "pattern": "^[1-9][0-9]*(Mi|Gi|Ti)$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "className",
+        "size"
+      ],
+      "type": "object"
+    },
+    "workloads": {
+      "items": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "else": {
+              "not": {
+                "required": [
+                  "databaseSecretName"
+                ]
+              }
+            },
+            "if": {
+              "properties": {
+                "pool": {
+                  "const": "pg"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "databaseSecretName"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "container": {
+            "$ref": "#/$defs/appImage"
+          },
+          "credentialSecretNames": {
+            "items": {
+              "maxLength": 63,
+              "not": {
+                "pattern": "-e2e-tls$"
+              },
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "databaseSecretName": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "domainConfigFile": {
+            "maxLength": 253,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9._-]+$",
+            "type": "string"
+          },
+          "domainConfigMapName": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "frameworkConfigFile": {
+            "maxLength": 253,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9._-]+$",
+            "type": "string"
+          },
+          "frameworkConfigMapName": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "instanceServices": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "healthClientSecretName": {
+                  "maxLength": 63,
+                  "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "name": {
+                  "maxLength": 63,
+                  "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "otlpClientSecretName": {
+                  "maxLength": 63,
+                  "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "podName": {
+                  "maxLength": 63,
+                  "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "tlsLeafSecretName": {
+                  "maxLength": 63,
+                  "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "podName",
+                "tlsLeafSecretName",
+                "healthClientSecretName",
+                "otlpClientSecretName"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "materializerConfig": {
+            "maxLength": 1048576,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxReplicas": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minReplicas": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "pool": {
+            "enum": [
+              "pg",
+              "mem",
+              "disk"
+            ]
+          },
+          "psid": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "resources": {
+            "$ref": "#/$defs/resources"
+          },
+          "tlsLeafSecretNames": {
+            "items": {
+              "maxLength": 63,
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "trustSecretName": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "psid",
+          "pool",
+          "minReplicas",
+          "maxReplicas",
+          "container",
+          "resources",
+          "frameworkConfigMapName",
+          "frameworkConfigFile",
+          "materializerConfig",
+          "domainConfigMapName",
+          "domainConfigFile",
+          "credentialSecretNames",
+          "trustSecretName",
+          "tlsLeafSecretNames",
+          "instanceServices"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "run",
+    "helmRelease",
+    "releaseKey",
+    "revision",
+    "namespace",
+    "clusterDomain",
+    "infraNamespace",
+    "apiServerIP",
+    "hasPostgres",
+    "quota",
+    "pkiMaterializer",
+    "storage",
+    "approvedAPIEdges",
+    "configurationMaps",
+    "workloads"
+  ],
+  "type": "object"
+}

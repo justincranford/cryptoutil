@@ -152,7 +152,7 @@ func TestStartServiceServer_Success(t *testing.T) {
 	)
 
 	require.Equal(t, 0, exitCode)
-	require.True(t, createdServer.ready)
+	require.False(t, createdServer.ready)
 	require.Contains(t, stdout.String(), "Starting test-svc service")
 	require.Contains(t, stdout.String(), "Public Server: https://127.0.0.1:8443")
 	require.Contains(t, stdout.String(), "Admin Server:  https://127.0.0.1:9443")

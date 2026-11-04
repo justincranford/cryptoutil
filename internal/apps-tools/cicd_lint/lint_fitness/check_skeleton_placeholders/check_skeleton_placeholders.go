@@ -43,10 +43,9 @@ var excludedDirPrefixes = []string{
 	"internal/apps/cryptoutil/",
 	"internal/apps-tools/cicd_lint/",
 	"internal/apps-framework/",
+	// Suite-routed embedded migrations intentionally include every registered service.
+	"internal/apps-tools/deploymentrun/database/",
 }
-
-// excludedDirNames are directory names (single component) that skip entire subtrees.
-var excludedDirNames = []string{cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CICDExcludeDirTestOutput, "node_modules"}
 
 type skeletonPlaceholderOperations struct {
 	absFn      func(string) (string, error)
@@ -109,10 +108,13 @@ func findViolationsWithOperations(rootDir string, operations skeletonPlaceholder
 		}
 
 		if d.IsDir() {
-			for _, name := range excludedDirNames {
-				if d.Name() == name {
-					return filepath.SkipDir
-				}
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(absRoot, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
+				return filepath.SkipDir
 			}
 
 			return nil

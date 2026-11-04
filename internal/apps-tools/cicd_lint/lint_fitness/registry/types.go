@@ -63,6 +63,8 @@ type RegistryProductService struct {
 	MigrationRangeEnd int `yaml:"migration_range_end"`
 	// APIResources lists the canonical OpenAPI path strings for this service's API.
 	APIResources []string `yaml:"api_resources"`
+	// APIDependencies lists registered PS-IDs whose API this service calls.
+	APIDependencies []string `yaml:"api_dependencies"`
 	// Entrypoint is the canonical Dockerfile ENTRYPOINT arguments for this PS-ID.
 	// Example: ["/app/sm-kms"] or ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"].
 	Entrypoint []string `yaml:"entrypoint"`
@@ -116,4 +118,12 @@ type APIResourceInfo struct {
 	PSID string
 	// Resources is the list of canonical path strings (e.g. "/elastickey").
 	Resources []string
+}
+
+// APIServiceDependencyInfo is a directed API call from one PS-ID to another.
+type APIServiceDependencyInfo struct {
+	// SourcePSID is the registered caller service.
+	SourcePSID string
+	// TargetPSID is the registered API service being called.
+	TargetPSID string
 }

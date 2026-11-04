@@ -3,7 +3,6 @@ package mfa
 
 import (
 	"context"
-	"database/sql"
 	"encoding/base32"
 	"fmt"
 	"testing"
@@ -13,10 +12,9 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 )
 
@@ -28,13 +26,11 @@ const (
 func createTOTPTestService(t *testing.T) (*TOTPService, *gorm.DB) {
 	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file::memory:?cache=private")
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 	sqlDB.SetMaxOpenConns(1)
-	t.Cleanup(func() { _ = sqlDB.Close() })
 
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
 	require.NoError(t, db.AutoMigrate(&TOTPSecret{}, &BackupCode{}))
 
 	return NewTOTPService(db), db

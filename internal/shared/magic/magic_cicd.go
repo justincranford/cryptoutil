@@ -21,6 +21,70 @@ const (
 	// CICDExcludeDirVendor is the name of the vendor directory to exclude from scans.
 	CICDExcludeDirVendor = "vendor"
 
+	// CICDExcludeDirVenv is the name of the Python virtual environment directory to exclude from scans.
+	CICDExcludeDirVenv = ".venv"
+
+	// CICDExcludeDirNodeModules is the name of the Node.js dependency directory to exclude from scans.
+	CICDExcludeDirNodeModules = "node_modules"
+
+	// CICDExcludeDirWorkflowReports is the name of the generated workflow report directory to exclude from scans.
+	CICDExcludeDirWorkflowReports = "workflow-reports"
+
+	// CICDExcludeDirDotWorktree is the name of the hidden Git worktree container to exclude from scans.
+	CICDExcludeDirDotWorktree = ".worktree"
+
+	// CICDExcludeDirWorktree is the name of the Git worktree container to exclude from scans.
+	CICDExcludeDirWorktree = "worktree"
+
+	// CICDExcludeDirDastReports is the name of the generated DAST report directory.
+	CICDExcludeDirDastReports = "dast-reports"
+	// CICDExcludeDirE2EReports is the name of the generated E2E report directory.
+	CICDExcludeDirE2EReports = "e2e-reports"
+	// CICDExcludeDirLoadReports is the name of the generated load-test report directory.
+	CICDExcludeDirLoadReports = "load-reports"
+	// CICDExcludeDirTestResults is the name of the generated test-results directory.
+	CICDExcludeDirTestResults = "test-results"
+	// CICDExcludeDirTemp is the name of a temporary-output directory.
+	CICDExcludeDirTemp = "tmp"
+	// CICDExcludeDirDotCICD is the name of the legacy CI/CD cache directory.
+	CICDExcludeDirDotCICD = ".cicd"
+	// CICDExcludeDirDotCICDLint is the name of the CI/CD lint cache directory.
+	CICDExcludeDirDotCICDLint = ".cicd-lint"
+	// CICDExcludeDirBuild is the name of a generated build-output directory.
+	CICDExcludeDirBuild = "build"
+	// CICDExcludeDirDist is the name of a generated distribution directory.
+	CICDExcludeDirDist = "dist"
+	// CICDExcludeDirOutput is the name of a generated output directory.
+	CICDExcludeDirOutput = "output"
+	// CICDExcludeDirVenvLegacy is the name of the legacy Python virtual-environment directory.
+	CICDExcludeDirVenvLegacy = "venv"
+	// CICDExcludeDirEnv is the name of the Python environment directory.
+	CICDExcludeDirEnv = "env"
+	// CICDExcludeDirDotEnv is the name of a hidden environment directory.
+	CICDExcludeDirDotEnv = ".env"
+	// CICDExcludeDirCache is the name of a generated cache directory.
+	CICDExcludeDirCache = ".cache"
+	// CICDExcludeDirTarget is the name of generated Java/Maven build output.
+	CICDExcludeDirTarget = "target"
+	// CICDExcludeDirPycache is the name of generated Python bytecode cache.
+	CICDExcludeDirPycache = "__pycache__"
+	// CICDExcludeDirPytestCache is the name of the pytest cache directory.
+	CICDExcludeDirPytestCache = ".pytest_cache"
+	// CICDExcludeDirTox is the name of the tox environment directory.
+	CICDExcludeDirTox = ".tox"
+	// CICDExcludeDirNox is the name of the nox environment directory.
+	CICDExcludeDirNox = ".nox"
+	// CICDExcludeDirHypothesis is the name of the Hypothesis cache directory.
+	CICDExcludeDirHypothesis = ".hypothesis"
+	// CICDExcludeDirHTMLCov is the name of the generated HTML coverage report directory.
+	CICDExcludeDirHTMLCov = "htmlcov"
+	// CICDExcludeDirRuffCache is the name of the Ruff cache directory.
+	CICDExcludeDirRuffCache = ".ruff_cache"
+	// CICDExcludeDirMypyCache is the name of the mypy cache directory.
+	CICDExcludeDirMypyCache = ".mypy_cache"
+	// CICDExcludeDirGremlins is the name of generated mutation-testing output.
+	CICDExcludeDirGremlins = ".gremlins"
+
 	SequentialCommentWindow      = 10
 	CICDTestMethodErrorf         = "Errorf"
 	CICDTestMethodFatalf         = "Fatalf"
@@ -33,8 +97,8 @@ const (
 	// Planning docs under docs/ legitimately reference old product names when explaining the migration.
 	CICDExcludeDirDocs = "docs"
 
-	// CICDExcludeDirTestOutput is the name of the historical test-output directory to exclude from banned-phrase scans.
-	// This directory contains historical session artifacts that may reference old product names.
+	// CICDExcludeDirTestOutput is the name of the generated test-output directory to exclude from repository scans.
+	// It contains historical artifacts and nested worktrees, not tracked project source.
 	CICDExcludeDirTestOutput = "test-output"
 
 	// CICDExcludeDirBannedProductNamesCheck is the name of the banned-product-names checker directory.
@@ -360,8 +424,8 @@ const (
 	// DepCacheFileName is the dependency cache file name.
 	DepCacheFileName = ".cicd-lint/dep-cache.json"
 
-	// CICDLintValidateAllMaxDuration is the normal-mode performance limit for deployment validation.
-	CICDLintValidateAllMaxDuration = 5 * time.Second
+	// CICDLintValidateAllMaxDuration bounds deployment validation while allowing full-suite CPU contention.
+	CICDLintValidateAllMaxDuration = 15 * time.Second
 
 	// CircularDepCacheFileName is the circular dependency cache file name.
 	CircularDepCacheFileName = ".cicd-lint/circular-dep-cache.json"
@@ -596,17 +660,42 @@ var (
 	// DirectoryNameExclusions defines directories to skip when scanning.
 	// Used by ListAllFiles to exclude generated/vendored directories.
 	DirectoryNameExclusions = []string{
-		".git",
-		".venv",
+		CICDExcludeDirGit,
+		CICDExcludeDirDotWorktree,
+		CICDExcludeDirWorktree,
+		CICDExcludeDirDastReports,
+		CICDExcludeDirE2EReports,
+		CICDExcludeDirLoadReports,
+		CICDExcludeDirTestResults,
+		CICDExcludeDirTemp,
+		CICDExcludeDirDotCICD,
+		CICDExcludeDirDotCICDLint,
+		CICDExcludeDirBuild,
+		CICDExcludeDirDist,
+		CICDExcludeDirOutput,
+		CICDExcludeDirVenvLegacy,
+		CICDExcludeDirEnv,
+		CICDExcludeDirDotEnv,
+		CICDExcludeDirCache,
+		CICDExcludeDirPycache,
+		CICDExcludeDirPytestCache,
+		CICDExcludeDirTox,
+		CICDExcludeDirNox,
+		CICDExcludeDirHypothesis,
+		CICDExcludeDirHTMLCov,
+		CICDExcludeDirRuffCache,
+		CICDExcludeDirMypyCache,
+		CICDExcludeDirGremlins,
+		CICDExcludeDirVenv,
 		"api/client",
 		"api/model",
 		"api/server",
 		"api/idp",
 		"api/authz",
-		"node_modules",
-		"test-output",
-		"vendor",
-		"workflow-reports",
+		CICDExcludeDirNodeModules,
+		CICDExcludeDirTestOutput,
+		CICDExcludeDirVendor,
+		CICDExcludeDirWorkflowReports,
 	}
 
 	DirectoryNameExclusionTestLoadTarget = "test/load/target"

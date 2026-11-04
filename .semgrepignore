@@ -1,0 +1,20 @@
+# Retain standard generated/environment ignores, but do not blanket-exclude repository test
+# directories; the repository-local rules below explicitly enforce Go test invariants.
+.git
+.svn
+.hg
+_darcs
+CVS
+
+build/
+vendor/
+dist/
+*.min.js
+.env/
+.tox/
+node_modules/
+.npm/
+.yarn/
+.venv/
+_opam/
+_build/

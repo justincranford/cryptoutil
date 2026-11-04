@@ -34,8 +34,7 @@ func TestIntermediateKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 				require.NoError(t, err)
 
-				db, cleanup := createKeyServiceTestDB(t)
-				t.Cleanup(cleanup)
+				db := createKeyServiceTestDB(t)
 
 				repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 				require.NoError(t, err)
@@ -97,8 +96,7 @@ func TestContentKeysService_EncryptContent_NilInput(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -148,8 +146,7 @@ func TestContentKeysService_DecryptContent_InvalidCiphertext(t *testing.T) {
 	jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 	require.NoError(t, err)
 
-	db, cleanup := createKeyServiceTestDB(t)
-	defer cleanup()
+	db := createKeyServiceTestDB(t)
 
 	repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -205,8 +202,7 @@ func TestRootKeysService_DecryptKey_AdditionalErrorPaths(t *testing.T) {
 				jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 				require.NoError(t, err)
 
-				db, cleanup := createKeyServiceTestDB(t)
-				t.Cleanup(cleanup)
+				db := createKeyServiceTestDB(t)
 
 				repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 				require.NoError(t, err)
@@ -287,8 +283,7 @@ func TestRotationService_RotateRootKey_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)
@@ -345,8 +340,7 @@ func TestRotationService_RotateIntermediateKey_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)
@@ -403,8 +397,7 @@ func TestRotationService_RotateContentKey_ErrorPaths(t *testing.T) {
 		jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 		require.NoError(t, err)
 
-		db, cleanup := createKeyServiceTestDB(t)
-		defer cleanup()
+		db := createKeyServiceTestDB(t)
 
 		repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 		require.NoError(t, err)

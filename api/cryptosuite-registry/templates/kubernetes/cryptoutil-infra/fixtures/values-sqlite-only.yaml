@@ -1,0 +1,7 @@
+components:
+  postgresLeader:
+    enabled: false
+  postgresFollower:
+    enabled: false
+clients: []
+databases: []

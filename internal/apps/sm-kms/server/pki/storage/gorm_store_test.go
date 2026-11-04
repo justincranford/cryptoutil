@@ -3,7 +3,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"math/big"
 	"path/filepath"
 	"sync"
@@ -12,9 +11,6 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
 
 	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedDatabase "cryptoutil/internal/shared/database"
@@ -304,15 +300,10 @@ func TestGORMStore_AllocateCRLNumbersConcurrentAndDurable(t *testing.T) {
 	t.Parallel()
 
 	dsn := "file:" + filepath.ToSlash(filepath.Join(t.TempDir(), "pki-sequences.db")) + "?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)"
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+	db := cryptoutilAppsFrameworkTestDB.NewFileBackedSQLiteDB(t, dsn)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
-
 	sqlDB.SetMaxOpenConns(24)
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = sqlDB.Close()
-	})
 	require.NoError(t, db.AutoMigrate(&StoredCRLSequence{}))
 
 	store, err := NewGORMStore(db)
@@ -368,14 +359,11 @@ func TestGORMStore_AllocateCRLNumbersConcurrentAndDurable(t *testing.T) {
 
 	require.NoError(t, store.Close())
 
-	restartedSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+	restartedDB := cryptoutilAppsFrameworkTestDB.NewFileBackedSQLiteDB(t, dsn)
+	restartedSQLDB, err := restartedDB.DB()
 	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = restartedSQLDB.Close()
-	})
 	restartedSQLDB.SetMaxOpenConns(1)
-	restartedDB, err := gorm.Open(sqlite.Dialector{Conn: restartedSQLDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
+
 	restartedStore, err := NewGORMStore(restartedDB)
 	require.NoError(t, err)
 	restartedNumber, err := restartedStore.AllocateCRLNumber(context.Background(), gormTestIssuerKeyA)

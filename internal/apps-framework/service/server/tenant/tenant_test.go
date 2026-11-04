@@ -6,18 +6,16 @@ package tenant
 
 import (
 	"context"
-	"database/sql"
 	"strings"
 	"testing"
 
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	_ "modernc.org/sqlite"
 )
 
 // testTenantUUID is the UUID used for tenant tests.
@@ -32,30 +30,8 @@ var (
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Open in-memory SQLite database.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
-	require.NoError(t, err)
-
-	// Configure pragmas.
-	ctx := context.Background()
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	// Create GORM database.
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		Logger:                 logger.Default.LogMode(logger.Silent),
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	// Configure connection pool.
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetConnMaxLifetime(0)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	db.Logger = logger.Default.LogMode(logger.Silent)
 
 	return db
 }

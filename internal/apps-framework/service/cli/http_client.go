@@ -95,6 +95,9 @@ func buildTLSConfig(caCertPool *x509.CertPool, clientCert *tls.Certificate) *tls
 // HTTPGet performs an HTTP GET request with optional CA certificate validation and optional
 // mTLS client certificate. Used by health check CLI wrappers to call API endpoints.
 func HTTPGet(url, cacertPath, certPath, keyPath string) (int, string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultAdminProbeRequestTimeout)
+	defer cancel()
+
 	caCertPool, err := LoadCACertPool(cacertPath)
 	if err != nil {
 		return 0, "", fmt.Errorf("failed to load CA certificate: %w", err)
@@ -106,12 +109,13 @@ func HTTPGet(url, cacertPath, certPath, keyPath string) (int, string, error) {
 	}
 
 	client := &http.Client{
+		Timeout: cryptoutilSharedMagic.DefaultAdminProbeRequestTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: buildTLSConfig(caCertPool, clientCert),
 		},
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return 0, "", fmt.Errorf("failed to create HTTP request: %w", err)
 	}

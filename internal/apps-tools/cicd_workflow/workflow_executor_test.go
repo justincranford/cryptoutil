@@ -102,7 +102,7 @@ func TestRunWithWorkflowsDir_NonDryRun_ProcessResults(t *testing.T) {
 			result := runWithWorkflowsDirAndDependencies([]string{
 				"-workflows=" + tc.workflowName,
 				workflowTestArgVerbose,
-				"-output=" + filepath.Join(t.TempDir(), "output"),
+				"-output=" + filepath.Join(t.TempDir(), cryptoutilSharedMagic.CICDExcludeDirOutput),
 			}, makeWorkflowsDir(t, tc.workflowName), dependencies)
 
 			require.Equal(t, tc.wantExitStatus, result)
@@ -142,7 +142,7 @@ func TestRunWithWorkflowsDir_OutputSetupFailures(t *testing.T) {
 			result := runWithWorkflowsDirAndDependencies([]string{
 				workflowTestArgWorkflowsMock,
 				workflowTestArgDryRun,
-				"-output=" + filepath.Join(t.TempDir(), "output"),
+				"-output=" + filepath.Join(t.TempDir(), cryptoutilSharedMagic.CICDExcludeDirOutput),
 			}, makeWorkflowsDir(t, workflowTestNameMock), dependencies)
 
 			require.Equal(t, 1, result)
@@ -281,7 +281,7 @@ func TestRunWithWorkflowsDir_CloseFailures(t *testing.T) {
 
 			result := runWithWorkflowsDirAndDependencies([]string{
 				workflowTestArgWorkflowsMock,
-				"-output=" + filepath.Join(t.TempDir(), "output"),
+				"-output=" + filepath.Join(t.TempDir(), cryptoutilSharedMagic.CICDExcludeDirOutput),
 			}, makeWorkflowsDir(t, workflowTestNameMock), dependencies)
 
 			require.Equal(t, 0, result)

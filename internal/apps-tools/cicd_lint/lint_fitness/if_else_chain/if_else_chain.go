@@ -23,7 +23,6 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Violation holds details about a detected consecutive-if violation.
@@ -71,8 +70,12 @@ func FindViolationsInDir(rootDir string) ([]Violation, error) {
 		}
 
 		if d.IsDir() {
-			switch d.Name() {
-			case cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirGit:
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
 				return filepath.SkipDir
 			}
 

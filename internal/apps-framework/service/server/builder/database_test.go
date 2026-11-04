@@ -11,8 +11,9 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
 func TestDatabaseConnection(t *testing.T) {
@@ -20,21 +21,19 @@ func TestDatabaseConnection(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		setup   func() *gorm.DB
+		setup   func(*testing.T) *gorm.DB
 		wantErr bool
 	}{
 		{
 			name: "valid gorm db",
-			setup: func() *gorm.DB {
-				db, _ := gorm.Open(sqlite.Open(cryptoutilSharedMagic.SQLiteMemoryPlaceholder), &gorm.Config{})
-
-				return db
+			setup: func(t *testing.T) *gorm.DB {
+				return cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 			},
 			wantErr: false,
 		},
 		{
 			name:    "nil gorm db",
-			setup:   func() *gorm.DB { return nil },
+			setup:   func(*testing.T) *gorm.DB { return nil },
 			wantErr: true,
 		},
 	}
@@ -43,7 +42,7 @@ func TestDatabaseConnection(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			db := tt.setup()
+			db := tt.setup(t)
 			conn, err := NewDatabaseConnection(db)
 
 			if tt.wantErr {

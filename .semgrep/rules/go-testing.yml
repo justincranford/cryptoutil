@@ -16,17 +16,14 @@ rules:
       - pattern-not: "&http.Transport{..., DisableKeepAlives: true, ...}"
     paths:
       include:
-        - "*_test.go"
-        - "*_integration_test.go"
-        - "*_e2e_test.go"
+        - "**/*_test.go"
 
-  # ENG-HANDBOOK.md Section 10.3: Integration Testing Strategy - TestMain Pattern
-  # Per-test gorm.Open() creates a DB per test - violates shared-setup pattern.
-  # Use TestMain with shared DB container to avoid per-test container overhead.
+  # Approved shared SQLite helpers are the only test path for opening a database;
+  # a direct per-test GORM open bypasses package-scoped fixture ownership.
   - id: no-per-test-db-gorm-open
     message: >
-      Never call gorm.Open() in individual test functions. Use TestMain with a shared DB setup.
-      See: docs/ENG-HANDBOOK.md Section 10.3 Integration Testing Strategy.
+      Never call gorm.Open in an individual test function. Use an approved shared SQLite helper
+      or TestMain fixture. See: docs/ENG-HANDBOOK.md Section 10.3 TestMain Pattern.
     languages: [go]
     severity: ERROR
     pattern: |
@@ -37,8 +34,7 @@ rules:
       }
     paths:
       include:
-        - "*_test.go"
-        - "*_integration_test.go"
+        - "**/*_test.go"
 
   - id: no-tls-insecure-skip-verify
     message: >
@@ -49,8 +45,6 @@ rules:
     pattern: "InsecureSkipVerify: true"
     paths:
       include:
-        - "*_test.go"
-        - "*_integration_test.go"
-        - "*_e2e_test.go"
+        - "**/*_test.go"
       exclude:
-        - "internal/shared/crypto/tls/tls_validate_test.go"
+        - "**/internal/shared/crypto/tls/tls_validate_test.go"

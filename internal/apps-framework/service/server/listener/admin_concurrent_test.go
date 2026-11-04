@@ -214,6 +214,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 	server.SetReady(true)
+	server.MarkStartupComplete()
 
 	// Create HTTP client with shorter timeout to test server's idle timeout.
 	client := &http.Client{
@@ -354,7 +355,7 @@ func TestAdminServer_Livez_DuringShutdown_InMemory(t *testing.T) {
 
 	defer func() { _ = resp.Body.Close() }()
 
-	// During shutdown, livez should return 503.
+	// After shutdown completes, livez should return 503.
 	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 
 	body, err := io.ReadAll(resp.Body)
@@ -377,6 +378,7 @@ func TestAdminServer_Readyz_DuringShutdown_InMemory(t *testing.T) {
 
 	// Mark ready first.
 	server.SetReady(true)
+	server.MarkStartupComplete()
 
 	// Trigger shutdown.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)

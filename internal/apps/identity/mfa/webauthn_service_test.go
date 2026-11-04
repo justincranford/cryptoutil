@@ -3,7 +3,6 @@ package mfa_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -11,10 +10,9 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
 )
 
@@ -23,16 +21,9 @@ const testWebAuthnRPDisplayName = "Test Application"
 func createWebAuthnTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file::memory:?cache=private")
-	require.NoError(t, err)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	err = db.AutoMigrate(&cryptoutilIdentityMfa.WebAuthnCredential{}, &cryptoutilIdentityMfa.WebAuthnSession{})
-	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&cryptoutilIdentityMfa.WebAuthnCredential{}, &cryptoutilIdentityMfa.WebAuthnSession{}))
 
 	return db
 }

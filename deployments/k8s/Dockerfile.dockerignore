@@ -1,0 +1,27 @@
+# Allow only reviewed build inputs. Protected configs/material and shared state
+# never enter the Docker build context, including intermediate builder layers.
+**
+!go.mod
+!go.sum
+!api/
+!api/**/
+!api/**/*.go
+!cmd/
+!cmd/**/
+!cmd/**/*.go
+!internal/
+!internal/**/
+!internal/**/*.go
+!internal/apps/**/migrations/*.sql
+!internal/apps-framework/service/server/repository/migrations/*.sql
+!internal/apps/identity-idp/server/apis/templates/*.html
+!internal/apps-tools/cicd_lint/lint_fitness/config_overlay_freshness/config-overlay-templates.yaml
+!internal/apps-tools/cicd_lint/lint_fitness/secret_content/secret-schemas.yaml
+!pkg/
+!pkg/**/
+!pkg/**/*.go
+**/*_test.go
+**/testdata/**
+**/test-output/**
+**/.git/**
+**/.worktrees/**

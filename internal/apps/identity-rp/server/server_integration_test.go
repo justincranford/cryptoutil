@@ -7,6 +7,7 @@ import (
 	http "net/http"
 	"testing"
 
+	cryptoutilAppsFrameworkServiceTestHelpTls "cryptoutil/internal/apps-framework/service/test_help_tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -35,7 +36,7 @@ func TestRPServer_Lifecycle(t *testing.T) {
 	readyzReq, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL), nil)
 	require.NoError(t, err, "failed to create readyz request")
 
-	readyzResp, err := testAdminHTTPClient.Do(readyzReq)
+	readyzResp, err := cryptoutilAppsFrameworkServiceTestHelpTls.DoReadinessRequest(testAdminHTTPClient, readyzReq)
 	require.NoError(t, err, "failed to send readyz request")
 	require.Equal(t, http.StatusOK, readyzResp.StatusCode, "readyz should return 200 OK")
 

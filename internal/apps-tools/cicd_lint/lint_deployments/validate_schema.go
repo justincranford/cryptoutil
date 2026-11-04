@@ -238,7 +238,7 @@ var configSchema = map[string]schemaField{
 	"browser-session-algorithm": {
 		Type:        fieldTypeString,
 		Required:    false,
-		ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), valueOpaque},
+		ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), string(cryptoutilSharedMagic.SessionAlgorithmOpaqueLegacySpelling)},
 		Description: "Browser session token format",
 	},
 	// browser-session-jws-algorithm: JWS signing algorithm (when browser-session-algorithm: JWS).
@@ -258,7 +258,7 @@ var configSchema = map[string]schemaField{
 	"service-session-algorithm": {
 		Type:        fieldTypeString,
 		Required:    false,
-		ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), valueOpaque},
+		ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), string(cryptoutilSharedMagic.SessionAlgorithmOpaqueLegacySpelling)},
 		Description: "Service session token format",
 	},
 	// service-session-jws-algorithm: JWS signing algorithm (when service-session-algorithm: JWS).

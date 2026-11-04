@@ -30,6 +30,8 @@ type PublicServerBase struct {
 	mu            sync.RWMutex
 	shutdown      bool
 	actualPort    int
+	startedCh     chan struct{}
+	started       bool
 	ctx           context.Context
 	cancel        context.CancelFunc
 }
@@ -66,6 +68,7 @@ func newPublicServerBaseInternal(cfg *PublicServerConfig, appListenerFn func(app
 		bindAddress: cfg.BindAddress,
 		port:        cfg.Port,
 		tlsMaterial: cfg.TLSMaterial,
+		startedCh:   make(chan struct{}),
 		app: fiber.New(fiber.Config{
 			DisableStartupMessage: true,
 			ErrorHandler:          publicServerErrorHandler,
@@ -167,6 +170,10 @@ func (s *PublicServerBase) Start(ctx context.Context) error {
 	}
 
 	s.actualPort = tcpAddr.Port
+	if !s.started && s.startedCh != nil {
+		s.started = true
+		close(s.startedCh)
+	}
 	s.mu.Unlock()
 
 	tlsListener := tls.NewListener(listener, s.tlsMaterial.Config)
@@ -197,25 +204,40 @@ func (s *PublicServerBase) Start(ctx context.Context) error {
 // Shutdown gracefully shuts down the server.
 func (s *PublicServerBase) Shutdown(_ context.Context) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if s.shutdown {
+		s.mu.Unlock()
 		return fmt.Errorf("public server already shutdown")
 	}
 
 	s.shutdown = true
+	cancel := s.cancel
+	app := s.app
+	shutdown := s.appShutdownFn
+	s.mu.Unlock()
 
-	if s.cancel != nil {
-		s.cancel()
+	if cancel != nil {
+		cancel()
 	}
 
-	if s.app != nil {
-		if err := s.appShutdownFn(s.app); err != nil {
+	// Draining handlers may read server state; never hold the state mutex
+	// across Fiber shutdown or an injected shutdown callback.
+	if app != nil {
+		if err := shutdown(app); err != nil {
 			return fmt.Errorf("failed to shutdown fiber app: %w", err)
 		}
 	}
 
 	return nil
+}
+
+// Started signals successful TCP binding so application readiness cannot race
+// listener initialization. Transport responsiveness is separately verified.
+func (s *PublicServerBase) Started() <-chan struct{} {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.startedCh
 }
 
 // ActualPort returns the actual port the server is listening on.

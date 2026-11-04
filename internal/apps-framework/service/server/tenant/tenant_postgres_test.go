@@ -14,13 +14,10 @@ import (
 	"sync/atomic"
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	_ "modernc.org/sqlite"
+
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ----------------------------------------------------------------------------
@@ -328,13 +325,8 @@ func newClosedSQLiteSchemaManager(t *testing.T) *SchemaManager {
 	t.Helper()
 
 	// Create a normal SQLite db then close it to force errors.
-	rawDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
-	require.NoError(t, err)
-
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: rawDB}, &gorm.Config{
-		Logger:                 logger.Default.LogMode(logger.Silent),
-		SkipDefaultTransaction: true,
-	})
+	gormDB := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	rawDB, err := gormDB.DB()
 	require.NoError(t, err)
 
 	// Close the underlying connection to force errors going forward.

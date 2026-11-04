@@ -59,12 +59,12 @@ You MUST iterate and keep going until the problem is solved. See **Continuous Ex
 - NEVER stop to ask permission, pause for status updates, or announce intermediate results
 - NEVER give up when encountering complexity (find solutions, refactor, investigate)
 - NEVER skip tasks to "save time" or because they seem "less important"
-- Task complete → Commit → IMMEDIATELY start next task (zero pause, zero text to user)
+- Complete authorized work → validate → commit only reviewed, assigned paths when authorized → start the next task. If the owner/user schedules or forbids a commit, preserve the work and report its exact state.
 - See **Prohibited Stop Behaviors** for the comprehensive list of forbidden stopping patterns
 
 ---
 
-**Execution Pattern**: Task complete → Commit → Next task (zero pause, zero text)
+**Execution Pattern**: Work → validate → owner-authorized scoped commit through normal hooks → next task. Preserve and report changes when the owner/user directs a later commit.
 
 You MUST plan extensively before each function call, and reflect extensively
 on the outcomes of the previous function calls. DO NOT do this entire process by
@@ -88,7 +88,7 @@ problem without needing to ask the user for further input.
 ❌ **Status/Progress Announcements** - No progress summaries, achievements lists, or "Here's what we accomplished" messages. Execute next task immediately.
 ❌ **Phase/Task Completion Declarations** - No intermediate announcements like "Phase 1 complete", "Task 3 done", or "Moving to requirement 4". Continue work, don't announce transitions.
 ❌ **Strategic Pivots with Handoff** - Document blocker, switch to unblocked task, continue without announcement.
-❌ **Leaving Uncommitted Changes** - Commit immediately when work complete (see **End-of-Turn Protocol** for mechanical gate).
+❌ **Unreported Work or Scope Drift** - Never silently abandon authorized work, commit inherited/other-owner changes, or claim unrelated dirty state is clean.
 ❌ **Analysis Without Action** - Analysis should lead to immediate action/fix, not stopping. If issues identified, fix them.
 ❌ **Time/Token Justifications** - Usage is NOT a stopping condition. Continue working regardless of tokens/time consumed.
 ❌ **Premature Stopping After Partial Completion** - "Session complete", "Next steps", "Ready to proceed" — these are all stop patterns. Keep working.
@@ -97,16 +97,9 @@ problem without needing to ask the user for further input.
 
 ## Pre-Flight Checks - MANDATORY
 
-## Workspace Baseline Gate - MANDATORY
+## Workspace Ownership Gate - MANDATORY
 
-Before any code or documentation work, run `git status --porcelain`.
-
-- If output is non-empty: stage and commit all baseline changes immediately before continuing.
-- Baseline checkpoint commit format: `chore(workspace): checkpoint baseline before agent execution`.
-- After every commit: run `git status --porcelain` again and require empty output.
-- End-of-turn is forbidden unless `git status --porcelain` returns empty output.
-
-This prevents pre-commit from stashing unrelated unstaged edits and returning to a dirty worktree after commit.
+Before any Git mutation, follow the End-of-Turn Protocol below. Verify the assigned absolute worktree and inspect staged, unstaged, and untracked state; never checkpoint inherited or shared work.
 
 **Before starting work:**
 
@@ -157,7 +150,7 @@ After the first substantive edit, the very next step MUST be the cheapest execut
 
 **Precedence rule**:
 - When momentum rules conflict with falsification order, falsification order wins.
-- "Zero text between tools" and "commit after each discrete work unit" MUST NOT cause skipping Tier 1 or jumping straight to broad validation.
+- "Zero text between tools" and owner-authorized commits MUST NOT cause skipping Tier 1 or jumping straight to broad validation.
 
 **Examples**:
 - Shared framework parser edit -> Tier 1 is the smallest parser-focused check that can fail for that change; Tier 2 can be broader framework/package validation.
@@ -174,11 +167,11 @@ After the first substantive edit, the very next step MUST be the cheapest execut
 2. **Focused executable check** — run the cheapest meaningful check that can falsify the current work. This may be package-scoped, framework-scoped, or concurrency-scoped depending on where control actually lives.
 3. **Broad validation** — run the broader tests and linters required for the touched slice. For Go work, the default command set lives in `## Quality Gates (Per Task)` below.
 4. **Requirements and consistency** — confirm explicit requirements are implemented, no new TODO/FIXME debt was introduced, edge cases were handled, and docs/config/deployment changes are consistent with the touched work.
-5. **Commit and clean status** — commit with a conventional message and end only with an empty `git status --porcelain` per the End-of-Turn Protocol.
+5. **Commit and owned-state check** — when owner-authorized, commit reviewed paths with a conventional message and normal hooks; verify owned paths are clean and report unrelated worktree changes without modifying them.
 
 **Definition of Done**: "It works" ≠ "It's done"
 - **Works**: Code is functionally correct
-- **Done**: Code passes the ladder above, remains evidence-backed, and is committed cleanly
+- **Done**: Code passes the ladder above and remains evidence-backed; owned paths are clean after an authorized commit, or the owner-scheduled commit and unrelated worktree state are documented.
 
 **Enforcement**: If any step in the ladder is incomplete, the task is NOT complete
 
@@ -213,17 +206,17 @@ After the first substantive edit, the very next step MUST be the cheapest execut
 
 ## Correct Behaviors
 
-**Pattern**: Work → Commit → Next tool invocation (ZERO text, ZERO questions)
+**Pattern**: Work → validate → owner-authorized scoped commit through normal hooks → next tool invocation (ZERO text, ZERO questions). Preserve and report changes when the owner/user directs a later commit.
 
-**The single rule**: After each discrete work unit (test pass, code edit, config fix, etc.), commit immediately and invoke the next tool without explanatory text.
+**The single rule**: After each discrete, authorized work unit, validate and commit only reviewed owned paths when the owner authorizes it; otherwise preserve and report the work, then invoke the next tool without explanatory text.
 
 **Semantic Grouping & Periodic Commits**:
 - Each commit represents ONE semantically coherent unit (one feature, one bug fix, one refactor, one test suite, one doc update)
 - NEVER accumulate changes across different semantic groups into one bulk commit
-- Prefer frequent small commits: completed task = commit, section revised = commit, phase done = commit
-- Push every 5–10 commits so CI/CD validates incrementally
+- Prefer frequent small commits for completed, validated work when the owner authorizes them; stage only reviewed owned paths
+- Coordinate normal-hook commits with the owner; push only with explicit owner authorization after quality gates pass
 
-**Multi-Category Fix Commit Rule**: When a single user request generates multiple independent root-cause fixes, each root-cause category is a separate commit. "One bug fix = one commit" applies at the root-cause level, NOT the user-request level.
+**Multi-Category Fix Commit Rule**: When the owner authorizes commits for a request with multiple independent root-cause fixes, use one separate commit per root-cause category—not merely one per user request.
 
 **Correct Example** (user asks "fix all pre-commit violations"):
 ```
@@ -293,8 +286,8 @@ Task 1: Implement feature X → BLOCKED (needs external API key)
 
 [Agent immediately continues]:
 read_file tracking_document → Identify Task 2 → Start Task 2 execution
-Complete Task 2 → Commit → Start Task 3
-Complete Task 3 → Commit → Start Task 4
+Complete Task 2 → validate → owner-authorized commit of reviewed paths → Start Task 3
+Complete Task 3 → validate → owner-authorized commit of reviewed paths → Start Task 4
 ... [Continue all unblocked tasks]
 ```
 
@@ -395,7 +388,7 @@ When a failure appears intermittent, run BOTH before concluding root cause:
 1. **Isolated**: `go test -run TestName ./path/to/pkg` — passes alone? → shared fixture contamination likely
 2. **Full package**: `go test ./path/to/pkg` — fails in group? → confirms interaction with other tests
 
-**Isolated-pass + grouped-fail = shared fixture contamination**. Also: `git stash ; go test ./... ; git stash pop` — if the test fails before your changes, it is pre-existing (~30 seconds vs. hours of investigation).
+**Isolated-pass + grouped-fail = shared fixture contamination**. For a baseline comparison, use an owner-assigned clean isolated worktree; never stash shared or inherited changes.
 
 #### File Encoding - MANDATORY (PowerShell)
 
@@ -508,24 +501,21 @@ Great progress! What's next?"
 
 ## End-of-Turn Protocol - MANDATORY LAST STEP
 
-**Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`.**
+<!-- @from-eng-handbook as="end-of-turn-commit-protocol" -->
+**Git ownership and commit protocol (mandatory).** A dirty worktree is not authorization to stage, commit, or clean anything. Preserve inherited, staged, unstaged, untracked, and other-user/other-agent work.
 
-This is not guidance — it is a hard mechanical gate. You MUST actually execute the terminal command as a tool call, not assume the worktree is clean based on previous commits.
+Before ANY file write, resolve the target to an absolute path and verify it is inside your assigned worktree and owned scope. Do not rely on shell `cd` or assume its working directory persists across tool calls; edit tools may resolve relative paths against the primary workspace. Recheck the resolved path and ownership before each write.
 
-If `git status --porcelain` returns ANY output (even one file):
+Before ANY Git mutation, verify `git rev-parse --show-toplevel` exactly matches your assigned absolute worktree and verify the expected branch. Inspect `git status --porcelain=v1 -uall`, `git diff --cached`, and `git diff`; account for untracked paths. If ownership, scope, or a concurrent change is unclear, stop before mutation and surface the conflict to the worktree owner.
 
-```bash
-git add -A
-git commit -m "<type(scope): description>"
-git status --porcelain   # MUST return empty
-```
-
-**Only when `git status --porcelain` returns empty output** may you yield to the user.
-
-❌ **NEVER end a turn with uncommitted files. This is non-negotiable.**
-❌ **NEVER assume the worktree is clean — always RUN the command as a tool call.**
-
-A response that leaves uncommitted changes is incomplete by definition. The Workspace Cleanliness checklist in the Completion Verification section is NOT optional — `git status --porcelain` returning empty is a hard gate before yielding to the user.
+- Never checkpoint a dirty baseline or treat pre-existing changes as yours. Never stage or commit paths not explicitly assigned and reviewed; stage only owned paths by explicit path names—never `git add -A`, `git add .`, or equivalent.
+- An isolated subagent must not checkpoint or commit in a parent/shared worktree. Do not start nested autonomous workers unless the orchestrator explicitly assigns them.
+- Coordinate with the owner to serialize commits and normal hooks; never overlap an active owner hook or bypass normal hooks. Commit completed, validated, authorized work using conventional messages. If the owner/user says to wait or not commit, preserve changes and report rather than forcing a commit.
+- Never disable, skip, reroute, or suppress configured hooks or validators. Prohibited methods include `--no-verify`/`-n`, `SKIP`, `HUSKY=0`, or equivalent switches. Never override `core.hooksPath` per command (`git -c`/`--config-env`), through Git configuration environment variables, via temporary/empty hook directories, or persistently in repository/global/system configuration. If a normal hook fails, fix or surface its root cause; never retry with an override.
+- When the parent/orchestrator owns commit serialization or required commit trailers/metadata, or explicitly directs no commit, defer. Do not create a commit until the parent provides an authorized normal-hook slot; preserve staged, unstaged, and untracked work and report its exact state.
+- Never overwrite, stash, reset, restore, rebase, amend, or revert another owner's changes or commits. If recovery could affect unowned or shared state, do not act; surface the conflict.
+- After an authorized commit, verify it contains only reviewed owned paths and confirm owned paths are clean. Report remaining unrelated changes accurately; never call the whole worktree clean if `git status --porcelain` is non-empty.
+<!-- @/from-eng-handbook -->
 
 ---
 

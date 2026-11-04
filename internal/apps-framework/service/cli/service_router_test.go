@@ -34,6 +34,7 @@ var testServiceCfg = cryptoutilAppsFrameworkCli.ServiceConfig{ //nolint:gocheckn
 	UsageInit:         "Usage: test-svc init",
 	UsageHealth:       "Usage: test-svc health",
 	UsageLivez:        "Usage: test-svc livez",
+	UsageStartupz:     "Usage: test-svc startupz",
 	UsageReadyz:       "Usage: test-svc readyz",
 	UsageShutdown:     "Usage: test-svc shutdown",
 }

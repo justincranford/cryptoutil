@@ -1,0 +1,189 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-and-bootstrap-api
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - ipBlock:
+            cidr: {{ printf "%s/32" .Values.apiServerIP | quote }}
+      ports:
+        - protocol: TCP
+          port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-approved-release-edges
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.infraNamespace | quote }}
+          podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/component: gateway
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.infraNamespace | quote }}
+          podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/component: collector
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
+{{- range $edge := .Values.approvedAPIEdges }}
+{{- $sourceExists := false -}}
+{{- $targetExists := false -}}
+{{- range $workload := $.Values.workloads }}
+{{- if eq $workload.psid $edge.sourcePsid }}
+{{- $sourceExists = true -}}
+{{- end }}
+{{- if eq $workload.psid $edge.targetPsid }}
+{{- $targetExists = true -}}
+{{- end }}
+{{- end }}
+{{- if or (eq $edge.sourcePsid $edge.targetPsid) (not $sourceExists) (not $targetExists) }}
+{{- fail (printf "approved API edge %s -> %s must connect distinct workloads in this release" $edge.sourcePsid $edge.targetPsid) }}
+{{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "allow-api-egress-%s-to-%s" $edge.sourcePsid $edge.targetPsid }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $ | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ $.Values.run | quote }}
+      cu.io/release: {{ $.Values.helmRelease | quote }}
+      cu.io/psid: {{ $edge.sourcePsid | quote }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              cu.io/run: {{ $.Values.run | quote }}
+              cu.io/release: {{ $.Values.helmRelease | quote }}
+              cu.io/psid: {{ $edge.targetPsid | quote }}
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "allow-api-ingress-%s-from-%s" $edge.targetPsid $edge.sourcePsid }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $ | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ $.Values.run | quote }}
+      cu.io/release: {{ $.Values.helmRelease | quote }}
+      cu.io/psid: {{ $edge.targetPsid | quote }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              cu.io/run: {{ $.Values.run | quote }}
+              cu.io/release: {{ $.Values.helmRelease | quote }}
+              cu.io/psid: {{ $edge.sourcePsid | quote }}
+      ports:
+        - protocol: TCP
+          port: 8080
+{{- end }}
+{{ if .Values.hasPostgres }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-leader
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      cu.io/run: {{ .Values.run | quote }}
+      cu.io/release: {{ .Values.helmRelease | quote }}
+      cu.io/pool: pg
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.infraNamespace | quote }}
+          podSelector:
+            matchLabels:
+              cu.io/run: {{ .Values.run | quote }}
+              cu.io/component: postgres-leader
+      ports:
+        - protocol: TCP
+          port: 5432
+{{- end }}

@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Check verifies domain layer isolation from the workspace root.
@@ -46,8 +45,12 @@ func checkInDirWithAbs(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, a
 		}
 
 		if info.IsDir() {
-			name := info.Name()
-			if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || name == cryptoutilSharedMagic.CICDExcludeDirTestOutput {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(projectRoot, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
 				return filepath.SkipDir
 			}
 

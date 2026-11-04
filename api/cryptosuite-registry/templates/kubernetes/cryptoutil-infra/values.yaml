@@ -1,0 +1,394 @@
+run: review
+helmRelease: cu-review-infra
+releaseKey: infra:review
+revision: r1
+namespace: cu-review-infra
+clusterDomain: cluster.local
+apiServerIP: 10.43.0.1
+storage:
+  className: cu-review-retain
+components:
+  postgresLeader:
+    enabled: true
+    image: postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
+    replicas: 1
+    configMapName: postgres-leader
+    configMountPath: /etc/cryptoutil/config
+    configFiles:
+      postgresql.conf: |
+        listen_addresses = '*'
+        port = 5432
+        wal_level = logical
+        max_wal_senders = 32
+        max_replication_slots = 32
+        max_connections = 200
+        ssl = on
+        ssl_cert_file = '/run/cryptoutil/pki/server/tls.crt'
+        ssl_key_file = '/run/cryptoutil/pki/server/tls.key'
+        ssl_ca_file = '/run/cryptoutil/pki/client-ca/ca.crt'
+        hba_file = '/etc/cryptoutil/config/pg_hba.conf'
+      pg_hba.conf: |
+        local all all scram-sha-256
+        hostssl all all 0.0.0.0/0 scram-sha-256 clientcert=verify-full
+        hostssl replication replicator 0.0.0.0/0 scram-sha-256 clientcert=verify-full
+    containerArgs:
+      - postgres
+      - -c
+      - config_file=/etc/cryptoutil/config/postgresql.conf
+    servicePorts:
+      - name: postgres
+        port: 5432
+        targetPort: 5432
+    probes:
+      startup:
+        type: tcp
+        port: 5432
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 60
+      liveness:
+        type: tcp
+        port: 5432
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 3
+      readiness:
+        type: tcp
+        port: 5432
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 3
+    storage:
+      size: 8Gi
+      mountPath: /var/lib/postgresql/data
+    secretMounts:
+      - secretName: postgres-leader-tls
+        mountPath: /run/cryptoutil/pki/server
+        defaultMode: 288
+      - secretName: postgres-client-ca
+        mountPath: /run/cryptoutil/pki/client-ca
+        defaultMode: 288
+      - secretName: postgres-bootstrap
+        mountPath: /run/cryptoutil/bootstrap
+        defaultMode: 288
+    bootstrapSecretName: postgres-bootstrap
+    bootstrapUsernameKey: username
+    bootstrapPasswordKey: password
+    scratch:
+      - name: postgres-run
+        mountPath: /var/run/postgresql
+        sizeLimit: 16Mi
+      - name: postgres-tmp
+        mountPath: /tmp
+        sizeLimit: 32Mi
+    # The pinned official PostgreSQL image's initdb requires its effective UID
+    # to exist in /etc/passwd; keep its declared postgres UID (999).
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+  postgresFollower:
+    enabled: true
+    image: postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
+    replicas: 1
+    configMapName: postgres-follower
+    configMountPath: /etc/cryptoutil/config
+    configFiles:
+      postgresql.conf: |
+        listen_addresses = '*'
+        port = 5432
+        max_connections = 200
+        max_worker_processes = 48
+        max_logical_replication_workers = 32
+        max_active_replication_origins = 32
+        max_sync_workers_per_subscription = 2
+        ssl = on
+        ssl_cert_file = '/run/cryptoutil/pki/server/tls.crt'
+        ssl_key_file = '/run/cryptoutil/pki/server/tls.key'
+        ssl_ca_file = '/run/cryptoutil/pki/client-ca/ca.crt'
+        hba_file = '/etc/cryptoutil/config/pg_hba.conf'
+      pg_hba.conf: |
+        local all all scram-sha-256
+        hostssl all all 0.0.0.0/0 scram-sha-256 clientcert=verify-full
+        hostssl replication replicator 0.0.0.0/0 scram-sha-256 clientcert=verify-full
+    containerArgs:
+      - postgres
+      - -c
+      - config_file=/etc/cryptoutil/config/postgresql.conf
+    servicePorts:
+      - name: postgres
+        port: 5432
+        targetPort: 5432
+    probes:
+      startup:
+        type: tcp
+        port: 5432
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 60
+      liveness:
+        type: tcp
+        port: 5432
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 3
+      readiness:
+        type: tcp
+        port: 5432
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 3
+    storage:
+      size: 8Gi
+      mountPath: /var/lib/postgresql/data
+    secretMounts:
+      - secretName: postgres-follower-tls
+        mountPath: /run/cryptoutil/pki/server
+        defaultMode: 288
+      - secretName: postgres-client-ca
+        mountPath: /run/cryptoutil/pki/client-ca
+        defaultMode: 288
+      - secretName: postgres-follower-bootstrap
+        mountPath: /run/cryptoutil/bootstrap
+        defaultMode: 288
+    bootstrapSecretName: postgres-follower-bootstrap
+    bootstrapUsernameKey: username
+    bootstrapPasswordKey: password
+    scratch:
+      - name: postgres-run
+        mountPath: /var/run/postgresql
+        sizeLimit: 16Mi
+      - name: postgres-tmp
+        mountPath: /tmp
+        sizeLimit: 32Mi
+    # The pinned official PostgreSQL image's initdb requires its effective UID
+    # to exist in /etc/passwd; keep its declared postgres UID (999).
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+  collector:
+    enabled: true
+    image: otel/opentelemetry-collector-contrib:0.162.0@sha256:39923a8e431bd1f57be82411999d389fcfe40857492e4365456d97a4c1f74be6
+    replicas: 2
+    configMapName: collector
+    configMountPath: /etc/cryptoutil/config
+    configFiles:
+      config.yaml: |
+        receivers:
+          otlp:
+            protocols:
+              grpc:
+                endpoint: 0.0.0.0:4317
+                tls:
+                  cert_file: /run/cryptoutil/pki/server/tls.crt
+                  key_file: /run/cryptoutil/pki/server/tls.key
+                  client_ca_file: /run/cryptoutil/pki/client-ca/ca.crt
+              http:
+                endpoint: 0.0.0.0:4318
+                tls:
+                  cert_file: /run/cryptoutil/pki/server/tls.crt
+                  key_file: /run/cryptoutil/pki/server/tls.key
+                  client_ca_file: /run/cryptoutil/pki/client-ca/ca.crt
+        extensions:
+          health_check:
+            endpoint: 0.0.0.0:13133
+        exporters:
+          otlp:
+            endpoint: lgtm:4317
+            tls:
+              ca_file: /run/cryptoutil/pki/lgtm-ca/ca.crt
+              cert_file: /run/cryptoutil/pki/lgtm-client/tls.crt
+              key_file: /run/cryptoutil/pki/lgtm-client/tls.key
+        service:
+          extensions: [health_check]
+          pipelines:
+            traces:
+              receivers: [otlp]
+              exporters: [otlp]
+            metrics:
+              receivers: [otlp]
+              exporters: [otlp]
+            logs:
+              receivers: [otlp]
+              exporters: [otlp]
+    containerArgs:
+      - --config=/etc/cryptoutil/config/config.yaml
+    servicePorts:
+      - name: otlp-grpc
+        port: 4317
+        targetPort: 4317
+      - name: otlp-http
+        port: 4318
+        targetPort: 4318
+    probes:
+      startup:
+        type: http
+        path: /
+        port: 13133
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 60
+      liveness:
+        type: http
+        path: /
+        port: 13133
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 3
+      readiness:
+        type: http
+        path: /
+        port: 13133
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 3
+    storage:
+      size: 2Gi
+      mountPath: /var/lib/otelcol
+    secretMounts:
+      - secretName: collector-server-tls
+        mountPath: /run/cryptoutil/pki/server
+        defaultMode: 288
+      - secretName: collector-client-ca
+        mountPath: /run/cryptoutil/pki/client-ca
+        defaultMode: 288
+      - secretName: lgtm-server-ca
+        mountPath: /run/cryptoutil/pki/lgtm-ca
+        defaultMode: 288
+      - secretName: collector-lgtm-client-tls
+        mountPath: /run/cryptoutil/pki/lgtm-client
+        defaultMode: 288
+    scratch:
+      - name: collector-tmp
+        mountPath: /tmp
+        sizeLimit: 32Mi
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  lgtm:
+    enabled: true
+    image: grafana/otel-lgtm:0.36.0@sha256:57c04cbd8e7022f32bb84c4ac005d79baf8b08e2c5be44facf11f5f1f9944ba2
+    replicas: 1
+    configMapName: lgtm
+    configMountPath: /etc/cryptoutil/config
+    configFiles:
+      grafana.ini: |
+        [server]
+        protocol = https
+        http_port = 3000
+        cert_file = /run/cryptoutil/pki/server/tls.crt
+        cert_key = /run/cryptoutil/pki/server/tls.key
+      otelcol-tls-override.yaml: |
+        receivers:
+          otlp:
+            protocols:
+              grpc:
+                endpoint: 0.0.0.0:4317
+                tls:
+                  cert_file: ${env:GF_SERVER_CERT_FILE}
+                  key_file: ${env:GF_SERVER_CERT_KEY}
+                  client_ca_file: ${env:OTELCOL_CLIENT_CA_FILE}
+              http:
+                endpoint: 0.0.0.0:4318
+                tls:
+                  cert_file: ${env:GF_SERVER_CERT_FILE}
+                  key_file: ${env:GF_SERVER_CERT_KEY}
+                  client_ca_file: ${env:OTELCOL_CLIENT_CA_FILE}
+    containerArgs: []
+    servicePorts:
+      - name: otlp-grpc
+        port: 4317
+        targetPort: 4317
+      - name: otlp-http
+        port: 4318
+        targetPort: 4318
+    probes:
+      startup:
+        type: http
+        path: /api/health
+        port: 3000
+        scheme: HTTPS
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 60
+      liveness:
+        type: http
+        path: /api/health
+        port: 3000
+        scheme: HTTPS
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 3
+      readiness:
+        type: http
+        path: /api/health
+        port: 3000
+        scheme: HTTPS
+        periodSeconds: 5
+        timeoutSeconds: 2
+        failureThreshold: 3
+    storage:
+      size: 8Gi
+      mountPath: /var/lib/grafana
+    secretMounts:
+      - secretName: lgtm-server-tls
+        mountPath: /run/cryptoutil/pki/server
+        defaultMode: 288
+      - secretName: lgtm-client-ca
+        mountPath: /run/cryptoutil/pki/client-ca
+        defaultMode: 288
+      - secretName: lgtm-admin
+        mountPath: /run/cryptoutil/admin
+        defaultMode: 288
+    adminSecretName: lgtm-admin
+    adminPasswordKey: password
+    scratch:
+      - name: lgtm-tmp
+        mountPath: /tmp
+        sizeLimit: 64Mi
+    runAsUser: 10001
+    runAsGroup: 472
+    fsGroup: 472
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+clients:
+  - namespace: cu-review-s-sm-kms-pg
+    release: cu-s-sm-kms-pg
+    postgres: true
+databases:
+  - psid: sm-kms
+    name: d_review_s_sm_kms_pg_sm_kms
+    role: u_review_s_sm_kms_pg_sm_kms
+    publication: pub_review_s_sm_kms_pg_sm_kms
+    subscription: sub_review_s_sm_kms_pg_sm_kms
+quota:
+  pods: "12"
+  requestsCPU: "4"
+  requestsMemory: 4Gi
+  limitsCPU: "8"
+  limitsMemory: 8Gi

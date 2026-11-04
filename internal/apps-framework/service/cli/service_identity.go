@@ -85,7 +85,7 @@ func BuildServerUsage(id ServiceIdentity) string {
 }
 
 // RouteServiceFromIdentity is the single-call entry point for all PS-ID service CLIs.
-// It builds all 8 usage strings from the service identity, provides standard client and
+// It builds all 9 usage strings from the service identity, provides standard client and
 // init subcommand handlers, and dispatches the "server" subcommand to id.ServerFn.
 // Construct id using NewServiceIdentity to wire all service-specific settings automatically.
 func RouteServiceFromIdentity(id ServiceIdentity, args []string, stdout, stderr io.Writer) int {
@@ -98,6 +98,7 @@ func RouteServiceFromIdentity(id ServiceIdentity, args []string, stdout, stderr 
 	usageInit := cryptoutilUsage.BuildUsageInit(id.ProductName, id.ServiceName, id.DisplayName, configFilePath)
 	usageHealth := cryptoutilUsage.BuildUsageHealth(id.ProductName, id.ServiceName, portStr)
 	usageLivez := cryptoutilUsage.BuildUsageLivez(id.ProductName, id.ServiceName)
+	usageStartupz := cryptoutilUsage.BuildUsageStartupz(id.ProductName, id.ServiceName)
 	usageReadyz := cryptoutilUsage.BuildUsageReadyz(id.ProductName, id.ServiceName)
 	usageShutdown := cryptoutilUsage.BuildUsageShutdown(id.ProductName, id.ServiceName)
 
@@ -129,6 +130,7 @@ func RouteServiceFromIdentity(id ServiceIdentity, args []string, stdout, stderr 
 			UsageInit:         usageInit,
 			UsageHealth:       usageHealth,
 			UsageLivez:        usageLivez,
+			UsageStartupz:     usageStartupz,
 			UsageReadyz:       usageReadyz,
 			UsageShutdown:     usageShutdown,
 		},

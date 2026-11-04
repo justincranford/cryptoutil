@@ -1,0 +1,1124 @@
+{
+  "apiServerIP": "10.43.0.1",
+  "clients": [
+    {
+      "namespace": "cu-review-p-identity-disk",
+      "postgres": false,
+      "release": "cu-p-identity-disk"
+    },
+    {
+      "namespace": "cu-review-p-identity-mem",
+      "postgres": false,
+      "release": "cu-p-identity-mem"
+    },
+    {
+      "namespace": "cu-review-p-identity-mixed-disk",
+      "postgres": true,
+      "release": "cu-p-identity-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-p-identity-mixed-mem",
+      "postgres": true,
+      "release": "cu-p-identity-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-p-identity-pg",
+      "postgres": true,
+      "release": "cu-p-identity-pg"
+    },
+    {
+      "namespace": "cu-review-p-skeleton-disk",
+      "postgres": false,
+      "release": "cu-p-skeleton-disk"
+    },
+    {
+      "namespace": "cu-review-p-skeleton-mem",
+      "postgres": false,
+      "release": "cu-p-skeleton-mem"
+    },
+    {
+      "namespace": "cu-review-p-skeleton-mixed-disk",
+      "postgres": true,
+      "release": "cu-p-skeleton-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-p-skeleton-mixed-mem",
+      "postgres": true,
+      "release": "cu-p-skeleton-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-p-skeleton-pg",
+      "postgres": true,
+      "release": "cu-p-skeleton-pg"
+    },
+    {
+      "namespace": "cu-review-p-sm-disk",
+      "postgres": false,
+      "release": "cu-p-sm-disk"
+    },
+    {
+      "namespace": "cu-review-p-sm-mem",
+      "postgres": false,
+      "release": "cu-p-sm-mem"
+    },
+    {
+      "namespace": "cu-review-p-sm-mixed-disk",
+      "postgres": true,
+      "release": "cu-p-sm-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-p-sm-mixed-mem",
+      "postgres": true,
+      "release": "cu-p-sm-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-p-sm-pg",
+      "postgres": true,
+      "release": "cu-p-sm-pg"
+    },
+    {
+      "namespace": "cu-review-s-identity-authz-disk",
+      "postgres": false,
+      "release": "cu-s-identity-authz-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-authz-mem",
+      "postgres": false,
+      "release": "cu-s-identity-authz-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-authz-mixed-disk",
+      "postgres": true,
+      "release": "cu-s-identity-authz-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-authz-mixed-mem",
+      "postgres": true,
+      "release": "cu-s-identity-authz-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-authz-pg",
+      "postgres": true,
+      "release": "cu-s-identity-authz-pg"
+    },
+    {
+      "namespace": "cu-review-s-identity-idp-disk",
+      "postgres": false,
+      "release": "cu-s-identity-idp-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-idp-mem",
+      "postgres": false,
+      "release": "cu-s-identity-idp-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-idp-mixed-disk",
+      "postgres": true,
+      "release": "cu-s-identity-idp-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-idp-mixed-mem",
+      "postgres": true,
+      "release": "cu-s-identity-idp-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-idp-pg",
+      "postgres": true,
+      "release": "cu-s-identity-idp-pg"
+    },
+    {
+      "namespace": "cu-review-s-identity-rp-disk",
+      "postgres": false,
+      "release": "cu-s-identity-rp-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-rp-mem",
+      "postgres": false,
+      "release": "cu-s-identity-rp-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-rp-mixed-disk",
+      "postgres": true,
+      "release": "cu-s-identity-rp-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-rp-mixed-mem",
+      "postgres": true,
+      "release": "cu-s-identity-rp-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-rp-pg",
+      "postgres": true,
+      "release": "cu-s-identity-rp-pg"
+    },
+    {
+      "namespace": "cu-review-s-identity-rs-disk",
+      "postgres": false,
+      "release": "cu-s-identity-rs-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-rs-mem",
+      "postgres": false,
+      "release": "cu-s-identity-rs-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-rs-mixed-disk",
+      "postgres": true,
+      "release": "cu-s-identity-rs-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-rs-mixed-mem",
+      "postgres": true,
+      "release": "cu-s-identity-rs-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-rs-pg",
+      "postgres": true,
+      "release": "cu-s-identity-rs-pg"
+    },
+    {
+      "namespace": "cu-review-s-identity-spa-disk",
+      "postgres": false,
+      "release": "cu-s-identity-spa-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-spa-mem",
+      "postgres": false,
+      "release": "cu-s-identity-spa-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-spa-mixed-disk",
+      "postgres": true,
+      "release": "cu-s-identity-spa-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-s-identity-spa-mixed-mem",
+      "postgres": true,
+      "release": "cu-s-identity-spa-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-s-identity-spa-pg",
+      "postgres": true,
+      "release": "cu-s-identity-spa-pg"
+    },
+    {
+      "namespace": "cu-review-s-skeleton-template-disk",
+      "postgres": false,
+      "release": "cu-s-skeleton-template-disk"
+    },
+    {
+      "namespace": "cu-review-s-skeleton-template-mem",
+      "postgres": false,
+      "release": "cu-s-skeleton-template-mem"
+    },
+    {
+      "namespace": "cu-review-s-skeleton-template-mixed-disk",
+      "postgres": true,
+      "release": "cu-s-skeleton-template-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-s-skeleton-template-mixed-mem",
+      "postgres": true,
+      "release": "cu-s-skeleton-template-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-s-skeleton-template-pg",
+      "postgres": true,
+      "release": "cu-s-skeleton-template-pg"
+    },
+    {
+      "namespace": "cu-review-s-sm-kms-disk",
+      "postgres": false,
+      "release": "cu-s-sm-kms-disk"
+    },
+    {
+      "namespace": "cu-review-s-sm-kms-mem",
+      "postgres": false,
+      "release": "cu-s-sm-kms-mem"
+    },
+    {
+      "namespace": "cu-review-s-sm-kms-mixed-disk",
+      "postgres": true,
+      "release": "cu-s-sm-kms-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-s-sm-kms-mixed-mem",
+      "postgres": true,
+      "release": "cu-s-sm-kms-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-s-sm-kms-pg",
+      "postgres": true,
+      "release": "cu-s-sm-kms-pg"
+    },
+    {
+      "namespace": "cu-review-u-cryptoutil-disk",
+      "postgres": false,
+      "release": "cu-u-cryptoutil-disk"
+    },
+    {
+      "namespace": "cu-review-u-cryptoutil-mem",
+      "postgres": false,
+      "release": "cu-u-cryptoutil-mem"
+    },
+    {
+      "namespace": "cu-review-u-cryptoutil-mixed-disk",
+      "postgres": true,
+      "release": "cu-u-cryptoutil-mixed-disk"
+    },
+    {
+      "namespace": "cu-review-u-cryptoutil-mixed-mem",
+      "postgres": true,
+      "release": "cu-u-cryptoutil-mixed-mem"
+    },
+    {
+      "namespace": "cu-review-u-cryptoutil-pg",
+      "postgres": true,
+      "release": "cu-u-cryptoutil-pg"
+    }
+  ],
+  "clusterDomain": "cluster.local",
+  "components": {
+    "collector": {
+      "configFiles": {
+        "config.yaml": "receivers:\n  otlp:\n    protocols:\n      grpc:\n        endpoint: 0.0.0.0:4317\n        tls:\n          cert_file: /run/cryptoutil/pki/server/tls.crt\n          key_file: /run/cryptoutil/pki/server/tls.key\n          client_ca_file: /run/cryptoutil/pki/client-ca/ca.crt\n      http:\n        endpoint: 0.0.0.0:4318\n        tls:\n          cert_file: /run/cryptoutil/pki/server/tls.crt\n          key_file: /run/cryptoutil/pki/server/tls.key\n          client_ca_file: /run/cryptoutil/pki/client-ca/ca.crt\nextensions:\n  health_check:\n    endpoint: 0.0.0.0:13133\nexporters:\n  otlp:\n    endpoint: lgtm:4317\n    tls:\n      ca_file: /run/cryptoutil/pki/lgtm-ca/ca.crt\n      cert_file: /run/cryptoutil/pki/lgtm-client/tls.crt\n      key_file: /run/cryptoutil/pki/lgtm-client/tls.key\nservice:\n  extensions: [health_check]\n  pipelines:\n    traces:\n      receivers: [otlp]\n      exporters: [otlp]\n    metrics:\n      receivers: [otlp]\n      exporters: [otlp]\n    logs:\n      receivers: [otlp]\n      exporters: [otlp]\n"
+      },
+      "configMapName": "collector",
+      "configMountPath": "/etc/cryptoutil/config",
+      "containerArgs": [
+        "--config=/etc/cryptoutil/config/config.yaml"
+      ],
+      "enabled": true,
+      "fsGroup": 10001,
+      "image": "otel/opentelemetry-collector-contrib:0.162.0@sha256:39923a8e431bd1f57be82411999d389fcfe40857492e4365456d97a4c1f74be6",
+      "probes": {
+        "liveness": {
+          "failureThreshold": 3,
+          "path": "/",
+          "periodSeconds": 10,
+          "port": 13133,
+          "timeoutSeconds": 2,
+          "type": "http"
+        },
+        "readiness": {
+          "failureThreshold": 3,
+          "path": "/",
+          "periodSeconds": 5,
+          "port": 13133,
+          "timeoutSeconds": 2,
+          "type": "http"
+        },
+        "startup": {
+          "failureThreshold": 60,
+          "path": "/",
+          "periodSeconds": 5,
+          "port": 13133,
+          "timeoutSeconds": 2,
+          "type": "http"
+        }
+      },
+      "replicas": 2,
+      "resources": {
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        },
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        }
+      },
+      "runAsGroup": 10001,
+      "runAsUser": 10001,
+      "scratch": [
+        {
+          "mountPath": "/tmp",
+          "name": "collector-tmp",
+          "sizeLimit": "32Mi"
+        }
+      ],
+      "secretMounts": [
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/server",
+          "secretName": "collector-server-tls"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/client-ca",
+          "secretName": "collector-client-ca"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/lgtm-ca",
+          "secretName": "lgtm-server-ca"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/lgtm-client",
+          "secretName": "collector-lgtm-client-tls"
+        }
+      ],
+      "servicePorts": [
+        {
+          "name": "otlp-grpc",
+          "port": 4317,
+          "targetPort": 4317
+        },
+        {
+          "name": "otlp-http",
+          "port": 4318,
+          "targetPort": 4318
+        }
+      ],
+      "storage": {
+        "mountPath": "/var/lib/otelcol",
+        "size": "2Gi"
+      }
+    },
+    "lgtm": {
+      "adminPasswordKey": "password",
+      "adminSecretName": "lgtm-admin",
+      "configFiles": {
+        "grafana.ini": "[server]\nprotocol = https\nhttp_port = 3000\ncert_file = /run/cryptoutil/pki/server/tls.crt\ncert_key = /run/cryptoutil/pki/server/tls.key\n",
+        "otelcol-tls-override.yaml": "receivers:\n  otlp:\n    protocols:\n      grpc:\n        endpoint: 0.0.0.0:4317\n        tls:\n          cert_file: ${env:GF_SERVER_CERT_FILE}\n          key_file: ${env:GF_SERVER_CERT_KEY}\n          client_ca_file: ${env:OTELCOL_CLIENT_CA_FILE}\n      http:\n        endpoint: 0.0.0.0:4318\n        tls:\n          cert_file: ${env:GF_SERVER_CERT_FILE}\n          key_file: ${env:GF_SERVER_CERT_KEY}\n          client_ca_file: ${env:OTELCOL_CLIENT_CA_FILE}\n"
+      },
+      "configMapName": "lgtm",
+      "configMountPath": "/etc/cryptoutil/config",
+      "containerArgs": [],
+      "enabled": true,
+      "fsGroup": 472,
+      "image": "grafana/otel-lgtm:0.36.0@sha256:57c04cbd8e7022f32bb84c4ac005d79baf8b08e2c5be44facf11f5f1f9944ba2",
+      "probes": {
+        "liveness": {
+          "failureThreshold": 3,
+          "path": "/api/health",
+          "periodSeconds": 10,
+          "port": 3000,
+          "scheme": "HTTPS",
+          "timeoutSeconds": 2,
+          "type": "http"
+        },
+        "readiness": {
+          "failureThreshold": 3,
+          "path": "/api/health",
+          "periodSeconds": 5,
+          "port": 3000,
+          "scheme": "HTTPS",
+          "timeoutSeconds": 2,
+          "type": "http"
+        },
+        "startup": {
+          "failureThreshold": 60,
+          "path": "/api/health",
+          "periodSeconds": 5,
+          "port": 3000,
+          "scheme": "HTTPS",
+          "timeoutSeconds": 2,
+          "type": "http"
+        }
+      },
+      "replicas": 1,
+      "resources": {
+        "limits": {
+          "cpu": "1",
+          "memory": "1Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi"
+        }
+      },
+      "runAsGroup": 472,
+      "runAsUser": 10001,
+      "scratch": [
+        {
+          "mountPath": "/tmp",
+          "name": "lgtm-tmp",
+          "sizeLimit": "64Mi"
+        }
+      ],
+      "secretMounts": [
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/server",
+          "secretName": "lgtm-server-tls"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/client-ca",
+          "secretName": "lgtm-client-ca"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/admin",
+          "secretName": "lgtm-admin"
+        }
+      ],
+      "servicePorts": [
+        {
+          "name": "otlp-grpc",
+          "port": 4317,
+          "targetPort": 4317
+        },
+        {
+          "name": "otlp-http",
+          "port": 4318,
+          "targetPort": 4318
+        }
+      ],
+      "storage": {
+        "mountPath": "/var/lib/grafana",
+        "size": "8Gi"
+      }
+    },
+    "postgresFollower": {
+      "bootstrapPasswordKey": "password",
+      "bootstrapSecretName": "postgres-follower-bootstrap",
+      "bootstrapUsernameKey": "username",
+      "configFiles": {
+        "pg_hba.conf": "local all all scram-sha-256\nhostssl all all 0.0.0.0/0 scram-sha-256 clientcert=verify-full\nhostssl replication replicator 0.0.0.0/0 scram-sha-256 clientcert=verify-full\n",
+        "postgresql.conf": "listen_addresses = '*'\nport = 5432\nmax_connections = 200\nmax_worker_processes = 48\nmax_logical_replication_workers = 32\nmax_active_replication_origins = 32\nmax_sync_workers_per_subscription = 2\nssl = on\nssl_cert_file = '/run/cryptoutil/pki/server/tls.crt'\nssl_key_file = '/run/cryptoutil/pki/server/tls.key'\nssl_ca_file = '/run/cryptoutil/pki/client-ca/ca.crt'\nhba_file = '/etc/cryptoutil/config/pg_hba.conf'\n"
+      },
+      "configMapName": "postgres-follower",
+      "configMountPath": "/etc/cryptoutil/config",
+      "containerArgs": [
+        "postgres",
+        "-c",
+        "config_file=/etc/cryptoutil/config/postgresql.conf"
+      ],
+      "enabled": true,
+      "fsGroup": 999,
+      "image": "postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336",
+      "probes": {
+        "liveness": {
+          "failureThreshold": 3,
+          "periodSeconds": 10,
+          "port": 5432,
+          "timeoutSeconds": 2,
+          "type": "tcp"
+        },
+        "readiness": {
+          "failureThreshold": 3,
+          "periodSeconds": 5,
+          "port": 5432,
+          "timeoutSeconds": 2,
+          "type": "tcp"
+        },
+        "startup": {
+          "failureThreshold": 60,
+          "periodSeconds": 5,
+          "port": 5432,
+          "timeoutSeconds": 2,
+          "type": "tcp"
+        }
+      },
+      "replicas": 1,
+      "resources": {
+        "limits": {
+          "cpu": "1",
+          "memory": "1Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "512Mi"
+        }
+      },
+      "runAsGroup": 999,
+      "runAsUser": 999,
+      "scratch": [
+        {
+          "mountPath": "/var/run/postgresql",
+          "name": "postgres-run",
+          "sizeLimit": "16Mi"
+        },
+        {
+          "mountPath": "/tmp",
+          "name": "postgres-tmp",
+          "sizeLimit": "32Mi"
+        }
+      ],
+      "secretMounts": [
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/server",
+          "secretName": "postgres-follower-tls"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/client-ca",
+          "secretName": "postgres-client-ca"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/bootstrap",
+          "secretName": "postgres-follower-bootstrap"
+        }
+      ],
+      "servicePorts": [
+        {
+          "name": "postgres",
+          "port": 5432,
+          "targetPort": 5432
+        }
+      ],
+      "storage": {
+        "mountPath": "/var/lib/postgresql/data",
+        "size": "8Gi"
+      }
+    },
+    "postgresLeader": {
+      "bootstrapPasswordKey": "password",
+      "bootstrapSecretName": "postgres-bootstrap",
+      "bootstrapUsernameKey": "username",
+      "configFiles": {
+        "pg_hba.conf": "local all all scram-sha-256\nhostssl all all 0.0.0.0/0 scram-sha-256 clientcert=verify-full\nhostssl replication replicator 0.0.0.0/0 scram-sha-256 clientcert=verify-full\n",
+        "postgresql.conf": "listen_addresses = '*'\nport = 5432\nwal_level = logical\nmax_wal_senders = 32\nmax_replication_slots = 32\nmax_connections = 200\nssl = on\nssl_cert_file = '/run/cryptoutil/pki/server/tls.crt'\nssl_key_file = '/run/cryptoutil/pki/server/tls.key'\nssl_ca_file = '/run/cryptoutil/pki/client-ca/ca.crt'\nhba_file = '/etc/cryptoutil/config/pg_hba.conf'\n"
+      },
+      "configMapName": "postgres-leader",
+      "configMountPath": "/etc/cryptoutil/config",
+      "containerArgs": [
+        "postgres",
+        "-c",
+        "config_file=/etc/cryptoutil/config/postgresql.conf"
+      ],
+      "enabled": true,
+      "fsGroup": 999,
+      "image": "postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336",
+      "probes": {
+        "liveness": {
+          "failureThreshold": 3,
+          "periodSeconds": 10,
+          "port": 5432,
+          "timeoutSeconds": 2,
+          "type": "tcp"
+        },
+        "readiness": {
+          "failureThreshold": 3,
+          "periodSeconds": 5,
+          "port": 5432,
+          "timeoutSeconds": 2,
+          "type": "tcp"
+        },
+        "startup": {
+          "failureThreshold": 60,
+          "periodSeconds": 5,
+          "port": 5432,
+          "timeoutSeconds": 2,
+          "type": "tcp"
+        }
+      },
+      "replicas": 1,
+      "resources": {
+        "limits": {
+          "cpu": "1",
+          "memory": "1Gi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "512Mi"
+        }
+      },
+      "runAsGroup": 999,
+      "runAsUser": 999,
+      "scratch": [
+        {
+          "mountPath": "/var/run/postgresql",
+          "name": "postgres-run",
+          "sizeLimit": "16Mi"
+        },
+        {
+          "mountPath": "/tmp",
+          "name": "postgres-tmp",
+          "sizeLimit": "32Mi"
+        }
+      ],
+      "secretMounts": [
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/server",
+          "secretName": "postgres-leader-tls"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/pki/client-ca",
+          "secretName": "postgres-client-ca"
+        },
+        {
+          "defaultMode": 288,
+          "mountPath": "/run/cryptoutil/bootstrap",
+          "secretName": "postgres-bootstrap"
+        }
+      ],
+      "servicePorts": [
+        {
+          "name": "postgres",
+          "port": 5432,
+          "targetPort": 5432
+        }
+      ],
+      "storage": {
+        "mountPath": "/var/lib/postgresql/data",
+        "size": "8Gi"
+      }
+    }
+  },
+  "databases": [
+    {
+      "name": "d_review_p_identity_mixed_disk_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_p_identity_mixed_disk_identity_authz",
+      "role": "u_review_p_identity_mixed_disk_identity_authz",
+      "subscription": "sub_review_p_identity_mixed_disk_identity_authz"
+    },
+    {
+      "name": "d_review_p_identity_mixed_disk_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_p_identity_mixed_disk_identity_idp",
+      "role": "u_review_p_identity_mixed_disk_identity_idp",
+      "subscription": "sub_review_p_identity_mixed_disk_identity_idp"
+    },
+    {
+      "name": "d_review_p_identity_mixed_disk_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_p_identity_mixed_disk_identity_rp",
+      "role": "u_review_p_identity_mixed_disk_identity_rp",
+      "subscription": "sub_review_p_identity_mixed_disk_identity_rp"
+    },
+    {
+      "name": "d_review_p_identity_mixed_disk_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_p_identity_mixed_disk_identity_rs",
+      "role": "u_review_p_identity_mixed_disk_identity_rs",
+      "subscription": "sub_review_p_identity_mixed_disk_identity_rs"
+    },
+    {
+      "name": "d_review_p_identity_mixed_disk_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_p_identity_mixed_disk_identity_spa",
+      "role": "u_review_p_identity_mixed_disk_identity_spa",
+      "subscription": "sub_review_p_identity_mixed_disk_identity_spa"
+    },
+    {
+      "name": "d_review_p_identity_mixed_mem_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_p_identity_mixed_mem_identity_authz",
+      "role": "u_review_p_identity_mixed_mem_identity_authz",
+      "subscription": "sub_review_p_identity_mixed_mem_identity_authz"
+    },
+    {
+      "name": "d_review_p_identity_mixed_mem_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_p_identity_mixed_mem_identity_idp",
+      "role": "u_review_p_identity_mixed_mem_identity_idp",
+      "subscription": "sub_review_p_identity_mixed_mem_identity_idp"
+    },
+    {
+      "name": "d_review_p_identity_mixed_mem_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_p_identity_mixed_mem_identity_rp",
+      "role": "u_review_p_identity_mixed_mem_identity_rp",
+      "subscription": "sub_review_p_identity_mixed_mem_identity_rp"
+    },
+    {
+      "name": "d_review_p_identity_mixed_mem_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_p_identity_mixed_mem_identity_rs",
+      "role": "u_review_p_identity_mixed_mem_identity_rs",
+      "subscription": "sub_review_p_identity_mixed_mem_identity_rs"
+    },
+    {
+      "name": "d_review_p_identity_mixed_mem_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_p_identity_mixed_mem_identity_spa",
+      "role": "u_review_p_identity_mixed_mem_identity_spa",
+      "subscription": "sub_review_p_identity_mixed_mem_identity_spa"
+    },
+    {
+      "name": "d_review_p_identity_pg_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_p_identity_pg_identity_authz",
+      "role": "u_review_p_identity_pg_identity_authz",
+      "subscription": "sub_review_p_identity_pg_identity_authz"
+    },
+    {
+      "name": "d_review_p_identity_pg_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_p_identity_pg_identity_idp",
+      "role": "u_review_p_identity_pg_identity_idp",
+      "subscription": "sub_review_p_identity_pg_identity_idp"
+    },
+    {
+      "name": "d_review_p_identity_pg_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_p_identity_pg_identity_rp",
+      "role": "u_review_p_identity_pg_identity_rp",
+      "subscription": "sub_review_p_identity_pg_identity_rp"
+    },
+    {
+      "name": "d_review_p_identity_pg_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_p_identity_pg_identity_rs",
+      "role": "u_review_p_identity_pg_identity_rs",
+      "subscription": "sub_review_p_identity_pg_identity_rs"
+    },
+    {
+      "name": "d_review_p_identity_pg_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_p_identity_pg_identity_spa",
+      "role": "u_review_p_identity_pg_identity_spa",
+      "subscription": "sub_review_p_identity_pg_identity_spa"
+    },
+    {
+      "name": "d_review_p_skeleton_mixed_disk_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_p_skeleton_mixed_disk_skeleton_template",
+      "role": "u_review_p_skeleton_mixed_disk_skeleton_template",
+      "subscription": "sub_review_p_skeleton_mixed_disk_skeleton_template"
+    },
+    {
+      "name": "d_review_p_skeleton_mixed_mem_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_p_skeleton_mixed_mem_skeleton_template",
+      "role": "u_review_p_skeleton_mixed_mem_skeleton_template",
+      "subscription": "sub_review_p_skeleton_mixed_mem_skeleton_template"
+    },
+    {
+      "name": "d_review_p_skeleton_pg_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_p_skeleton_pg_skeleton_template",
+      "role": "u_review_p_skeleton_pg_skeleton_template",
+      "subscription": "sub_review_p_skeleton_pg_skeleton_template"
+    },
+    {
+      "name": "d_review_p_sm_mixed_disk_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_p_sm_mixed_disk_sm_kms",
+      "role": "u_review_p_sm_mixed_disk_sm_kms",
+      "subscription": "sub_review_p_sm_mixed_disk_sm_kms"
+    },
+    {
+      "name": "d_review_p_sm_mixed_mem_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_p_sm_mixed_mem_sm_kms",
+      "role": "u_review_p_sm_mixed_mem_sm_kms",
+      "subscription": "sub_review_p_sm_mixed_mem_sm_kms"
+    },
+    {
+      "name": "d_review_p_sm_pg_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_p_sm_pg_sm_kms",
+      "role": "u_review_p_sm_pg_sm_kms",
+      "subscription": "sub_review_p_sm_pg_sm_kms"
+    },
+    {
+      "name": "d_review_s_identity_authz_mixed_disk_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_s_identity_authz_mixed_disk_identity_authz",
+      "role": "u_review_s_identity_authz_mixed_disk_identity_authz",
+      "subscription": "sub_review_s_identity_authz_mixed_disk_identity_authz"
+    },
+    {
+      "name": "d_review_s_identity_authz_mixed_mem_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_s_identity_authz_mixed_mem_identity_authz",
+      "role": "u_review_s_identity_authz_mixed_mem_identity_authz",
+      "subscription": "sub_review_s_identity_authz_mixed_mem_identity_authz"
+    },
+    {
+      "name": "d_review_s_identity_authz_pg_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_s_identity_authz_pg_identity_authz",
+      "role": "u_review_s_identity_authz_pg_identity_authz",
+      "subscription": "sub_review_s_identity_authz_pg_identity_authz"
+    },
+    {
+      "name": "d_review_s_identity_idp_mixed_disk_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_s_identity_idp_mixed_disk_identity_idp",
+      "role": "u_review_s_identity_idp_mixed_disk_identity_idp",
+      "subscription": "sub_review_s_identity_idp_mixed_disk_identity_idp"
+    },
+    {
+      "name": "d_review_s_identity_idp_mixed_mem_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_s_identity_idp_mixed_mem_identity_idp",
+      "role": "u_review_s_identity_idp_mixed_mem_identity_idp",
+      "subscription": "sub_review_s_identity_idp_mixed_mem_identity_idp"
+    },
+    {
+      "name": "d_review_s_identity_idp_pg_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_s_identity_idp_pg_identity_idp",
+      "role": "u_review_s_identity_idp_pg_identity_idp",
+      "subscription": "sub_review_s_identity_idp_pg_identity_idp"
+    },
+    {
+      "name": "d_review_s_identity_rp_mixed_disk_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_s_identity_rp_mixed_disk_identity_rp",
+      "role": "u_review_s_identity_rp_mixed_disk_identity_rp",
+      "subscription": "sub_review_s_identity_rp_mixed_disk_identity_rp"
+    },
+    {
+      "name": "d_review_s_identity_rp_mixed_mem_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_s_identity_rp_mixed_mem_identity_rp",
+      "role": "u_review_s_identity_rp_mixed_mem_identity_rp",
+      "subscription": "sub_review_s_identity_rp_mixed_mem_identity_rp"
+    },
+    {
+      "name": "d_review_s_identity_rp_pg_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_s_identity_rp_pg_identity_rp",
+      "role": "u_review_s_identity_rp_pg_identity_rp",
+      "subscription": "sub_review_s_identity_rp_pg_identity_rp"
+    },
+    {
+      "name": "d_review_s_identity_rs_mixed_disk_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_s_identity_rs_mixed_disk_identity_rs",
+      "role": "u_review_s_identity_rs_mixed_disk_identity_rs",
+      "subscription": "sub_review_s_identity_rs_mixed_disk_identity_rs"
+    },
+    {
+      "name": "d_review_s_identity_rs_mixed_mem_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_s_identity_rs_mixed_mem_identity_rs",
+      "role": "u_review_s_identity_rs_mixed_mem_identity_rs",
+      "subscription": "sub_review_s_identity_rs_mixed_mem_identity_rs"
+    },
+    {
+      "name": "d_review_s_identity_rs_pg_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_s_identity_rs_pg_identity_rs",
+      "role": "u_review_s_identity_rs_pg_identity_rs",
+      "subscription": "sub_review_s_identity_rs_pg_identity_rs"
+    },
+    {
+      "name": "d_review_s_identity_spa_mixed_disk_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_s_identity_spa_mixed_disk_identity_spa",
+      "role": "u_review_s_identity_spa_mixed_disk_identity_spa",
+      "subscription": "sub_review_s_identity_spa_mixed_disk_identity_spa"
+    },
+    {
+      "name": "d_review_s_identity_spa_mixed_mem_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_s_identity_spa_mixed_mem_identity_spa",
+      "role": "u_review_s_identity_spa_mixed_mem_identity_spa",
+      "subscription": "sub_review_s_identity_spa_mixed_mem_identity_spa"
+    },
+    {
+      "name": "d_review_s_identity_spa_pg_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_s_identity_spa_pg_identity_spa",
+      "role": "u_review_s_identity_spa_pg_identity_spa",
+      "subscription": "sub_review_s_identity_spa_pg_identity_spa"
+    },
+    {
+      "name": "d_review_s_skeleton_template_mixed_disk_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_s_skeleton_template_mixed_disk_skeleton_template",
+      "role": "u_review_s_skeleton_template_mixed_disk_skeleton_template",
+      "subscription": "sub_review_s_skeleton_template_mixed_disk_skeleton_template"
+    },
+    {
+      "name": "d_review_s_skeleton_template_mixed_mem_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_s_skeleton_template_mixed_mem_skeleton_template",
+      "role": "u_review_s_skeleton_template_mixed_mem_skeleton_template",
+      "subscription": "sub_review_s_skeleton_template_mixed_mem_skeleton_template"
+    },
+    {
+      "name": "d_review_s_skeleton_template_pg_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_s_skeleton_template_pg_skeleton_template",
+      "role": "u_review_s_skeleton_template_pg_skeleton_template",
+      "subscription": "sub_review_s_skeleton_template_pg_skeleton_template"
+    },
+    {
+      "name": "d_review_s_sm_kms_mixed_disk_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_s_sm_kms_mixed_disk_sm_kms",
+      "role": "u_review_s_sm_kms_mixed_disk_sm_kms",
+      "subscription": "sub_review_s_sm_kms_mixed_disk_sm_kms"
+    },
+    {
+      "name": "d_review_s_sm_kms_mixed_mem_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_s_sm_kms_mixed_mem_sm_kms",
+      "role": "u_review_s_sm_kms_mixed_mem_sm_kms",
+      "subscription": "sub_review_s_sm_kms_mixed_mem_sm_kms"
+    },
+    {
+      "name": "d_review_s_sm_kms_pg_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_s_sm_kms_pg_sm_kms",
+      "role": "u_review_s_sm_kms_pg_sm_kms",
+      "subscription": "sub_review_s_sm_kms_pg_sm_kms"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_disk_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_u_cryptoutil_mixed_disk_identity_authz",
+      "role": "u_review_u_cryptoutil_mixed_disk_identity_authz",
+      "subscription": "sub_review_u_cryptoutil_mixed_disk_identity_authz"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_disk_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_u_cryptoutil_mixed_disk_identity_idp",
+      "role": "u_review_u_cryptoutil_mixed_disk_identity_idp",
+      "subscription": "sub_review_u_cryptoutil_mixed_disk_identity_idp"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_disk_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_u_cryptoutil_mixed_disk_identity_rp",
+      "role": "u_review_u_cryptoutil_mixed_disk_identity_rp",
+      "subscription": "sub_review_u_cryptoutil_mixed_disk_identity_rp"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_disk_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_u_cryptoutil_mixed_disk_identity_rs",
+      "role": "u_review_u_cryptoutil_mixed_disk_identity_rs",
+      "subscription": "sub_review_u_cryptoutil_mixed_disk_identity_rs"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_disk_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_u_cryptoutil_mixed_disk_identity_spa",
+      "role": "u_review_u_cryptoutil_mixed_disk_identity_spa",
+      "subscription": "sub_review_u_cryptoutil_mixed_disk_identity_spa"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_disk_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_u_cryptoutil_mixed_disk_skeleton_template",
+      "role": "u_review_u_cryptoutil_mixed_disk_skeleton_template",
+      "subscription": "sub_review_u_cryptoutil_mixed_disk_skeleton_template"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_disk_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_u_cryptoutil_mixed_disk_sm_kms",
+      "role": "u_review_u_cryptoutil_mixed_disk_sm_kms",
+      "subscription": "sub_review_u_cryptoutil_mixed_disk_sm_kms"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_mem_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_u_cryptoutil_mixed_mem_identity_authz",
+      "role": "u_review_u_cryptoutil_mixed_mem_identity_authz",
+      "subscription": "sub_review_u_cryptoutil_mixed_mem_identity_authz"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_mem_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_u_cryptoutil_mixed_mem_identity_idp",
+      "role": "u_review_u_cryptoutil_mixed_mem_identity_idp",
+      "subscription": "sub_review_u_cryptoutil_mixed_mem_identity_idp"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_mem_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_u_cryptoutil_mixed_mem_identity_rp",
+      "role": "u_review_u_cryptoutil_mixed_mem_identity_rp",
+      "subscription": "sub_review_u_cryptoutil_mixed_mem_identity_rp"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_mem_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_u_cryptoutil_mixed_mem_identity_rs",
+      "role": "u_review_u_cryptoutil_mixed_mem_identity_rs",
+      "subscription": "sub_review_u_cryptoutil_mixed_mem_identity_rs"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_mem_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_u_cryptoutil_mixed_mem_identity_spa",
+      "role": "u_review_u_cryptoutil_mixed_mem_identity_spa",
+      "subscription": "sub_review_u_cryptoutil_mixed_mem_identity_spa"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_mem_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_u_cryptoutil_mixed_mem_skeleton_template",
+      "role": "u_review_u_cryptoutil_mixed_mem_skeleton_template",
+      "subscription": "sub_review_u_cryptoutil_mixed_mem_skeleton_template"
+    },
+    {
+      "name": "d_review_u_cryptoutil_mixed_mem_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_u_cryptoutil_mixed_mem_sm_kms",
+      "role": "u_review_u_cryptoutil_mixed_mem_sm_kms",
+      "subscription": "sub_review_u_cryptoutil_mixed_mem_sm_kms"
+    },
+    {
+      "name": "d_review_u_cryptoutil_pg_identity_authz",
+      "psid": "identity-authz",
+      "publication": "pub_review_u_cryptoutil_pg_identity_authz",
+      "role": "u_review_u_cryptoutil_pg_identity_authz",
+      "subscription": "sub_review_u_cryptoutil_pg_identity_authz"
+    },
+    {
+      "name": "d_review_u_cryptoutil_pg_identity_idp",
+      "psid": "identity-idp",
+      "publication": "pub_review_u_cryptoutil_pg_identity_idp",
+      "role": "u_review_u_cryptoutil_pg_identity_idp",
+      "subscription": "sub_review_u_cryptoutil_pg_identity_idp"
+    },
+    {
+      "name": "d_review_u_cryptoutil_pg_identity_rp",
+      "psid": "identity-rp",
+      "publication": "pub_review_u_cryptoutil_pg_identity_rp",
+      "role": "u_review_u_cryptoutil_pg_identity_rp",
+      "subscription": "sub_review_u_cryptoutil_pg_identity_rp"
+    },
+    {
+      "name": "d_review_u_cryptoutil_pg_identity_rs",
+      "psid": "identity-rs",
+      "publication": "pub_review_u_cryptoutil_pg_identity_rs",
+      "role": "u_review_u_cryptoutil_pg_identity_rs",
+      "subscription": "sub_review_u_cryptoutil_pg_identity_rs"
+    },
+    {
+      "name": "d_review_u_cryptoutil_pg_identity_spa",
+      "psid": "identity-spa",
+      "publication": "pub_review_u_cryptoutil_pg_identity_spa",
+      "role": "u_review_u_cryptoutil_pg_identity_spa",
+      "subscription": "sub_review_u_cryptoutil_pg_identity_spa"
+    },
+    {
+      "name": "d_review_u_cryptoutil_pg_skeleton_template",
+      "psid": "skeleton-template",
+      "publication": "pub_review_u_cryptoutil_pg_skeleton_template",
+      "role": "u_review_u_cryptoutil_pg_skeleton_template",
+      "subscription": "sub_review_u_cryptoutil_pg_skeleton_template"
+    },
+    {
+      "name": "d_review_u_cryptoutil_pg_sm_kms",
+      "psid": "sm-kms",
+      "publication": "pub_review_u_cryptoutil_pg_sm_kms",
+      "role": "u_review_u_cryptoutil_pg_sm_kms",
+      "subscription": "sub_review_u_cryptoutil_pg_sm_kms"
+    }
+  ],
+  "helmRelease": "cu-review-infra",
+  "namespace": "cu-review-infra",
+  "quota": {
+    "limitsCPU": "8",
+    "limitsMemory": "8Gi",
+    "pods": "12",
+    "requestsCPU": "4",
+    "requestsMemory": "4Gi"
+  },
+  "releaseKey": "infra:review",
+  "revision": "r1",
+  "run": "review",
+  "storage": {
+    "className": "cu-review-retain"
+  }
+}

@@ -102,6 +102,7 @@ func TestSendReadinessCheck_Success(t *testing.T) {
 
 	// Mark server ready so readyz returns 200.
 	server.SetReady(true)
+	server.MarkStartupComplete()
 
 	settings := cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings()
 	settings.BindPrivatePort = uint16(server.ActualPort()) //nolint:gosec // Port validated by server.

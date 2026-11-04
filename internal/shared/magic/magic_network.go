@@ -238,6 +238,8 @@ const (
 
 	// PrivateAdminLivezRequestPath - Livez endpoint path (relative to admin context path).
 	PrivateAdminLivezRequestPath = "/livez"
+	// PrivateAdminStartupzRequestPath is the startup endpoint path relative to the admin context path.
+	PrivateAdminStartupzRequestPath = "/startupz"
 	// PrivateAdminReadyzRequestPath - Readyz endpoint path (relative to admin context path).
 	PrivateAdminReadyzRequestPath = "/readyz"
 	// PrivateAdminShutdownRequestPath - Shutdown endpoint path (relative to admin context path).
@@ -365,6 +367,8 @@ const (
 
 	// DefaultServerShutdownTimeout - Default graceful server shutdown timeout duration.
 	DefaultServerShutdownTimeout = 5 * time.Second
+	// DefaultAdminProbeRequestTimeout keeps exec probe requests below the 2s Kubernetes timeout.
+	DefaultAdminProbeRequestTimeout = 1500 * time.Millisecond
 
 	// DefaultAdminServerShutdownDelay - Default delay before admin server initiates connection drain.
 	DefaultAdminServerShutdownDelay = 100 * time.Millisecond

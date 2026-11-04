@@ -22,6 +22,7 @@ Available subcommands:
   init        Initialize database and configuration
   health      Check service health (public API)
   livez       Check service liveness (admin API)
+  startupz    Check service startup completion (admin API)
   readyz      Check service readiness (admin API)
   shutdown    Trigger graceful shutdown (admin API)
 
@@ -135,6 +136,30 @@ Options:
 Examples:
   %s %s livez
   %s %s livez --url https://localhost:9090 --cacert /path/to/ca.pem --cert /path/to/client.crt --key /path/to/client.key`,
+		productName, serviceName,
+		productName, serviceName,
+		productName, serviceName)
+}
+
+// BuildUsageStartupz returns the startupz subcommand usage string.
+// The admin port is always 9090 per the architecture.
+func BuildUsageStartupz(productName, serviceName string) string {
+	return fmt.Sprintf(`Usage: %s %s startupz [options]
+
+Description:
+  Check service startup completion via admin API endpoint.
+  Calls GET /admin/api/v1/startupz endpoint on the admin server.
+
+Options:
+  --url URL      Admin URL (default: https://127.0.0.1:9090)
+  --cacert FILE  CA certificate file for TLS validation
+  --cert FILE    Client certificate file for mTLS
+  --key FILE     Client private key file for mTLS
+  --help, -h     Show this help message
+
+Examples:
+  %s %s startupz
+  %s %s startupz --url https://localhost:9090 --cacert /path/to/ca.pem --cert /path/to/client.crt --key /path/to/client.key`,
 		productName, serviceName,
 		productName, serviceName,
 		productName, serviceName)

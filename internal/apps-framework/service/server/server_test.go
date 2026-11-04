@@ -5,21 +5,17 @@ package server
 import (
 	"context"
 	"crypto/x509"
-	"database/sql"
 	"fmt"
 	"net"
 	"testing"
 	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
-	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -118,24 +114,13 @@ func TestNewServiceFramework_TelemetryInitError(t *testing.T) {
 		LogLevel:    cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	dbUUID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbUUID.String() + "?mode=memory&cache=private"
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	defer func() { _ = sqlDB.Close() }()
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	stubTelemetry := func(_ context.Context, _ *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
 		return nil, fmt.Errorf("mock telemetry failure")
 	}
 
-	_, err = newServiceFrameworkInternal(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite,
+	_, err := newServiceFrameworkInternal(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite,
 		stubTelemetry,
 		cryptoutilSharedCryptoJose.NewJWKGenService,
 	)
@@ -155,24 +140,13 @@ func TestNewServiceFramework_JWKGenInitError(t *testing.T) {
 		OTLPEndpoint: testOTLPEndpointHTTP,
 	}
 
-	dbUUID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbUUID.String() + "?mode=memory&cache=private"
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	defer func() { _ = sqlDB.Close() }()
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	stubJWKGen := func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _ bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
 		return nil, fmt.Errorf("mock jwkgen failure")
 	}
 
-	_, err = newServiceFrameworkInternal(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite,
+	_, err := newServiceFrameworkInternal(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite,
 		func(ctx context.Context, cfg *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
 			return cryptoutilSharedTelemetry.NewTelemetryService(ctx, cfg.ToTelemetrySettings())
 		},
@@ -196,40 +170,14 @@ func TestNewServiceFramework_OptionError(t *testing.T) {
 		OTLPEndpoint: testOTLPEndpointHTTP, // Valid OTLP HTTP endpoint.
 	}
 
-	// Create unique in-memory database per test (using modernc.org/sqlite).
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	defer func() { _ = sqlDB.Close() }()
-
-	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM.
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	// Create option that always fails.
 	failingOption := func(_ *ServiceFramework) error {
 		return fmt.Errorf("intentional option failure")
 	}
 
-	_, err = NewServiceFramework(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite, failingOption)
+	_, err := NewServiceFramework(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite, failingOption)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to apply option")
 	require.Contains(t, err.Error(), "intentional option failure")

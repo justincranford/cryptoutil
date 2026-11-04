@@ -63,6 +63,15 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 		}
 
 		if d.IsDir() {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary %s: %w", path, skipErr)
+			}
+
+			if shouldSkip {
+				return filepath.SkipDir
+			}
+
 			if _, banned := bannedSet[d.Name()]; banned {
 				violations = append(violations, path)
 

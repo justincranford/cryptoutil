@@ -147,8 +147,11 @@ func TestMutualTLS(t *testing.T) {
 
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{
-			Transport: &http.Transport{TLSClientConfig: clientTLSConfig},
-			Timeout:   cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second, // Increase client timeout to prevent flaky failures
+			Transport: &http.Transport{
+				TLSClientConfig:   clientTLSConfig,
+				DisableKeepAlives: true,
+			},
+			Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second, // Increase client timeout to prevent flaky failures
 		}
 
 		for i := 1; i <= clientConnections; i++ {

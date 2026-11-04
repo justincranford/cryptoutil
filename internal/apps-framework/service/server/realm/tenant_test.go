@@ -6,19 +6,15 @@ package realm
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
-	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	_ "modernc.org/sqlite" // Use modernc CGO-free SQLite.
-
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -28,23 +24,12 @@ var tenantTestUUID = googleUuid.Must(googleUuid.NewV7()).String()
 func setupTenantTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Use unique database name per test to avoid conflicts.
-	dbName := fmt.Sprintf("file:tenant_test_%d?mode=memory&cache=private", time.Now().UTC().UnixNano())
-
-	// Use database/sql with modernc.org/sqlite driver.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	db.Logger = logger.Default.LogMode(logger.Silent)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
-
-	// Configure connection pool per instructions.
 	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-
-	// Wrap with GORM using sqlite Dialector.
-	db, err := gorm.Open(gormsqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		Logger:                 logger.Default.LogMode(logger.Silent),
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
 
 	return db
 }

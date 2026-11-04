@@ -245,6 +245,8 @@ product_services:
       - /authn/logout
       - /authn/session
       - /authn/refresh
+    api_dependencies:
+      - identity-authz
 
   # Single Page App Backend-for-Frontend (BFF) â€” browser-facing OAuth 2.1 client.
   # Proxies authentication flows for SPA clients that cannot securely store tokens.

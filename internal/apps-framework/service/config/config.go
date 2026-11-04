@@ -248,6 +248,7 @@ type ServiceFrameworkServerSettings struct {
 	OTLPEnvironment             string
 	OTLPHostname                string
 	OTLPEndpoint                string
+	OTLPHealthEndpoint          string
 	UnsealMode                  string
 	UnsealFiles                 []string
 	BrowserRealms               []string        // Paths to browser realm configuration files (session-based auth)

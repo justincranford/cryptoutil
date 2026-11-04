@@ -6,16 +6,14 @@ package businesslogic
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 	"time"
 
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
+
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
@@ -28,38 +26,10 @@ import (
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Use a UUIDv7-based name with cache=private to ensure each setupTestDB()
-	// call gets a fresh isolated in-memory DB. UUIDs prevent name collisions
-	// across parallel test runs and -count=N reruns. cache=private means this
-	// pool's connections are isolated from all other test DB pools.
-	// (All connections within this pool share the same named in-memory DB.)
-	dbID := googleUuid.Must(googleUuid.NewV7())
-	dbName := fmt.Sprintf("file:test_%s?mode=memory&cache=private", dbID.String())
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
-	require.NoError(t, err)
-
-	// Enable WAL mode for better concurrency.
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	// Set busy timeout for concurrent writes.
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	// Pass to GORM with auto-transactions disabled.
-	dialector := sqlite.Dialector{Conn: sqlDB}
-	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	// Configure connection pool for GORM transactions.
-	sqlDB, err = db.DB()
-	require.NoError(t, err)
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
-	sqlDB.SetConnMaxLifetime(0) // In-memory: never close
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	// Auto-migrate session tables.
-	err = db.AutoMigrate(
+	err := db.AutoMigrate(
 		&cryptoutilAppsFrameworkServiceServerRepository.BrowserSession{},
 		&cryptoutilAppsFrameworkServiceServerRepository.ServiceSession{},
 		&cryptoutilAppsFrameworkServiceServerRepository.BrowserSessionJWK{},

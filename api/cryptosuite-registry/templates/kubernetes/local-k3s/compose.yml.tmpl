@@ -1,0 +1,112 @@
+name: {{ printf "%q" .Project }}
+services:
+  server-0:
+    image: {{ printf "%q" .Image }}
+    container_name: {{ printf "%q" .Server.Container }}
+    hostname: {{ printf "%q" .Server.Hostname }}
+    privileged: true
+    restart: unless-stopped
+    command:
+      - server
+      - --cluster-init
+      - --token-file=/run/secrets/k3s-join-token
+      - --secrets-encryption
+      - --secrets-encryption-provider=aescbc
+      - --disable=traefik
+      - --disable=servicelb
+      - --write-kubeconfig-mode=0600
+      - --tls-san={{ .APIHost }}
+      - --service-cidr={{ .ServiceCIDR }}
+      - --cluster-cidr={{ .PodCIDR }}
+      # Keep the API's default service-account issuer/audience; do not infer token audiences
+      # from the cluster DNS domain. A provider-specific audience requires explicit verification.
+    secrets:
+      - source: k3s-join-token
+        target: /run/secrets/k3s-join-token
+    ports:
+      - target: 6443
+        published: {{ printf "%q" (printf "%d" .APIPort) }}
+        host_ip: {{ printf "%q" .APIHost }}
+        protocol: tcp
+      - target: 30443
+        published: {{ printf "%q" (printf "%d" .GatewayPort) }}
+        host_ip: {{ printf "%q" .GatewayHost }}
+        protocol: tcp
+    tmpfs:
+      - /run
+      - /var/run
+    volumes:
+      - type: volume
+        source: server-0-data
+        target: /var/lib/rancher/k3s
+    networks:
+      - nodes
+    labels:
+      cu.io/run: {{ printf "%q" .Run }}
+      cu.io/node-id: {{ printf "%q" .Server.Container }}
+      cu.io/node-role: server
+    healthcheck:
+      test:
+        - CMD
+        - k3s
+        - kubectl
+        - get
+        - --raw=/readyz
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 40s
+{{- range $agent := .Agents }}
+  {{ $agent.Service }}:
+    image: {{ printf "%q" $.Image }}
+    container_name: {{ printf "%q" $agent.Container }}
+    hostname: {{ printf "%q" $agent.Hostname }}
+    privileged: true
+    restart: unless-stopped
+    command:
+      - agent
+      - --server=https://server-0:6443
+      - --token-file=/run/secrets/k3s-join-token
+    depends_on:
+      server-0:
+        condition: service_healthy
+    secrets:
+      - source: k3s-join-token
+        target: /run/secrets/k3s-join-token
+    tmpfs:
+      - /run
+      - /var/run
+    volumes:
+      - type: volume
+        source: {{ $agent.Service }}-data
+        target: /var/lib/rancher/k3s
+    networks:
+      - nodes
+    labels:
+      cu.io/run: {{ printf "%q" $.Run }}
+      cu.io/node-id: {{ printf "%q" $agent.Container }}
+      cu.io/node-role: agent
+{{- end }}
+volumes:
+  server-0-data:
+    name: {{ printf "%q" .Server.Volume }}
+    labels:
+      cu.io/run: {{ printf "%q" .Run }}
+      cu.io/node-id: {{ printf "%q" .Server.Container }}
+  {{- range $agent := .Agents }}
+  {{ $agent.Service }}-data:
+    name: {{ printf "%q" $agent.Volume }}
+    labels:
+      cu.io/run: {{ printf "%q" $.Run }}
+      cu.io/node-id: {{ printf "%q" $agent.Container }}
+  {{- end }}
+networks:
+  nodes:
+    name: {{ printf "%q" .Network }}
+    labels:
+      cu.io/run: {{ printf "%q" .Run }}
+      cu.io/role: k3s-node-network
+secrets:
+  # Create this run-owned file with owner-only permissions; never commit its contents.
+  k3s-join-token:
+    file: {{ printf "%q" .TokenSecretFile }}

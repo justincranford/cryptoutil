@@ -6,7 +6,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -15,11 +14,10 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	_ "modernc.org/sqlite"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
@@ -33,41 +31,11 @@ const (
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;"); err != nil {
-		require.FailNowf(t, "failed to enable WAL mode", "%v", err)
-	}
-
-	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;"); err != nil {
-		require.FailNowf(t, "failed to set busy timeout", "%v", err)
-	}
-
-	dialector := sqlite.Dialector{Conn: sqlDB}
-
-	db, err := gorm.Open(dialector, &gorm.Config{
-		Logger:                 logger.Default.LogMode(logger.Silent),
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	gormDB, err := db.DB()
-	require.NoError(t, err)
-
-	gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	gormDB.SetConnMaxLifetime(0)
-	gormDB.SetConnMaxIdleTime(0)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	db.Logger = logger.Default.LogMode(logger.Silent)
 
 	// Auto-migrate JTI replay cache table.
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.JTIReplayCache{})
-	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&cryptoutilIdentityDomain.JTIReplayCache{}))
 
 	return db
 }

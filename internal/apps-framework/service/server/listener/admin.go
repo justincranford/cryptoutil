@@ -10,7 +10,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
@@ -23,27 +22,38 @@ import (
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps-framework/service/config/tls_generator"
-	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilAppsFrameworkServiceServerReadiness "cryptoutil/internal/apps-framework/service/server/readiness"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+const (
+	readinessStatusNotReady = "not ready"
+	readinessStatusStale    = "stale"
 )
 
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
 // Binds to address and port from ServiceFrameworkServerSettings.
 type AdminServer struct {
-	app             *fiber.App
-	listener        net.Listener
-	settings        *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
-	actualPort      uint16
-	tlsMaterial     *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
-	listenFn        func(ctx context.Context, network, address string) (net.Listener, error)
-	appListenerFn   func(app *fiber.App, ln net.Listener) error
-	shutdownDelayFn func()
-	mu              sync.RWMutex
-	ready           bool
-	shutdown        bool
-	shutdownStarted bool
-	shutdownDone    chan struct{}
-	shutdownErr     error
+	app              *fiber.App
+	listener         net.Listener
+	settings         *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
+	actualPort       uint16
+	tlsMaterial      *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
+	startedCh        chan struct{}
+	started          bool
+	listenFn         func(ctx context.Context, network, address string) (net.Listener, error)
+	appListenerFn    func(app *fiber.App, ln net.Listener) error
+	shutdownDelayFn  func()
+	mu               sync.RWMutex
+	startupComplete  bool
+	readinessMonitor *cryptoutilAppsFrameworkServiceServerReadiness.Monitor
+	ready            bool
+	draining         bool
+	shutdown         bool
+	shutdownComplete bool
+	shutdownStarted  bool
+	shutdownDone     chan struct{}
+	shutdownErr      error
 }
 
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
@@ -99,6 +109,7 @@ func newAdminHTTPServerInternal(
 	server := &AdminServer{
 		settings:      settings,
 		tlsMaterial:   tlsMaterial,
+		startedCh:     make(chan struct{}),
 		listenFn:      listenFn,
 		appListenerFn: appListenerFn,
 		shutdownDelayFn: func() {
@@ -129,6 +140,7 @@ func (s *AdminServer) registerRoutes() {
 	api := s.app.Group(cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath)
 
 	// Health check endpoints.
+	api.Get(cryptoutilSharedMagic.PrivateAdminStartupzRequestPath, s.handleStartupz)
 	api.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, s.handleLivez)
 	api.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
@@ -136,38 +148,17 @@ func (s *AdminServer) registerRoutes() {
 	api.Post(cryptoutilSharedMagic.PrivateAdminShutdownRequestPath, s.handleShutdown)
 }
 
-// handleLivez returns liveness status (200 if server is running).
-// Liveness check: Is the process alive? Failure action: restart container.
-func (s *AdminServer) handleLivez(c *fiber.Ctx) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if s.shutdown {
-		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusShuttingDown,
-		}); err != nil {
-			return fmt.Errorf("failed to send livez shutdown response: %w", err)
-		}
-
-		return nil
-	}
-
-	if err := c.JSON(fiber.Map{
-		cryptoutilSharedMagic.StringStatus: "alive",
-	}); err != nil {
-		return fmt.Errorf("failed to send livez response: %w", err)
-	}
-
-	return nil
-}
-
 // handleReadyz returns readiness status (200 if server is ready to accept traffic).
 // Readiness check: Is the service ready? Failure action: remove from load balancer (do NOT restart).
 func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
+	shutdown := s.shutdown || s.draining
+	startupComplete := s.startupComplete
+	ready := s.ready
+	monitor := s.readinessMonitor
+	s.mu.RUnlock()
 
-	if s.shutdown {
+	if shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
 			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusShuttingDown,
 		}); err != nil {
@@ -177,14 +168,46 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 		return nil
 	}
 
-	if !s.ready {
+	if !startupComplete || !ready {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringStatus: "not ready",
+			cryptoutilSharedMagic.StringStatus: readinessStatusNotReady,
 		}); err != nil {
 			return fmt.Errorf("failed to send readyz not-ready response: %w", err)
 		}
 
 		return nil
+	}
+
+	if monitor != nil {
+		snapshot := monitor.Snapshot()
+		if !snapshot.Ready {
+			checks := make([]fiber.Map, 0, len(snapshot.Checks))
+			for _, check := range snapshot.Checks {
+				checkStatus := cryptoutilSharedMagic.DockerServiceHealthHealthy
+				if check.Stale {
+					checkStatus = readinessStatusStale
+				} else if !check.Healthy {
+					checkStatus = "failed"
+				}
+
+				checks = append(checks, fiber.Map{
+					cryptoutilSharedMagic.ClaimName:    check.Name,
+					cryptoutilSharedMagic.StringStatus: checkStatus,
+					"reason":                           check.ReasonCode,
+					"age_ms":                           check.Age.Milliseconds(),
+					"stale":                            check.Stale,
+				})
+			}
+
+			if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				cryptoutilSharedMagic.StringStatus: "not ready",
+				"checks":                           checks,
+			}); err != nil {
+				return fmt.Errorf("failed to send readyz dependency response: %w", err)
+			}
+
+			return nil
+		}
 	}
 
 	if err := c.JSON(fiber.Map{
@@ -200,6 +223,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	s.mu.Lock()
 	s.shutdown = true
+	s.draining = true
 	s.ready = false
 	s.mu.Unlock()
 
@@ -285,6 +309,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 		s.actualPort = s.settings.BindPrivatePort
 	}
 
+	s.signalStarted()
 	s.mu.Unlock()
 
 	// Wrap with TLS using pre-generated TLS configuration.
@@ -355,6 +380,7 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 	}
 
 	s.shutdown = true
+	s.draining = true
 	s.ready = false
 	s.shutdownStarted = true
 	listener := s.listener
@@ -376,6 +402,7 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 
 	s.mu.Lock()
 	s.shutdownErr = shutdownErr
+	s.shutdownComplete = true
 	close(s.shutdownDone)
 	s.mu.Unlock()
 
@@ -413,7 +440,7 @@ func (s *AdminServer) SetReady(ready bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.ready = ready
+	s.ready = ready && !s.draining && !s.shutdown
 }
 
 // AdminTLSRootCAPool returns the root CA certificate pool for the admin server's TLS chain.
@@ -424,77 +451,4 @@ func (s *AdminServer) AdminTLSRootCAPool() *x509.CertPool {
 	}
 
 	return s.tlsMaterial.RootCAPool
-}
-
-// applyAdminMTLS applies admin TLS file overrides and explicit client-certificate policy.
-// Server certificate overrides and client-certificate policy are independent concerns.
-func applyAdminMTLS(
-	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
-	tlsMaterial *cryptoutilAppsFrameworkServiceConfig.TLSMaterial,
-	osReadFileFn func(name string) ([]byte, error),
-) error {
-	// Override server cert from Cat 7 file paths when both cert and key are configured.
-	if settings.AdminTLSCertFile != "" && settings.AdminTLSKeyFile != "" {
-		certPEM, err := osReadFileFn(settings.AdminTLSCertFile)
-		if err != nil {
-			return fmt.Errorf("failed to read admin TLS cert file %q: %w", settings.AdminTLSCertFile, err)
-		}
-
-		keyPEM, err := osReadFileFn(settings.AdminTLSKeyFile)
-		if err != nil {
-			return fmt.Errorf("failed to read admin TLS key file %q: %w", settings.AdminTLSKeyFile, err)
-		}
-
-		cert, err := tls.X509KeyPair(certPEM, keyPEM)
-		if err != nil {
-			return fmt.Errorf("failed to parse admin TLS cert+key pair: %w", err)
-		}
-
-		tlsMaterial.Config.Certificates = []tls.Certificate{cert}
-	}
-
-	clientAuth, err := cryptoutilSharedCryptoTls.ClientAuthTypeForPolicy(settings.AdminTLSClientPolicy)
-	if err != nil {
-		return fmt.Errorf("invalid admin TLS client policy %q: %w", settings.AdminTLSClientPolicy, err)
-	}
-
-	// Load client trust material from the Cat 6 CA truststore when configured.
-	if settings.AdminTLSCAFile != "" {
-		caPEM, err := osReadFileFn(settings.AdminTLSCAFile)
-		if err != nil {
-			return fmt.Errorf("failed to read admin TLS CA file %q: %w", settings.AdminTLSCAFile, err)
-		}
-
-		clientCAPool := x509.NewCertPool()
-
-		for rest := caPEM; len(rest) > 0; {
-			var block *pem.Block
-
-			block, rest = pem.Decode(rest)
-			if block == nil {
-				break
-			}
-
-			if block.Type != cryptoutilSharedMagic.StringPEMTypeCertificate {
-				continue
-			}
-
-			caCert, parseErr := x509.ParseCertificate(block.Bytes)
-			if parseErr != nil {
-				return fmt.Errorf("failed to parse CA certificate from %q: %w", settings.AdminTLSCAFile, parseErr)
-			}
-
-			clientCAPool.AddCert(caCert)
-		}
-
-		tlsMaterial.Config.ClientCAs = clientCAPool
-	}
-
-	if (clientAuth == tls.VerifyClientCertIfGiven || clientAuth == tls.RequireAndVerifyClientCert) && settings.AdminTLSCAFile == "" {
-		return fmt.Errorf("admin TLS client policy %q requires a CA file", settings.AdminTLSClientPolicy)
-	}
-
-	tlsMaterial.Config.ClientAuth = clientAuth
-
-	return nil
 }

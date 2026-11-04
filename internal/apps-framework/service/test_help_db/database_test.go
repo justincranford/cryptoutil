@@ -231,7 +231,7 @@ func TestBuildInMemorySQLiteDB_ErrorPaths(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), tc.depsFn(), newIsolatedSQLiteDSN(t))
+			db, sqlDB, err := buildSQLiteDB(context.Background(), tc.depsFn(), newIsolatedSQLiteDSN(t))
 			require.Nil(t, db)
 			require.Nil(t, sqlDB)
 			require.Error(t, err)
@@ -369,7 +369,7 @@ func TestSQLiteSetupErrorsReportCloseFailures(t *testing.T) {
 			name: "in-memory WAL setup",
 			build: func(deps dbDeps) error {
 				deps.execSQLitePragmaFn = func(context.Context, *sql.DB, string) error { return errors.New("setup failure") }
-				_, _, err := buildInMemorySQLiteDB(context.Background(), deps, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
+				_, _, err := buildSQLiteDB(context.Background(), deps, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 
 				return err
 			},
@@ -378,7 +378,7 @@ func TestSQLiteSetupErrorsReportCloseFailures(t *testing.T) {
 			name: "in-memory GORM setup",
 			build: func(deps dbDeps) error {
 				deps.openGormSQLiteFn = func(*sql.DB) (*gorm.DB, error) { return nil, errors.New("setup failure") }
-				_, _, err := buildInMemorySQLiteDB(context.Background(), deps, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
+				_, _, err := buildSQLiteDB(context.Background(), deps, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 
 				return err
 			},

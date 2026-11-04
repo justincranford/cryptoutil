@@ -48,7 +48,13 @@ func checkInDir(
 
 		if info.IsDir() {
 			name := info.Name()
-			if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || name == cryptoutilSharedMagic.CICDExcludeDirTestOutput || name == "deployments" {
+
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(projectRoot, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary %s: %w", path, skipErr)
+			}
+
+			if shouldSkip || name == "deployments" {
 				return filepath.SkipDir
 			}
 

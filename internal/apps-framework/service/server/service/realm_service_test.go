@@ -16,18 +16,14 @@ package service
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
-	"strings"
 	"testing"
 
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 	cryptoutilSharedPwdgen "cryptoutil/internal/shared/pwdgen"
@@ -37,33 +33,10 @@ import (
 func setupRealmTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Create unique database name to avoid sharing between tests.
-	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=private", strings.ReplaceAll(t.Name(), "/", "_"))
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
-	require.NoError(t, err)
-
-	// Enable WAL mode for better concurrency.
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	// Set busy timeout for concurrent writes.
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	// Pass to GORM with auto-transactions disabled.
-	dialector := sqlite.Dialector{Conn: sqlDB}
-	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	// Configure connection pool.
-	sqlDB, err = db.DB()
-	require.NoError(t, err)
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetConnMaxLifetime(0)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	// Auto-migrate all required tables.
-	err = db.AutoMigrate(
+	err := db.AutoMigrate(
 		&cryptoutilAppsFrameworkServiceServerRepository.Tenant{},
 		&cryptoutilAppsFrameworkServiceServerRepository.TenantRealm{},
 	)

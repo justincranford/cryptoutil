@@ -19,6 +19,7 @@ import (
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps-framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerReadiness "cryptoutil/internal/apps-framework/service/server/readiness"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps-framework/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -68,7 +69,8 @@ type ServerBuilder struct {
 	jwtAuthConfig       *JWTAuthConfig      // JWT authentication configuration (nil = use session-based auth).
 	strictServerConfig  *StrictServerConfig // OpenAPI strict server configuration (nil = not registered).
 	barrierConfig       *BarrierConfig      // Barrier configuration (nil = use default template barrier).
-	err                 error               // Accumulates errors during fluent chain.
+	readinessChecks     []cryptoutilAppsFrameworkServiceServerReadiness.Check
+	err                 error // Accumulates errors during fluent chain.
 }
 
 // NewServerBuilder creates a new server builder with base configuration.

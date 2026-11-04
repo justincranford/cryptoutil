@@ -1,0 +1,194 @@
+{
+  "$defs": {
+    "bounds": {
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "min": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "type": "object"
+    },
+    "domain": {
+      "maxLength": 253,
+      "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)*$",
+      "type": "string"
+    }
+  },
+  "$id": "https://cryptoutil.dev/schemas/k8s-model.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Versioned, non-secret inputs for deterministic Kubernetes inventory and chart generation.",
+  "properties": {
+    "bootstrap": {
+      "additionalProperties": false,
+      "properties": {
+        "agentNodes": {
+          "maximum": 9,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "apiHost": {
+          "format": "ipv4",
+          "pattern": "^127\\.",
+          "type": "string"
+        },
+        "apiPort": {
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "apiServerAudience": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "apiServiceIP": {
+          "format": "ipv4",
+          "type": "string"
+        },
+        "gatewayHost": {
+          "format": "ipv4",
+          "pattern": "^127\\.",
+          "type": "string"
+        },
+        "gatewayPort": {
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "podCIDR": {
+          "pattern": "^[0-9]{1,3}(\\.[0-9]{1,3}){3}/([0-9]|[12][0-9]|3[0-2])$",
+          "type": "string"
+        },
+        "serverNodes": {
+          "const": 1
+        },
+        "serviceCIDR": {
+          "pattern": "^[0-9]{1,3}(\\.[0-9]{1,3}){3}/([0-9]|[12][0-9]|3[0-2])$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "apiHost",
+        "apiPort",
+        "gatewayHost",
+        "gatewayPort",
+        "apiServiceIP",
+        "serviceCIDR",
+        "podCIDR",
+        "serverNodes",
+        "agentNodes"
+      ],
+      "type": "object"
+    },
+    "clusterDomain": {
+      "$ref": "#/$defs/domain"
+    },
+    "infrastructure": {
+      "additionalProperties": false,
+      "properties": {
+        "collector": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "lgtm": {
+          "const": 1
+        },
+        "postgresFollower": {
+          "const": 1
+        },
+        "postgresLeader": {
+          "const": 1
+        }
+      },
+      "required": [
+        "postgresLeader",
+        "postgresFollower",
+        "collector",
+        "lgtm"
+      ],
+      "type": "object"
+    },
+    "localDomain": {
+      "$ref": "#/$defs/domain"
+    },
+    "modes": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 63,
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "pools": {
+            "items": {
+              "enum": [
+                "pg",
+                "mem",
+                "disk"
+              ]
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "name",
+          "pools"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "overrides": {
+      "additionalProperties": {
+        "$ref": "#/$defs/bounds"
+      },
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*/(pg|mem|disk)$"
+      },
+      "type": "object"
+    },
+    "replicas": {
+      "$ref": "#/$defs/bounds"
+    },
+    "revision": {
+      "maxLength": 63,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "run": {
+      "pattern": "^[a-z][a-z0-9]{0,7}$",
+      "type": "string"
+    },
+    "version": {
+      "const": 2
+    }
+  },
+  "required": [
+    "bootstrap",
+    "version",
+    "run",
+    "revision",
+    "clusterDomain",
+    "localDomain",
+    "replicas",
+    "overrides",
+    "modes",
+    "infrastructure"
+  ],
+  "title": "Cryptoutil Kubernetes deployment model",
+  "type": "object"
+}

@@ -48,6 +48,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn f
 		}
 
 		if info.IsDir() {
+			if cryptoutilCmdCicdCommon.IsRepositoryScanExcludedDir(info.Name()) {
+				return filepath.SkipDir
+			}
+
 			return nil
 		}
 

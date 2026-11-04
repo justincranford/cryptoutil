@@ -6,15 +6,12 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	gormSQLite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServerDomain "cryptoutil/internal/apps-framework/service/server/domain"
@@ -239,29 +236,9 @@ func TestRepository_ClosedDB_ReturnsError(t *testing.T) {
 func setupPartialTestDB(t *testing.T, models ...any) *gorm.DB {
 	t.Helper()
 
-	dsn := fmt.Sprintf("file:partial_%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	dialector := gormSQLite.Dialector{Conn: sqlDB}
-	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	sqlDB2, err := db.DB()
-	require.NoError(t, err)
-
-	sqlDB2.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB2.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB2.SetConnMaxLifetime(0)
-
-	err = db.AutoMigrate(models...)
+	err := db.AutoMigrate(models...)
 	require.NoError(t, err)
 
 	return db

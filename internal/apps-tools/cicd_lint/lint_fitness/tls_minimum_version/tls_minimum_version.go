@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // forbiddenMinVersions are TLS MinVersion values below TLS 1.3.
@@ -57,8 +56,12 @@ func checkInDirWithAbs(
 		}
 
 		if info.IsDir() {
-			name := info.Name()
-			if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || name == cryptoutilSharedMagic.CICDExcludeDirTestOutput || name == "archived" {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(projectRoot, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip || info.Name() == "archived" {
 				return filepath.SkipDir
 			}
 

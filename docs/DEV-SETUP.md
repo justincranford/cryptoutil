@@ -213,6 +213,13 @@ See [ENG-HANDBOOK.md Section 12 Deployment Architecture](ENG-HANDBOOK.md#12-depl
 
 See [ENG-HANDBOOK.md Section 11.3 Code Quality Standards](ENG-HANDBOOK.md#113-code-quality-standards) for linter configuration, required linters, and enforcement rules.
 
+**VS Code Go extension**: Set `go.lintTool` to `golangci-lint-v2`, as configured in
+[workspace settings](../.vscode/settings.json). The `golangci-lint` selector installs the legacy
+v1 module, even when it requests `@latest`; it does not select the v2 module automatically.
+Map `go.alternateTools`'s `golangci-lint-v2` entry to `golangci-lint`, the binary name installed by v2.
+After changing the selector, install v2 using the pinned command above and verify
+`golangci-lint --version`. Keep lint-on-save disabled to avoid concurrent repository-wide lint runs.
+
 ### Gremlins (Mutation Testing)
 
 **Why required?**
@@ -688,11 +695,14 @@ These settings (already set) ensure `.gitattributes` has full control without in
 > when `core.autocrlf=true` and a formatter rewrites files with LF.
 >
 > **If `git status` ever shows a large dirty tree** after running `golangci-lint --fix`,
-> the index has stale line-ending metadata. Fix with:
+> verify the assigned worktree and inspect staged, unstaged, and untracked paths first.
+> Re-normalize only a reviewed file that is explicitly assigned and owned:
 >
 > ```bash
-> git add --renormalize .
+> git add --renormalize -- path/to/reviewed-owned-file
 > ```
+>
+> Do not use `.` or stage inherited/other-owner changes.
 
 ### 3. Initialize Go Modules
 

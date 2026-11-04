@@ -15,6 +15,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -126,7 +128,7 @@ func newInMemorySQLiteDBForTestMainWithDeps(deps dbDeps) (*gorm.DB, func() error
 
 	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
 
-	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), deps, dsn)
+	db, sqlDB, err := buildSQLiteDB(context.Background(), deps, dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("test_help_db: %w", err)
 	}
@@ -159,9 +161,11 @@ func newInMemorySQLiteDBWithDeps(t *testing.T, deps dbDeps) *gorm.DB {
 		panic(fmt.Sprintf("test_help_db: failed to generate UUID: %v", err))
 	}
 
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
+	// The named shared cache keeps all database/sql pool connections on this
+	// unique in-memory database, while the UUID isolates parallel tests.
+	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
 
-	db, sqlDB, err := buildInMemorySQLiteDB(context.Background(), deps, dsn)
+	db, sqlDB, err := buildSQLiteDB(context.Background(), deps, dsn)
 	if err != nil {
 		panic(fmt.Sprintf("test_help_db: %v", err))
 	}
@@ -175,8 +179,79 @@ func newInMemorySQLiteDBWithDeps(t *testing.T, deps dbDeps) *gorm.DB {
 	return db
 }
 
-// buildInMemorySQLiteDB constructs a SQLite GORM database from a DSN with WAL mode configured.
-func buildInMemorySQLiteDB(ctx context.Context, deps dbDeps, dsn string) (*gorm.DB, *sql.DB, error) {
+// NewFileBackedSQLiteDB creates a SQLite GORM database from a file-backed DSN for tests
+// that need to close and reopen a database to verify durable state. Construct dsn with
+// t.TempDir() so parallel tests use isolated files.
+func NewFileBackedSQLiteDB(t *testing.T, dsn string) *gorm.DB {
+	t.Helper()
+
+	return newFileBackedSQLiteDBWithDeps(t, dsn, defaultDBDeps())
+}
+
+func newFileBackedSQLiteDBWithDeps(t *testing.T, dsn string, deps dbDeps) *gorm.DB {
+	t.Helper()
+
+	if !isFileBackedSQLiteDSN(dsn) {
+		panic("test_help_db: file-backed SQLite DSN must name a persistent file")
+	}
+
+	sqlDB, err := deps.sqlOpenFn(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+	if err != nil {
+		panic(fmt.Sprintf("test_help_db: sql.Open: %v", err))
+	}
+
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
+	sqlDB.SetConnMaxLifetime(0)
+
+	db, err := deps.openGormSQLiteFn(sqlDB)
+	if err != nil {
+		panic(fmt.Sprintf("test_help_db: %v", closeSQLDBAfterSetupFailure(deps, sqlDB, err)))
+	}
+
+	t.Cleanup(func() {
+		if closeErr := deps.closeSQLDBFn(sqlDB); closeErr != nil {
+			t.Logf("test_help_db: failed to close file-backed SQLite DB: %v", closeErr)
+		}
+	})
+
+	return db
+}
+
+func isFileBackedSQLiteDSN(dsn string) bool {
+	if !strings.HasPrefix(dsn, "file:") {
+		return false
+	}
+
+	fileURI := strings.TrimPrefix(dsn, "file:")
+	fileName, query, hasQuery := strings.Cut(fileURI, "?")
+
+	decodedFileName, err := url.PathUnescape(fileName)
+	if err != nil || strings.TrimSpace(decodedFileName) == "" ||
+		decodedFileName == cryptoutilSharedMagic.SQLiteMemoryPlaceholder {
+		return false
+	}
+
+	if !hasQuery {
+		return true
+	}
+
+	queryValues, err := url.ParseQuery(query)
+	if err != nil {
+		return false
+	}
+
+	for _, mode := range queryValues["mode"] {
+		if strings.EqualFold(mode, "memory") {
+			return false
+		}
+	}
+
+	return true
+}
+
+// buildSQLiteDB constructs a SQLite GORM database from a DSN with WAL mode configured.
+func buildSQLiteDB(ctx context.Context, deps dbDeps, dsn string) (*gorm.DB, *sql.DB, error) {
 	sqlDB, err := deps.sqlOpenFn(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("sql.Open: %w", err)

@@ -89,7 +89,7 @@ You are in autonomous execution mode.
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.
 
-**Execution Pattern:** Task complete → Commit → Next task (zero pause, zero text)
+**Execution Pattern:** Complete and validate assigned work → commit reviewed owned paths when authorized → next task. If the owner/user schedules or forbids a commit, preserve and report the exact state.
 
 You MUST plan extensively before each function call, and reflect extensively on the outcomes of the previous function calls. DO NOT do this entire process by making function calls only, as this can impair your ability to solve the problem and think insightfully.
 
@@ -104,7 +104,7 @@ Use this checklist before reading the full specification details:
 1. Run pre-flight checks: `git status --porcelain`, `go version`, `go build ./...`, `go build -tags e2e,integration ./...`, and `docker ps` when Docker-dependent tasks exist.
 2. Record session baseline: `mkdir -p docs/<PLAN_DIR>/.meta ; git rev-parse HEAD > docs/<PLAN_DIR>/.meta/base-commit.txt`.
 3. Read full `tasks.md`, count all `[ ]`, and enumerate all `### Phase N` headings.
-4. Execute tasks in phase order: implement -> validate quality gates -> update tasks artifacts -> commit.
+4. Execute tasks in phase order: implement -> validate quality gates -> update tasks artifacts -> commit reviewed, assigned paths when owner-authorized; otherwise document the owner-scheduled commit.
 5. After all tasks are `[x]`, run last-turn post-completion analysis and artifact reconciliation before yielding.
 6. After Docker Compose validation runs, remove transient `deployments/*/certs/` runtime artifacts (only untracked/generated files) before lint gates; these directories can cause false `lint-deployments` naming failures.
 
@@ -133,21 +133,15 @@ flowchart TD
 
    **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
 
-   **Emergency recovery** (when `git status` shows large text file modifications after formatter runs, checkout switches, or stash/apply cycles):
+   **Emergency recovery** (when `git status` shows large text file modifications after formatter runs or checkout switches):
 
    ```bash
-   git add --renormalize .
+   git add --renormalize -- path/to/reviewed-owned-file
    ```
 
-   This reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+   This reapplies `.gitattributes` clean rules only to a reviewed, assigned path. Inspect staged, unstaged, and untracked state first; never use `.` or stage inherited/other-owner changes.
 
-Before any implementation work, run `git status --porcelain`.
-- If output is non-empty: stage and commit all baseline changes immediately before continuing.
-- Baseline checkpoint commit format: `chore(workspace): checkpoint baseline before agent execution`.
-- After every commit: run `git status --porcelain` again and require empty output.
-- End-of-turn is forbidden unless `git status --porcelain` returns empty output.
-
-This prevents pre-commit from stashing unrelated unstaged edits and restoring a dirty worktree after commit.
+   Before implementation work, verify the assigned absolute worktree/branch and inspect staged, unstaged, and untracked state using the End-of-Turn Protocol below. Continue only when ownership is clear; preserve and report inherited work instead of checkpointing it.
 
 **Before starting implementation, verify environment health:**
 
@@ -262,7 +256,7 @@ Timing rules:
 
 **Execute FIRST in every implementation-execution session, BEFORE any code changes:**
 
-1. Run `git status --porcelain` → must return empty (clean workspace baseline)
+1. Verify the assigned absolute worktree/branch and inspect staged, unstaged, and untracked state; classify inherited changes and never checkpoint them.
 2. Run `git rev-parse HEAD` → record the output (e.g., `a1b2c3d4e5f6...`)
 3. **Store this commit ID in `.execution-metadata` file**:
    ```bash
@@ -282,12 +276,12 @@ test -f docs/<PLAN_DIR>/.meta/base-commit.txt && echo "Baseline recorded" || ech
 
 ## Last-Turn Post-Completion Analysis - MANDATORY
 
-**Execute LAST in every implementation-execution session, AFTER all work is confirmed complete and committed:**
+**Execute LAST in every implementation-execution session, AFTER all work is confirmed complete and owner-authorized commits are recorded or explicitly scheduled:**
 
 ### Step 1: Record Final Commit
 
-1. Ensure `git status --porcelain` returns empty (no uncommitted files)
-2. Run `git rev-parse HEAD` → record the output (e.g., `z9y8x7w6v5u4...`)
+1. Verify the assigned worktree/branch and inspect staged, unstaged, and untracked paths. Confirm owned work is committed when authorized; otherwise document the owner-scheduled commit and report unrelated changes without modifying them.
+2. Run `git rev-parse HEAD` → record the current HEAD (e.g., `z9y8x7w6v5u4...`)
 3. **Store this commit ID** (e.g., `$FINAL_COMMIT`)
 
 ### Step 2: Generate Commit-Range DETAIL-SUMMARY
@@ -359,11 +353,11 @@ done > docs/<PLAN_DIR>/DETAIL-SUMMARY.md.tmp
 - Total commits in range: N
 - Files changed: N creates, N updates, N deletes, N renames
 - Total lines added: +X, removed: -Y
-- Commits align with plan.md phases: [YES/NO]
+- When commits are owner-authorized, they align with plan.md phases; otherwise document the owner-scheduled commit
 
 ### 2. Plan/Task Alignment
-- Phase coverage: Does commit range cover all phases from plan.md? [YES/NO]
-- Task coverage: Does commit range cover all tasks from tasks.md? [YES/NO]
+- Phase coverage: Does the authorized commit range cover all phases from plan.md? [YES/NO / OWNER-SCHEDULED]
+- Task coverage: Does the authorized commit range cover all tasks from tasks.md? [YES/NO / OWNER-SCHEDULED]
 - Phase sequence: Are commits in logical order matching plan.md phase order? [YES/NO]
 
 ### 3. Quality-Gate Consistency
@@ -414,7 +408,7 @@ done > docs/<PLAN_DIR>/DETAIL-SUMMARY.md.tmp
 1. Update `.github/agents/implementation-execution.agent.md`
 2. Update `.claude/agents/implementation-execution.md` (canonical pair - must stay synchronized)
 3. Verify lint-agent-drift passes: `go run ./cmd/cicd-lint lint-docs`
-4. Commit with semantic message: `docs(agents): add <gap-description> to implementation-execution spec`
+4. When owner-authorized, commit the reviewed agent paths with a conventional semantic message and normal hooks; otherwise document the owner-scheduled commit.
 
 **4c. Validate Synchronization** - Run canonical pair validation:
 ```bash
@@ -427,13 +421,13 @@ go run ./cmd/cicd-lint lint-docs | grep -i "lint-agent-drift"
 1. Run `go run ./cmd/cicd-lint lint-docs` → must PASS
 2. Run `go build ./... && go build -tags e2e,integration ./...` → must PASS
 3. Run `golangci-lint run` → must PASS
-4. Verify all commits are pushed: `git status --porcelain` must return empty
+4. Verify owner-authorized pushes are complete; document any owner-scheduled push and never push without explicit authorization
 
 **Integration into Standard Execution**:
 - This entire "Last-Turn Post-Completion Analysis" section MUST execute as the final phase of every implementation plan
 - It is NOT optional, NOT deferrable, and NOT skippable
 - It runs AFTER all user-requested tasks are complete but BEFORE turning control back to the user
-- If any contradiction is found and fixed, it generates an additional commit (e.g., `docs(plan): reconcile artifacts after analysis`)
+- If any contradiction is found and fixed, create an additional owner-authorized commit (e.g., `docs(plan): reconcile artifacts after analysis`) or document its owner-scheduled commit
 
 ## Quality Enforcement - MANDATORY
 
@@ -450,25 +444,19 @@ go run ./cmd/cicd-lint lint-docs | grep -i "lint-agent-drift"
 
 ## Quality Gate Failure Recovery - MANDATORY
 
-If a phase fails quality gates and cannot be fixed immediately in-place, use one of these recovery paths.
+When a phase fails, identify the affected paths and owner before changing Git state; preserve concurrent and inherited work.
 
-### Single-Commit Recovery
+### Corrective Commit
 
-1. If commit is local and safe to amend: `git add -A ; git commit --amend`.
-2. If amend is not appropriate: `git revert HEAD`, then recommit corrected state.
-3. Re-run all required quality gates before marking the task or phase complete.
+1. Prefer a new conventional corrective commit limited to reviewed, assigned paths, using normal hooks when authorized.
+2. Amend or revert only a commit confirmed to be your own, unshared, in scope, and explicitly owner-authorized; otherwise surface the conflict.
+3. Re-run all required quality gates after an authorized correction.
 
-### Multi-Commit Recovery
+### Baseline Comparison or Restart
 
-1. Selective rollback: `git revert <bad-commit-hash>` for isolated faulty commits.
-2. Full phase restart when drift is broad: reset to commit before phase start, then re-execute phase.
-3. If work is uncommitted and unstable: `git stash`, repair baseline branch state, then reapply and fix incrementally.
-
-### Recovery Safety Rules
-
-1. Prefer non-destructive recovery (`git revert`) for shared history.
-2. Use destructive reset only when commit scope is local/unshared and explicitly safe.
-3. Always re-run build, lint, and tests after recovery before resuming next tasks.
+1. Use an owner-assigned clean isolated worktree for a baseline comparison or phase restart; never reset a shared worktree.
+2. Never stash, restore, or revert another owner's or inherited work. If owned uncommitted changes are unstable, preserve them and coordinate before any recovery mutation.
+3. Re-run build, lint, and tests after a correction before resuming tasks.
 
 **Docker-Dependent Work — NEVER Defer Indefinitely**:
 
@@ -494,10 +482,10 @@ If a phase fails quality gates and cannot be fixed immediately in-place, use one
 When you delete a file that VS Code had open in a buffer, VS Code may recreate it on restart or session reload from its hot-exit cache. This creates "ghost files" that reappear after `git rm` or manual deletion.
 
 **Mitigation steps after deleting files:**
-1. Delete the file(s) (`git rm` or manual delete)
+1. Remove only assigned, reviewed file(s) from the worktree; use `git rm -- path` only after verifying ownership and status for that explicit path.
 2. Verify deletion: `Test-Path <file>` should return `False`
 3. If the file reappears after a VS Code reload, delete it again and clear VS Code's hot-exit cache: close the file tab, then delete
-4. After committing deletion, verify `git status` shows no untracked files matching the deleted path
+4. After an owner-authorized deletion commit, verify `git status` shows no untracked files matching the deleted path
 5. If persistent, the user may need to clear VS Code workspace storage
 
 **Root cause**: VS Code's `files.hotExit` setting (default: `onExit`) saves unsaved buffer contents and restores them on restart, even if the underlying file was deleted by git operations.
@@ -881,7 +869,7 @@ When a failure appears intermittent, run BOTH before concluding root cause:
 
 **Isolated-pass + grouped-fail = shared fixture contamination**. Check for `t.Cleanup`-wrapped cleanups, shared-table cleanup or parallel tests mutating shared SQLite state.
 
-**Also useful**: `git stash ; go test ./... ; git stash pop` — if the test fails before your changes, it is pre-existing, not caused by your work (~30 seconds vs. hours of investigation).
+For a baseline comparison, use an owner-assigned clean isolated worktree; never stash shared or inherited changes.
 
 --------------------------------------------
 
@@ -926,7 +914,7 @@ QUALITY GATES (PER TASK - MANDATORY)
 
 You MUST verify these conditions BEFORE marking any task complete:
 
-1. git status → clean OR committed
+1. Assigned paths are clean or committed when authorized; report any remaining unrelated changes without modifying them
 2. go build ./... → clean build (all non-tagged files)
    go build -tags e2e,integration ./... → clean build (all build-tagged files)
 3. golangci-lint run --fix ./... → zero warnings
@@ -939,7 +927,7 @@ You MUST verify these conditions BEFORE marking any task complete:
    - ≥85% production
    - ≥98% infrastructure
 7. Objective evidence exists
-8. Conventional git commit exists with evidence
+8. A conventional commit with evidence exists when authorized; otherwise document the owner-scheduled commit and exact owned/unrelated state
 9. Canonical pair synchronization (Copilot & Claude agents) - BLOCKING:
    - Run `go run ./cmd/cicd-lint lint-docs` → MUST PASS lint-agent-drift for implementation-execution agents
 10. lessons.md updated DURING phase (not only after reconciliation) - BLOCKING:
@@ -955,31 +943,32 @@ If any gate fails:
 
 --------------------------------------------
 
-INCREMENTAL COMMITS (MANDATORY)
+INCREMENTAL COMMITS (MANDATORY WHEN AUTHORIZED)
 --------------------------------------------
 
-MUST commit after EVERY completed task:
+Commit each completed, validated task when the worktree owner authorizes it:
 
 - Conventional commit format: type(scope): description
 - Include evidence in commit message
-- Push every 5-10 commits to enable monitoring
+- Push only with explicit owner authorization after required quality gates
 - **Semantic Grouping**: Each commit MUST represent one semantically coherent unit of work (one feature, one fix, one refactor, one test suite, one doc update). NEVER batch changes across different semantic groups into a bulk commit.
-- **Periodic Commits**: A completed task = a commit. Prefer frequent small commits.
+- **Periodic Commits**: Prefer frequent small commits for authorized work; a completed task is a commit only when the owner authorizes it.
 
-**Multi-Category Fix Commit Rule**: When a single user request generates multiple independent root-cause fixes, each root-cause category is a separate commit.
+**Multi-Category Fix Commit Rule**: When the owner authorizes commits for a request with multiple independent root-cause fixes, use one separate commit per root-cause category.
 
-**Commit Checkpoint Pattern**: After completing each task, checkpoint progress:
-1. `git add -A` all changes for the completed task
-2. `git commit -m "type(scope): description"` with evidence
-3. Verify `git status` is clean before starting next task
-4. Push every 5-10 commits for CI/CD validation
+**Owner-Authorized Commit Pattern**: When the owner authorizes a completed task commit:
+1. Review the assigned path list and stage only explicitly owned paths.
+2. Commit with `git commit -m "type(scope): description"` and normal hooks when authorized.
+3. Verify the commit contains only reviewed owned paths; report remaining unrelated state.
+4. Push only with explicit owner authorization after CI/CD validation.
 
 NEVER:
 
-- Accumulate uncommitted changes across multiple tasks
+- Treat pre-existing dirty state as authorization or accumulate unreported owned work
+- Stage, commit, push, stash, restore, or revert another owner's changes
 - Accumulate changes across different semantic groups into one bulk commit
 - Use --amend repeatedly (loses history)
-- Skip commits to "save time"
+- Skip required validation to "save time"
 
 --------------------------------------------
 
@@ -989,7 +978,7 @@ DOCUMENTATION RULE
 After completing each task:
 
 - Mark the task complete in tasks.md using `[x]` syntax
-- Commit the completed task with conventional commit format
+- Commit only reviewed, assigned task paths with conventional format and normal hooks when authorized; otherwise document the owner-scheduled commit
 - Immediately begin the next task
 
 **Task Documentation Lag is a Quality Regression:**
@@ -1126,7 +1115,7 @@ Always tell the user what you are going to do before making a tool call with a s
 
 5. **Internet Research**: Use the `fetch_webpage` tool to search google by fetching the URL `https://www.google.com/search?q=your+search+query`. After fetching, review the content. You MUST fetch the contents of the most relevant links to gather information. Do not rely on the summary in search results. Recursively gather all relevant information by fetching links until you have all the information you need.
 
-6. **Execute Tasks from tasks.md**: Work through tasks in priority order (P0 → P1 → P2 → P3). For each task: read context, make changes, test, mark `[x]` in tasks.md, commit with reference to task ID.
+6. **Execute Tasks from tasks.md**: Work through tasks in priority order (P0 → P1 → P2 → P3). For each task: read context, make changes, test, mark `[x]` in tasks.md, and commit reviewed owned paths with the task ID only when authorized; otherwise document the owner-scheduled commit.
 
 7. **Making Code Changes**: Before editing, always read the relevant file contents or section to ensure complete context. Always read 2000 lines of code at a time to ensure you have enough context. Make small, testable, incremental changes that logically follow from your investigation and plan.
 
@@ -1178,7 +1167,7 @@ This will:
 - Read **`<work-dir>/plan.md`** and **`<work-dir>/tasks.md`**
 - Execute ALL tasks continuously without asking permission
 - Update `<work-dir>/plan.md` and `<work-dir>/tasks.md` as new work discovered
-- Commit after each completed task
+- Commit each completed task when authorized by the worktree owner
 - Stop ONLY when all tasks complete OR user clicks STOP
 
 **Directory Notes**:
@@ -1223,18 +1212,12 @@ Implementation plans are composed of **4 files in `<work-dir>/`**:
 If you are asked to write a prompt, you should always generate the prompt in markdown format.
 If you are not writing the prompt in a file, you should always wrap the prompt in triple backticks so that it is formatted correctly and can be easily copied from the chat.
 
-**Git Commit Rules - MANDATORY:**
+**Git Commit Rules - MANDATORY WHEN AUTHORIZED:**
 
-MUST commit after EVERY completed task (as defined in INCREMENTAL COMMITS section):
-- Conventional commit format: `type(scope): description`
-- Include evidence in commit message
-- Push every 5-10 commits to enable monitoring
-- **Semantic Grouping**: Each commit = one semantically coherent unit. NEVER bulk-accumulate changes for different semantic groups.
-
-MUST commit at END of each agent invocation:
-- Before stopping, commit ALL uncommitted changes
-- Include summary of work done in commit message
-- NEVER leave uncommitted changes when agent stops
+- Commit completed, validated work within the assigned scope using conventional format and normal hooks when authorized.
+- Stage only explicitly assigned, reviewed paths; never checkpoint dirty baseline or commit inherited/other-owner work.
+- Push only with explicit owner authorization after required quality gates.
+- If the owner/user schedules or forbids a commit, preserve the work and report exact owned/unrelated state.
 
 Ask questions only as a last resort after investigation if genuinely blocked.
 Do not explain.
@@ -1376,7 +1359,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 
 **Analysis Deliverables:**
 
-1. **Finalize Docs**: Ensure lessons.md is complete and committed. plan.md and tasks.md should already exist with all tasks marked `[x]`. Fill the `## Executive Summary` section (numbered links to each phase + one-sentence outcome) and the `## Actions` section (numbered list of concrete follow-up items) at the top of lessons.md — see §14.8.2 of ENG-HANDBOOK.md for the required structure.
+1. **Finalize Docs**: Ensure lessons.md is complete and included in the owner-authorized commit; if the commit is owner-scheduled, document that state and preserve the work. plan.md and tasks.md should already exist with all tasks marked `[x]`. Fill the `## Executive Summary` section (numbered links to each phase + one-sentence outcome) and the `## Actions` section (numbered list of concrete follow-up items) at the top of lessons.md — see §14.8.2 of ENG-HANDBOOK.md for the required structure.
 2. **Generate EXEC-SUMMARY.md**: Create/update `<work-dir>/EXEC-SUMMARY.md` as an objective completion audit. It MUST validate completed work against `plan.md`, `tasks.md`, and `lessons.md`; MUST include numbered post-implementation issue entries with `Symptoms`, `Root Cause`, and `Fix`; and MUST include explicit Auto-mode quality-gate evaluation plus prioritized improvement recommendations.
 3. **Extract Lessons to Permanent Homes**: From lessons.md and EXEC-SUMMARY.md, update permanent artifacts as warranted:
    - `docs/ENG-HANDBOOK.md` — Add/update patterns, strategies, and architectural decisions
@@ -1390,7 +1373,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 4. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
    - Every `@from-eng-handbook` block in instruction files must match its `@to-appendix` block in ENG-HANDBOOK.md
    - Run `go run ./cmd/cicd-lint lint-docs` to verify propagation integrity
-5. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ENG-HANDBOOK.md, (2) agents, (3) skills, (4) instructions
+5. **Commit with Audit Trail**: When owner-authorized, use separate semantic commits per artifact type: (1) ENG-HANDBOOK.md, (2) agents, (3) skills, (4) instructions; otherwise preserve changes and document the owner-scheduled commit.
 
 **Anti-Patterns:**
 
@@ -1404,7 +1387,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 - ✅ **ALWAYS conduct phase-based post-mortems**: Update lessons.md, identify new phases/tasks
 - ✅ **ALWAYS generate EXEC-SUMMARY.md at completion**: Include completion validation, issue audit, and prioritized improvements
 - ✅ **ALWAYS extract lessons immediately**: From lessons.md and EXEC-SUMMARY.md to permanent homes before ending session
-- ✅ **ALWAYS commit docs**: With detailed audit trail listing all task completions
+- ✅ **Commit documentation changes when authorized**: Keep the audit trail precise and limited to reviewed owned paths
 
 ---
 
@@ -1491,21 +1474,18 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 ## End-of-Turn Protocol - MANDATORY LAST STEP
 
-**Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`.**
+<!-- @from-eng-handbook as="end-of-turn-commit-protocol" -->
+**Git ownership and commit protocol (mandatory).** A dirty worktree is not authorization to stage, commit, or clean anything. Preserve inherited, staged, unstaged, untracked, and other-user/other-agent work.
 
-This is not guidance — it is a hard mechanical gate. You MUST actually execute the terminal command as a tool call, not assume the worktree is clean based on previous commits.
+Before ANY file write, resolve the target to an absolute path and verify it is inside your assigned worktree and owned scope. Do not rely on shell `cd` or assume its working directory persists across tool calls; edit tools may resolve relative paths against the primary workspace. Recheck the resolved path and ownership before each write.
 
-If `git status --porcelain` returns ANY output (even one file):
+Before ANY Git mutation, verify `git rev-parse --show-toplevel` exactly matches your assigned absolute worktree and verify the expected branch. Inspect `git status --porcelain=v1 -uall`, `git diff --cached`, and `git diff`; account for untracked paths. If ownership, scope, or a concurrent change is unclear, stop before mutation and surface the conflict to the worktree owner.
 
-```bash
-git add -A
-git commit -m "<type(scope): description>"
-git status --porcelain   # MUST return empty
-```
-
-**Only when `git status --porcelain` returns empty output** may you yield to the user.
-
-❌ **NEVER end a turn with uncommitted files. This is non-negotiable.**
-❌ **NEVER assume the worktree is clean — always RUN the command as a tool call.**
-
-A response that leaves uncommitted changes is incomplete by definition.
+- Never checkpoint a dirty baseline or treat pre-existing changes as yours. Never stage or commit paths not explicitly assigned and reviewed; stage only owned paths by explicit path names—never `git add -A`, `git add .`, or equivalent.
+- An isolated subagent must not checkpoint or commit in a parent/shared worktree. Do not start nested autonomous workers unless the orchestrator explicitly assigns them.
+- Coordinate with the owner to serialize commits and normal hooks; never overlap an active owner hook or bypass normal hooks. Commit completed, validated, authorized work using conventional messages. If the owner/user says to wait or not commit, preserve changes and report rather than forcing a commit.
+- Never disable, skip, reroute, or suppress configured hooks or validators. Prohibited methods include `--no-verify`/`-n`, `SKIP`, `HUSKY=0`, or equivalent switches. Never override `core.hooksPath` per command (`git -c`/`--config-env`), through Git configuration environment variables, via temporary/empty hook directories, or persistently in repository/global/system configuration. If a normal hook fails, fix or surface its root cause; never retry with an override.
+- When the parent/orchestrator owns commit serialization or required commit trailers/metadata, or explicitly directs no commit, defer. Do not create a commit until the parent provides an authorized normal-hook slot; preserve staged, unstaged, and untracked work and report its exact state.
+- Never overwrite, stash, reset, restore, rebase, amend, or revert another owner's changes or commits. If recovery could affect unowned or shared state, do not act; surface the conflict.
+- After an authorized commit, verify it contains only reviewed owned paths and confirm owned paths are clean. Report remaining unrelated changes accurately; never call the whole worktree clean if `git status --porcelain` is non-empty.
+<!-- @/from-eng-handbook -->

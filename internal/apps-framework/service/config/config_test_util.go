@@ -246,6 +246,11 @@ func RequireNewForTest(applicationName string) *ServiceFrameworkServerSettings {
 		panic("otlpEndpoint.value must be string")
 	}
 
+	otlpHealthEndpointValue, ok := otlpHealthEndpoint.Value.(string)
+	if !ok {
+		panic("otlpHealthEndpoint.value must be string")
+	}
+
 	unsealModeValue, ok := unsealMode.Value.(string)
 	if !ok {
 		panic("unsealMode.value must be string")
@@ -356,6 +361,7 @@ func RequireNewForTest(applicationName string) *ServiceFrameworkServerSettings {
 		OTLPEnvironment:             otlpEnvironmentValue,
 		OTLPHostname:                otlpHostnameValue,
 		OTLPEndpoint:                otlpEndpointValue,
+		OTLPHealthEndpoint:          otlpHealthEndpointValue,
 		UnsealMode:                  unsealModeValue,
 		UnsealFiles:                 unsealFilesValue,
 		// Session Manager settings

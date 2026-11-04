@@ -196,6 +196,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	require.NoError(t, err)
 
 	server.SetReady(true)
+	server.MarkStartupComplete()
 
 	readyzRequest, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/admin/api/v1/readyz", nil)
 	require.NoError(t, err)
@@ -349,6 +350,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 
 	// Mark server as ready (application's responsibility after dependencies initialized).
 	server.SetReady(true)
+	server.MarkStartupComplete()
 
 	client := &http.Client{
 		Transport: &http.Transport{

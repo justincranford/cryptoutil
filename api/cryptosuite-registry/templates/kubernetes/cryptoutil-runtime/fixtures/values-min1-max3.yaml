@@ -1,0 +1,146 @@
+run: review
+helmRelease: cu-s-sm-kms-disk
+releaseKey: s:sm-kms:disk
+revision: r1
+namespace: cu-review-s-sm-kms-disk
+clusterDomain: cluster.local
+infraNamespace: cu-review-infra
+apiServerIP: 10.43.0.1
+hasPostgres: false
+quota:
+  pods: "3"
+  requestsCPU: "300m"
+  requestsMemory: "384Mi"
+  limitsCPU: "1500m"
+  limitsMemory: "1536Mi"
+pkiMaterializer:
+  image: registry.example.invalid/cryptoutil/pki-materializer@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  command:
+    - /app/cryptoutil
+  args:
+    - pki-materialize
+    - --instance=/etc/cryptoutil/instance/instance.yaml
+    - --input=/etc/cryptoutil/instance/materializer.json
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+storage:
+  className: cu-review-retain
+  size: 8Gi
+approvedAPIEdges: []
+configurationMaps:
+  - name: sm-kms-framework
+    psid: sm-kms
+    kind: framework
+    files:
+      sm-kms-app-framework-disk.yml: |
+        fixture-only: true
+  - name: sm-kms-domain
+    psid: sm-kms
+    kind: domain
+    files:
+      sm-kms-app-domain-disk.yml: |
+        fixture-only: true
+workloads:
+  - name: sm-kms-disk
+    materializerConfig: |
+      {
+        "namespace": "cu-review-s-sm-kms-disk",
+        "apiEndpoint": "https://10.43.0.1:443",
+        "apiServerName": "kubernetes.default.svc",
+        "trustFiles": {
+          "public-server": "/run/cryptoutil/trust/tls.crt",
+          "admin-server": "/run/cryptoutil/trust/tls.crt",
+          "health-client": "/run/cryptoutil/trust/tls.crt",
+          "otlp-client": "/run/cryptoutil/trust/tls.crt"
+        },
+        "pods": [
+          {
+            "podName": "sm-kms-disk-0",
+            "expectedAdminDNS": "sm-kms-disk-0.sm-kms-disk-pods.cu-review-s-sm-kms-disk.svc.cluster.local",
+            "expectedPublicDNSNames": [
+              "sm-kms-disk-0.sm-kms-disk-pods.cu-review-s-sm-kms-disk.svc.cluster.local",
+              "sm-kms-disk-i01.cu-review-s-sm-kms-disk.svc.cluster.local",
+              "sm-kms-disk.cu-review-s-sm-kms-disk.svc.cluster.local"
+            ]
+          },
+          {
+            "podName": "sm-kms-disk-1",
+            "expectedAdminDNS": "sm-kms-disk-1.sm-kms-disk-pods.cu-review-s-sm-kms-disk.svc.cluster.local",
+            "expectedPublicDNSNames": [
+              "sm-kms-disk-1.sm-kms-disk-pods.cu-review-s-sm-kms-disk.svc.cluster.local",
+              "sm-kms-disk-i02.cu-review-s-sm-kms-disk.svc.cluster.local",
+              "sm-kms-disk.cu-review-s-sm-kms-disk.svc.cluster.local"
+            ]
+          },
+          {
+            "podName": "sm-kms-disk-2",
+            "expectedAdminDNS": "sm-kms-disk-2.sm-kms-disk-pods.cu-review-s-sm-kms-disk.svc.cluster.local",
+            "expectedPublicDNSNames": [
+              "sm-kms-disk-2.sm-kms-disk-pods.cu-review-s-sm-kms-disk.svc.cluster.local",
+              "sm-kms-disk-i03.cu-review-s-sm-kms-disk.svc.cluster.local",
+              "sm-kms-disk.cu-review-s-sm-kms-disk.svc.cluster.local"
+            ]
+          }
+        ]
+      }
+    psid: sm-kms
+    pool: disk
+    minReplicas: 1
+    maxReplicas: 3
+    frameworkConfigMapName: sm-kms-framework
+    frameworkConfigFile: sm-kms-app-framework-disk.yml
+    domainConfigMapName: sm-kms-domain
+    domainConfigFile: sm-kms-app-domain-disk.yml
+    credentialSecretNames:
+      - unseal
+      - hash-pepper
+      - sm-kms-credentials
+    container:
+      image: postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
+      command:
+        - /bin/true
+      args:
+        - --config=/etc/cryptoutil/framework/sm-kms-app-framework-disk.yml
+        - --config=/etc/cryptoutil/domain/sm-kms-app-domain-disk.yml
+      drain:
+        - /bin/true
+      probes:
+        startup:
+          - /bin/true
+        liveness:
+          - /bin/true
+        readiness:
+          - /bin/true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    trustSecretName: sm-kms-workload-trust
+    tlsLeafSecretNames:
+      - sm-kms-disk-0-tls
+      - sm-kms-disk-1-tls
+      - sm-kms-disk-2-tls
+    instanceServices:
+      - name: sm-kms-disk-i01
+        podName: sm-kms-disk-0
+        tlsLeafSecretName: sm-kms-disk-0-tls
+        healthClientSecretName: sm-kms-health-client-0
+        otlpClientSecretName: sm-kms-otlp-client-0
+      - name: sm-kms-disk-i02
+        podName: sm-kms-disk-1
+        tlsLeafSecretName: sm-kms-disk-1-tls
+        healthClientSecretName: sm-kms-health-client-1
+        otlpClientSecretName: sm-kms-otlp-client-1
+      - name: sm-kms-disk-i03
+        podName: sm-kms-disk-2
+        tlsLeafSecretName: sm-kms-disk-2-tls
+        healthClientSecretName: sm-kms-health-client-2
+        otlpClientSecretName: sm-kms-otlp-client-2

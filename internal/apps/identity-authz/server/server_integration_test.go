@@ -9,6 +9,7 @@ import (
 	http "net/http"
 	"testing"
 
+	cryptoutilAppsFrameworkServiceTestHelpTls "cryptoutil/internal/apps-framework/service/test_help_tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -87,13 +88,18 @@ func TestAuthzServer_PublicHealth(t *testing.T) {
 
 			url := tt.baseURL + tt.path
 
-			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultHealthCheckTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestTimeout)
 			defer cancel()
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 			require.NoError(t, err)
 
-			resp, err := client.Do(req)
+			var resp *http.Response
+			if tt.name == authzTestReadyzRouteName {
+				resp, err = cryptoutilAppsFrameworkServiceTestHelpTls.DoReadinessRequest(client, req)
+			} else {
+				resp, err = client.Do(req)
+			}
 			require.NoError(t, err)
 
 			require.Equal(t, tt.wantCode, resp.StatusCode)

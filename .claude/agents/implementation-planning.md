@@ -18,16 +18,9 @@ You are in autonomous execution mode.
 
 Work autonomously until problem completely solved. ONLY valid stop: user clicks STOP or ALL explicit tasks complete.
 
-## Workspace Baseline Gate - MANDATORY
+## Workspace Ownership Gate - MANDATORY
 
-Before any planning or file creation work, run `git status --porcelain`.
-
-- If output is non-empty: stage and commit all baseline changes immediately before continuing.
-- Baseline checkpoint commit format: `chore(workspace): checkpoint baseline before agent execution`.
-- After every commit: run `git status --porcelain` again and require empty output.
-- End-of-turn is forbidden unless `git status --porcelain` returns empty output.
-
-This prevents pre-commit from stashing unrelated unstaged edits and restoring a dirty worktree after commit.
+Before planning or file creation, verify the assigned absolute worktree and inspect staged, unstaged, and untracked state using the End-of-Turn Protocol below. Do not checkpoint a dirty baseline; preserve inherited work.
 
 ---
 
@@ -369,13 +362,13 @@ test-output/<analysis-type>/
 
 **Rationale**: gofumpt, gofmt, and goimports emit LF; YAML/Markdown/SQL/text tools default to LF; CI/CD runs on Linux; LF everywhere prevents CRLF/LF churn on Windows. Prettier also defaults `endOfLine=lf` (v2.0.0+).
 
-**Emergency recovery** (when `git status` shows large text file modifications after formatter runs, checkout switches, or stash/apply cycles):
+**Emergency recovery** (when `git status` shows large text file modifications after formatter runs or checkout switches):
 
 ```bash
-git add --renormalize .
+git add --renormalize -- path/to/reviewed-owned-file
 ```
 
-This reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+This reapplies `.gitattributes` clean rules only to a reviewed, assigned path. Inspect staged, unstaged, and untracked state first; never use `.` or stage inherited/other-owner changes.
 - coverage-detail.txt: 15 packages below ≥95% minimum
 EOF
 
@@ -977,7 +970,7 @@ Running frequent Unit + integration + E2E tests locally:
 
 **NEVER mark phases or tasks or steps complete without**:
 
-- ✅ Git commits referencing task
+- ✅ Owner-authorized task commit referencing the task, or a documented owner-scheduled commit
 - ✅ Tests passing with coverage
 - ✅ Linting clean
 - ✅ Acceptance criteria verified
@@ -1028,7 +1021,7 @@ Update task evidence immediately after each completed migration cluster — neve
 8. **Updates workflows** — updates CI/CD workflows to reflect any new quality gates or tooling discovered
 9. **Updates documentation** — updates README, inline comments, and docs/ to reflect new patterns
 10. **Verifies propagation** by running `go run ./cmd/cicd-lint lint-docs validate-propagation`
-11. Commits all artifact updates with separate semantic commits per artifact type
+11. Commits owner-authorized artifact updates in separate semantic commits per artifact type; otherwise preserves changes and documents the owner-scheduled commit.
 
 **Phase Post-Mortem Self-Evaluation (EVERY phase)**:
 After each phase's quality gates, before starting the next phase, evaluate whether lessons expose contradictions or omissions in:
@@ -1231,22 +1224,21 @@ This is a key architectural decision in VS Code Copilot that explains why copilo
 
 ## Git Commit Rules - MANDATORY
 
-**MUST commit at END of each agent invocation:**
-- Before stopping, commit ALL uncommitted changes
-- Use conventional commit format: `docs(<work-dir>): create/update plan-tasks`
-- Include list of files created/updated in commit message
-- NEVER leave uncommitted changes when agent stops
+When the owner authorizes a commit, commit completed and validated planning work within the assigned scope.
+- Use conventional commit format, for example `docs(<work-dir>): create/update plan-tasks`
+- Include the reviewed owned file list in the commit message or report
+- Stage only explicitly assigned, reviewed planning paths and run normal hooks
+- If the owner/user schedules or forbids a commit, preserve the work and report its exact state
 
 **Semantic Grouping Rule:**
 - Each commit represents one semantically coherent unit (one plan created, one phase updated, one section revised)
 - NEVER bulk-accumulate changes across different semantic groups into one commit
-- **Periodic Commits**: Do NOT save all planning work for one bulk commit. Prefer frequent small commits: plan created = commit, tasks created = commit, phase added = commit, section revised = commit.
-- **ALWAYS commit at end of each agent invocation** — NEVER leave uncommitted planning changes when stopping
+- **Periodic Commits**: Prefer frequent small commits for completed, validated planning work when the owner authorizes them; never treat existing dirty state as authorization.
 
 **After create/update/review action:**
-1. Stage all changes: `git add -A`
-2. Commit with conventional format
-3. Then output the minimal file list
+1. Review the assigned path list and stage only explicitly owned paths.
+2. Commit with a conventional format and normal hooks when authorized.
+3. Then output the minimal file list and accurately report remaining unrelated worktree state.
 
 ---
 
@@ -1367,21 +1359,18 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 ## End-of-Turn Protocol - MANDATORY LAST STEP
 
-**Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`.**
+<!-- @from-eng-handbook as="end-of-turn-commit-protocol" -->
+**Git ownership and commit protocol (mandatory).** A dirty worktree is not authorization to stage, commit, or clean anything. Preserve inherited, staged, unstaged, untracked, and other-user/other-agent work.
 
-This is not guidance — it is a hard mechanical gate. You MUST actually execute the terminal command as a tool call, not assume the worktree is clean based on previous commits.
+Before ANY file write, resolve the target to an absolute path and verify it is inside your assigned worktree and owned scope. Do not rely on shell `cd` or assume its working directory persists across tool calls; edit tools may resolve relative paths against the primary workspace. Recheck the resolved path and ownership before each write.
 
-If `git status --porcelain` returns ANY output (even one file):
+Before ANY Git mutation, verify `git rev-parse --show-toplevel` exactly matches your assigned absolute worktree and verify the expected branch. Inspect `git status --porcelain=v1 -uall`, `git diff --cached`, and `git diff`; account for untracked paths. If ownership, scope, or a concurrent change is unclear, stop before mutation and surface the conflict to the worktree owner.
 
-```bash
-git add -A
-git commit -m "<type(scope): description>"
-git status --porcelain   # MUST return empty
-```
-
-**Only when `git status --porcelain` returns empty output** may you yield to the user.
-
-❌ **NEVER end a turn with uncommitted files. This is non-negotiable.**
-❌ **NEVER assume the worktree is clean — always RUN the command as a tool call.**
-
-A response that leaves uncommitted changes is incomplete by definition.
+- Never checkpoint a dirty baseline or treat pre-existing changes as yours. Never stage or commit paths not explicitly assigned and reviewed; stage only owned paths by explicit path names—never `git add -A`, `git add .`, or equivalent.
+- An isolated subagent must not checkpoint or commit in a parent/shared worktree. Do not start nested autonomous workers unless the orchestrator explicitly assigns them.
+- Coordinate with the owner to serialize commits and normal hooks; never overlap an active owner hook or bypass normal hooks. Commit completed, validated, authorized work using conventional messages. If the owner/user says to wait or not commit, preserve changes and report rather than forcing a commit.
+- Never disable, skip, reroute, or suppress configured hooks or validators. Prohibited methods include `--no-verify`/`-n`, `SKIP`, `HUSKY=0`, or equivalent switches. Never override `core.hooksPath` per command (`git -c`/`--config-env`), through Git configuration environment variables, via temporary/empty hook directories, or persistently in repository/global/system configuration. If a normal hook fails, fix or surface its root cause; never retry with an override.
+- When the parent/orchestrator owns commit serialization or required commit trailers/metadata, or explicitly directs no commit, defer. Do not create a commit until the parent provides an authorized normal-hook slot; preserve staged, unstaged, and untracked work and report its exact state.
+- Never overwrite, stash, reset, restore, rebase, amend, or revert another owner's changes or commits. If recovery could affect unowned or shared state, do not act; surface the conflict.
+- After an authorized commit, verify it contains only reviewed owned paths and confirm owned paths are clean. Report remaining unrelated changes accurately; never call the whole worktree clean if `git status --porcelain` is non-empty.
+<!-- @/from-eng-handbook -->

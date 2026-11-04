@@ -6,8 +6,6 @@ package rotation
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 	"time"
 
@@ -15,52 +13,22 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite" // Import modernc.org/sqlite driver.
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Use unique database file for each test to prevent table conflicts.
-	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", t.Name())
-
-	// Open SQLite with modernc.org/sqlite (CGO-free).
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
-	require.NoError(t, err, "Failed to open SQL database")
-
-	// Apply SQLite PRAGMA settings for concurrent operations.
-	ctx := context.Background()
-
-	_, pragmaErr := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, pragmaErr, "Failed to enable WAL mode")
-
-	_, timeoutErr := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, timeoutErr, "Failed to set busy timeout")
-
-	// Create GORM DB from existing sql.DB connection.
-	db, gormErr := gorm.Open(sqlite.Dialector{
-		Conn: sqlDB,
-	}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, gormErr, "Failed to create GORM database")
-
-	// Configure connection pool for GORM transaction pattern.
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetConnMaxLifetime(0)
-	sqlDB.SetConnMaxIdleTime(0)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 
 	// Auto-migrate domain models.
-	migrateErr := db.AutoMigrate(
+	require.NoError(t, db.AutoMigrate(
 		&cryptoutilIdentityDomain.ClientSecretVersion{},
 		&cryptoutilIdentityDomain.KeyRotationEvent{},
-	)
-	require.NoError(t, migrateErr, "Failed to run migrations")
+	))
 
 	return db
 }

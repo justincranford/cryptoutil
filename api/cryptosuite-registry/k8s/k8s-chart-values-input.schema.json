@@ -1,0 +1,233 @@
+{
+  "$defs": {
+    "command": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "containerImage": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/command"
+        },
+        "command": {
+          "$ref": "#/$defs/command"
+        },
+        "drain": {
+          "$ref": "#/$defs/command"
+        },
+        "image": {
+          "pattern": "^.+@sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "probes": {
+          "additionalProperties": false,
+          "properties": {
+            "liveness": {
+              "$ref": "#/$defs/command"
+            },
+            "readiness": {
+              "$ref": "#/$defs/command"
+            },
+            "startup": {
+              "$ref": "#/$defs/command"
+            }
+          },
+          "required": [
+            "startup",
+            "liveness",
+            "readiness"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "image",
+        "command",
+        "drain",
+        "probes"
+      ],
+      "type": "object"
+    },
+    "pkiMaterializer": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "const": [
+            "pki-materialize",
+            "--instance=/etc/cryptoutil/instance/instance.yaml",
+            "--input=/etc/cryptoutil/instance/materializer.json"
+          ],
+          "type": "array"
+        },
+        "command": {
+          "items": {
+            "const": "/app/cryptoutil"
+          },
+          "maxItems": 1,
+          "minItems": 1,
+          "type": "array"
+        },
+        "image": {
+          "pattern": "^.+@sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        }
+      },
+      "required": [
+        "image",
+        "command",
+        "args",
+        "resources"
+      ],
+      "type": "object"
+    },
+    "resourceSet": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu": {
+          "pattern": "^[1-9][0-9]*m?$",
+          "type": "string"
+        },
+        "memory": {
+          "pattern": "^[1-9][0-9]*(Ki|Mi|Gi|Ti)?$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpu",
+        "memory"
+      ],
+      "type": "object"
+    },
+    "resources": {
+      "additionalProperties": false,
+      "properties": {
+        "limits": {
+          "$ref": "#/$defs/resourceSet"
+        },
+        "requests": {
+          "$ref": "#/$defs/resourceSet"
+        }
+      },
+      "required": [
+        "requests",
+        "limits"
+      ],
+      "type": "object"
+    },
+    "runtimeWorkload": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/command"
+        },
+        "domainConfig": {
+          "type": "string"
+        },
+        "domainConfigFile": {
+          "pattern": "^[a-zA-Z0-9._-]{1,253}$",
+          "type": "string"
+        },
+        "frameworkConfig": {
+          "type": "string"
+        },
+        "frameworkConfigFile": {
+          "pattern": "^[a-zA-Z0-9._-]{1,253}$",
+          "type": "string"
+        },
+        "materializerConfig": {
+          "maxLength": 1048576,
+          "minLength": 1,
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        }
+      },
+      "required": [
+        "materializerConfig",
+        "frameworkConfigFile",
+        "frameworkConfig",
+        "domainConfigFile",
+        "domainConfig",
+        "resources"
+      ],
+      "type": "object"
+    },
+    "storage": {
+      "additionalProperties": false,
+      "properties": {
+        "className": {
+          "maxLength": 63,
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+          "type": "string"
+        },
+        "size": {
+          "pattern": "^[1-9][0-9]*(Mi|Gi|Ti)$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "className",
+        "size"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://cryptoutil.dev/schemas/k8s-chart-values-input.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Explicit non-secret image, storage, and per-workload inputs for deterministic Helm values generation.",
+  "properties": {
+    "images": {
+      "additionalProperties": {
+        "$ref": "#/$defs/containerImage"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "type": "object"
+    },
+    "pkiMaterializer": {
+      "$ref": "#/$defs/pkiMaterializer"
+    },
+    "runtime": {
+      "additionalProperties": false,
+      "properties": {
+        "workloads": {
+          "additionalProperties": {
+            "$ref": "#/$defs/runtimeWorkload"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[^/]+/[^/]+/[^/]+$"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "workloads"
+      ],
+      "type": "object"
+    },
+    "storage": {
+      "$ref": "#/$defs/storage"
+    }
+  },
+  "required": [
+    "images",
+    "pkiMaterializer",
+    "storage",
+    "runtime"
+  ],
+  "title": "Cryptoutil Kubernetes chart values input",
+  "type": "object"
+}

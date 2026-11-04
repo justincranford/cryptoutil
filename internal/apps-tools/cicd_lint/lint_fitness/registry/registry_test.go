@@ -292,3 +292,14 @@ func TestAllAPIResources_ResourcesAreIndependentCopies(t *testing.T) {
 		require.Equal(t, original, r2[0].Resources[0], "AllAPIResources must return independent copies")
 	}
 }
+
+func TestAllAPIServiceDependencies(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, []lintFitnessRegistry.APIServiceDependencyInfo{
+		{
+			SourcePSID: cryptoutilSharedMagic.OTLPServiceIdentityRP,
+			TargetPSID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
+		},
+	}, lintFitnessRegistry.AllAPIServiceDependencies())
+}

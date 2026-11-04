@@ -5,20 +5,15 @@ package barrier_test
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
@@ -40,8 +35,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 				require.NoError(t, err)
 
-				db, cleanup := createKeyServiceTestDB(t)
-				t.Cleanup(cleanup)
+				db := createKeyServiceTestDB(t)
 
 				repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 				require.NoError(t, err)
@@ -82,8 +76,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 				require.NoError(t, err)
 
-				db, cleanup := createKeyServiceTestDB(t)
-				t.Cleanup(cleanup)
+				db := createKeyServiceTestDB(t)
 
 				repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 				require.NoError(t, err)
@@ -124,8 +117,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				jwkGenSvc, err := newBarrierTestJWKGenService(t, telemetrySvc)
 				require.NoError(t, err)
 
-				db, cleanup := createKeyServiceTestDB(t)
-				t.Cleanup(cleanup)
+				db := createKeyServiceTestDB(t)
 
 				repo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 				require.NoError(t, err)
@@ -183,20 +175,8 @@ func TestRootKeysService_EncryptKey_GetLatestFails(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create DB but DON'T initialize any root keys
-	dbUUID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbUUID.String())
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = sqlDB.Close() })
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
 	// Create ONLY the schema, don't insert any keys

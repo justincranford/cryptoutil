@@ -13,6 +13,8 @@ const (
 	// Token format: Base64-encoded UUIDv7, hashed with HighEntropyFixedRegistry.
 	// Storage: Token hash stored in browser_sessions or service_sessions table.
 	SessionAlgorithmOPAQUE SessionAlgorithmType = "OPAQUE"
+	// SessionAlgorithmOpaqueLegacySpelling is the legacy configuration spelling accepted for OPAQUE.
+	SessionAlgorithmOpaqueLegacySpelling SessionAlgorithmType = "Opaque"
 
 	// SessionAlgorithmJWS uses signed JWT tokens (JSON Web Signature).
 	// Token format: JWS compact serialization (header.payload.signature).

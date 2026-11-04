@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -55,8 +54,12 @@ func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn f
 		}
 
 		if info.IsDir() {
-			name := info.Name()
-			if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || name == cryptoutilSharedMagic.CICDExcludeDirTestOutput || name == "api" {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(projectRoot, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip || info.Name() == "api" {
 				return filepath.SkipDir
 			}
 

@@ -11,21 +11,19 @@ package listener_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"strconv"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	_ "modernc.org/sqlite"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerListener "cryptoutil/internal/apps-framework/service/server/listener"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -211,40 +209,19 @@ func _testMainAfter(m *testing.M) {
 // Extract to internal/template/testing/database/ for shared usage.
 //
 //nolint:unused // Example function for documentation
-func _createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
-	dbID, _ := googleUuid.NewV7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+func _createInMemoryDB(_ context.Context) (*gorm.DB, *sql.DB, error) {
+	db, cleanup, err := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDBForTestMain()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to open SQLite: %w", err)
+		return nil, nil, fmt.Errorf("failed to create SQLite database: %w", err)
 	}
 
-	// Configure SQLite for concurrent operations (WAL mode, busy timeout).
-	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		_ = sqlDB.Close()
-
-		return nil, nil, fmt.Errorf("failed to enable WAL: %w", err)
-	}
-
-	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-		_ = sqlDB.Close()
-
-		return nil, nil, fmt.Errorf("failed to set busy timeout: %w", err)
-	}
-
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM.
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	sqlDB, err := db.DB()
 	if err != nil {
-		_ = sqlDB.Close()
+		if cleanupErr := cleanup(); cleanupErr != nil {
+			return nil, nil, fmt.Errorf("failed to access SQLite database: %w", errors.Join(err, cleanupErr))
+		}
 
-		return nil, nil, fmt.Errorf("failed to create GORM DB: %w", err)
+		return nil, nil, fmt.Errorf("failed to access SQLite database: %w", err)
 	}
 
 	return db, sqlDB, nil

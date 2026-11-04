@@ -30,10 +30,16 @@ func hasUnresolvedPlaceholders(s string) bool {
 //     corresponding actual project file.
 //  2. Go source templates in cmd/ and internal/, which are validated by dedicated
 //     fitness linters and are not template-drift exact-match targets.
+//  3. Kubernetes deployment sources, which are rendered by deploymentgen and are not
+//     instantiated into static project-root paths.
 func isStructuralMetaFile(relPath string) bool {
 	base := filepath.ToSlash(filepath.Base(relPath))
 
 	if base == "MANIFEST.yaml" || base == "README.md" {
+		return true
+	}
+
+	if strings.HasPrefix(filepath.ToSlash(relPath), cryptoutilSharedMagic.CICDTemplatesKubernetesDir) {
 		return true
 	}
 

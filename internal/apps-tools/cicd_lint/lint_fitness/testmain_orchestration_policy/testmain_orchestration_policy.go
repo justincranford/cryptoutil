@@ -183,10 +183,20 @@ func WalkTestMainFiles(rootDir string) ([]string, error) {
 			return err
 		}
 
-		switch {
-		case d.IsDir() && (d.Name() == cryptoutilSharedMagic.CICDExcludeDirGit || d.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor):
-			return filepath.SkipDir
-		case !d.IsDir() && d.Name() == testmainFileName:
+		if d.IsDir() {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(appsDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
+		if d.Name() == testmainFileName {
 			relDir := filepath.Base(filepath.Dir(path))
 			if relDir == cryptoutilSharedMagic.CMD_SERVER || relDir == "client" {
 				result = append(result, path)

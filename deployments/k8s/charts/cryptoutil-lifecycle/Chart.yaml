@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cryptoutil-lifecycle
+description: Restricted Cryptoutil lifecycle Jobs and bootstrap RBAC; file-backed Secrets are imported separately.
+type: application
+version: 0.1.0
+appVersion: "1"
+kubeVersion: ">=1.34.0-0 <1.38.0-0"

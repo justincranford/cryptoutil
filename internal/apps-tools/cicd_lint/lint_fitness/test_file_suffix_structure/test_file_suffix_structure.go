@@ -222,8 +222,9 @@ func checkFileAgainstSuffixRule(filePath string, content []byte, rule compiledSu
 
 // ExcludedDirs are directories skipped during the walk.
 var ExcludedDirs = map[string]bool{
-	cryptoutilSharedMagic.CICDExcludeDirVendor: true,
-	cryptoutilSharedMagic.CICDExcludeDirGit:    true,
+	cryptoutilSharedMagic.CICDExcludeDirVendor:     true,
+	cryptoutilSharedMagic.CICDExcludeDirGit:        true,
+	cryptoutilSharedMagic.CICDExcludeDirTestOutput: true,
 }
 
 // isExcludedFromContentRules returns true for test files that deliberately contain
@@ -321,7 +322,12 @@ func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFile
 		}
 
 		if d.IsDir() {
-			if ExcludedDirs[d.Name()] {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip || ExcludedDirs[d.Name()] {
 				return filepath.SkipDir
 			}
 

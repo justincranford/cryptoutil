@@ -197,6 +197,21 @@ func TestIsExemptedFile(t *testing.T) {
 		want     bool
 	}{
 		{
+			name:     "CLI outgoing health probe",
+			filePath: "/internal/apps-framework/service/cli/startupz_command_test.go",
+			want:     true,
+		},
+		{
+			name:     "deployment outgoing authentication flow",
+			filePath: "/internal/apps-tools/cicd_deployment/dev_smoke_test.go",
+			want:     true,
+		},
+		{
+			name:     "adjacent deployment handler is not exempt",
+			filePath: "/internal/apps-tools/cicd_deployment/handler_test.go",
+			want:     false,
+		},
+		{
 			name:     "exempt_client_dir",
 			filePath: "/internal/apps/identity-authz/client/oauth_test.go",
 			want:     true,

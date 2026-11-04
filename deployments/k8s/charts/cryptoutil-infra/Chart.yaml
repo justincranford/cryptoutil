@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cryptoutil-infra
+description: Run-scoped PostgreSQL and telemetry infrastructure for Cryptoutil deployments.
+type: application
+version: 0.1.0
+appVersion: "1"
+kubeVersion: ">=1.34.0-0 <1.38.0-0"

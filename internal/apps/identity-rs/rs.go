@@ -3,6 +3,7 @@
 //   - /service/api/v1/health  (service-to-service health check)
 //   - /browser/api/v1/health  (browser health check)
 //   - /admin/api/v1/livez     (liveness probe)
+//   - /admin/api/v1/startupz  (startup completion probe)
 //   - /admin/api/v1/readyz    (readiness probe)
 //   - /admin/api/v1/shutdown  (graceful shutdown trigger)
 //
@@ -24,7 +25,7 @@ import (
 )
 
 // Rs implements the identity-rs service subcommand handler.
-// Handles subcommands: server, client, init, health, livez, readyz, shutdown.
+// Handles subcommands: server, client, init, health, livez, startupz, readyz, shutdown.
 func Rs(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteServiceFromIdentity(
 		cryptoutilTemplateCli.NewServiceIdentity(

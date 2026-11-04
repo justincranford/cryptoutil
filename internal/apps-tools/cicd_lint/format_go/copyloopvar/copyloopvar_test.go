@@ -328,6 +328,156 @@ func TestFixCopyLoopVar_SkipsExcludedDirectories(t *testing.T) {
 	require.Zero(t, issuesFixed)
 }
 
+func TestFixCopyLoopVar_PreservesNestedMachineOwnedDirectories(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: "hidden worktree container", dirName: cryptoutilSharedMagic.CICDExcludeDirDotWorktree},
+		{name: "worktree container", dirName: cryptoutilSharedMagic.CICDExcludeDirWorktree},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			realFile := filepath.Join(rootDir, "real.go")
+
+			excludedFile := filepath.Join(rootDir, "nested", "ordinary-container", tc.dirName, "nested", "excluded.go")
+			for _, path := range []string{realFile, excludedFile} {
+				require.NoError(t, os.MkdirAll(filepath.Dir(path), cryptoutilSharedMagic.CICDTempDirPermissions))
+				require.NoError(t, os.WriteFile(path, []byte(testGoContentWithLoopVarCopy), cryptoutilSharedMagic.CacheFilePermissions))
+			}
+
+			excludedOriginal, err := os.ReadFile(excludedFile)
+			require.NoError(t, err)
+
+			processed, modified, issuesFixed, err := Fix(cryptoutilCmdCicdCommon.NewLogger(t.Name()), rootDir, "go1.22")
+
+			require.NoError(t, err)
+			require.Equal(t, 1, processed)
+			require.Equal(t, 1, modified)
+			require.Equal(t, 1, issuesFixed)
+
+			realResult, err := os.ReadFile(realFile)
+			require.NoError(t, err)
+			require.NotContains(t, string(realResult), "v := v")
+
+			excludedResult, err := os.ReadFile(excludedFile)
+			require.NoError(t, err)
+			require.Equal(t, excludedOriginal, excludedResult)
+		})
+	}
+}
+
+func TestFixCopyLoopVar_PreservesNestedCheckoutContents(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		markerIsDir bool
+	}{
+		{name: "git marker file"},
+		{name: "git marker directory", markerIsDir: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			realFile := filepath.Join(rootDir, "real.go")
+			checkoutDir := filepath.Join(rootDir, "ordinary-named-checkout")
+			checkoutFile := filepath.Join(checkoutDir, "excluded.go")
+			require.NoError(t, os.MkdirAll(checkoutDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+
+			gitMarkerPath := filepath.Join(checkoutDir, cryptoutilSharedMagic.CICDExcludeDirGit)
+			if tc.markerIsDir {
+				require.NoError(t, os.Mkdir(gitMarkerPath, cryptoutilSharedMagic.CICDTempDirPermissions))
+			} else {
+				require.NoError(t, os.WriteFile(gitMarkerPath, []byte("gitdir: ../.git/worktrees/ordinary-named-checkout"), cryptoutilSharedMagic.CacheFilePermissions))
+			}
+
+			for _, path := range []string{realFile, checkoutFile} {
+				require.NoError(t, os.WriteFile(path, []byte(testGoContentWithLoopVarCopy), cryptoutilSharedMagic.CacheFilePermissions))
+			}
+
+			checkoutOriginal, err := os.ReadFile(checkoutFile)
+			require.NoError(t, err)
+
+			processed, modified, issuesFixed, err := Fix(cryptoutilCmdCicdCommon.NewLogger(t.Name()), rootDir, "go1.22")
+
+			require.NoError(t, err)
+			require.Equal(t, 1, processed)
+			require.Equal(t, 1, modified)
+			require.Equal(t, 1, issuesFixed)
+
+			realResult, err := os.ReadFile(realFile)
+			require.NoError(t, err)
+			require.NotContains(t, string(realResult), "v := v")
+
+			checkoutResult, err := os.ReadFile(checkoutFile)
+			require.NoError(t, err)
+			require.Equal(t, checkoutOriginal, checkoutResult)
+		})
+	}
+}
+
+func TestFixCopyLoopVar_SelectedWorktreeRootsRemainScannable(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+	}{
+		{name: cryptoutilSharedMagic.CICDExcludeDirDotWorktree},
+		{name: cryptoutilSharedMagic.CICDExcludeDirWorktree},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := filepath.Join(t.TempDir(), tc.name)
+			require.NoError(t, os.MkdirAll(rootDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+			require.NoError(t, os.WriteFile(
+				filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGit),
+				[]byte("gitdir: ../.git/worktrees/selected"),
+				cryptoutilSharedMagic.FilePermissionsDefault,
+			))
+			sourceFile := filepath.Join(rootDir, "source.go")
+			require.NoError(t, os.WriteFile(
+				sourceFile,
+				[]byte(testGoContentWithLoopVarCopy),
+				cryptoutilSharedMagic.CacheFilePermissions,
+			))
+
+			processed, modified, issuesFixed, err := Fix(
+				cryptoutilCmdCicdCommon.NewLogger(t.Name()),
+				rootDir,
+				testGoVersion122,
+			)
+
+			require.NoError(t, err)
+			require.Equal(t, 1, processed)
+			require.Equal(t, 1, modified)
+			require.Equal(t, 1, issuesFixed)
+
+			result, err := os.ReadFile(sourceFile)
+			require.NoError(t, err)
+			require.NotContains(t, string(result), "v := v")
+		})
+	}
+}
+
 func TestFixCopyLoopVar_EmptyDir(t *testing.T) {
 	t.Parallel()
 

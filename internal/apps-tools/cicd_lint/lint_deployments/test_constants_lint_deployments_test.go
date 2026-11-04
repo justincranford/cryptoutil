@@ -1,5 +1,7 @@
 package lint_deployments
 
+import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 const (
 	testBindPublicPortMustBeBetween                                                      = "'bind-public-port' must be between"
 	testSmKMS                                                                            = "-sm-kms"
@@ -114,7 +116,7 @@ const (
 	testCannotReadConfigsDirectory                                                       = "cannot read configs directory"
 	testCannotReadSecretsDirectory                                                       = "cannot read secrets directory"
 	testComposeSourceField                                                               = "source"
-	testComposeTargetField                                                               = "target"
+	testComposeTargetField                                                               = cryptoutilSharedMagic.CICDExcludeDirTarget
 	testComposePathField                                                                 = "path"
 	testComposeRequiredField                                                             = "required"
 	testDatabasePassword                                                                 = "database-password"

@@ -48,6 +48,10 @@ func injectRotationFail(_ *cryptoutilSharedCryptoJose.JWKGenService, _ cryptouti
 	return nil, errInjectFailure
 }
 
+func unexpectedTestGORMOpen(gorm.Dialector, *gorm.Config) (*gorm.DB, error) {
+	return nil, errors.New("unexpected GORM open")
+}
+
 // injectStatusFail replaces newStatusServiceFn with a failure stub.
 func injectStatusFail(_ cryptoutilAppsFrameworkServiceServerBarrier.Repository) (*cryptoutilAppsFrameworkServiceServerBarrier.StatusService, error) {
 	return nil, errInjectFailure
@@ -106,7 +110,7 @@ func TestStartup_JWKGenServiceFailure(t *testing.T) {
 				_, err := startCoreInternal(ctx, settings, injectJWKGenFail,
 					unexpectedPostgresStart,
 					sql.Open,
-					func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) { return gorm.Open(d, c) },
+					unexpectedTestGORMOpen,
 				)
 
 				return err
@@ -121,7 +125,7 @@ func TestStartup_JWKGenServiceFailure(t *testing.T) {
 					injectJWKGenFail,
 					unexpectedPostgresStart,
 					sql.Open,
-					func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) { return gorm.Open(d, c) },
+					unexpectedTestGORMOpen,
 				)
 
 				return err

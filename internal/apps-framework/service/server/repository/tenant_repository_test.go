@@ -6,16 +6,14 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"testing"
 	"time"
 
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -23,30 +21,10 @@ import (
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dsn := fmt.Sprintf("file:test_%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	dialector := sqlite.Dialector{Conn: sqlDB}
-	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	sqlDB, err = db.DB()
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetConnMaxLifetime(0)
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	// Run migrations
-	err = db.AutoMigrate(&Tenant{}, &User{}, &Client{}, &Role{}, &UserRole{}, &ClientRole{}, &TenantRealm{}, &UnverifiedUser{}, &UnverifiedClient{})
+	err := db.AutoMigrate(&Tenant{}, &User{}, &Client{}, &Role{}, &UserRole{}, &ClientRole{}, &TenantRealm{}, &UnverifiedUser{}, &UnverifiedClient{})
 	require.NoError(t, err)
 
 	return db

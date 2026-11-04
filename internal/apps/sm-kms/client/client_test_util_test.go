@@ -80,7 +80,8 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 		}
 
 		client.Transport = &http.Transport{
-			TLSClientConfig: tlsConfig,
+			TLSClientConfig:   tlsConfig,
+			DisableKeepAlives: true,
 		}
 	}
 
@@ -125,7 +126,8 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 		}
 
 		baseTransport := &http.Transport{
-			TLSClientConfig: tlsConfig,
+			TLSClientConfig:   tlsConfig,
+			DisableKeepAlives: true,
 		}
 
 		httpClient := &http.Client{

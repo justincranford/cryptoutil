@@ -245,6 +245,38 @@ func TestFindUnaliasedCryptoutilImports_VendorDirSkipped(t *testing.T) {
 }
 
 // Sequential: changes the process working directory with os.Chdir.
+func TestFindUnaliasedCryptoutilImports_RepositoryGeneratedDirectoriesSkipped(t *testing.T) {
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	root := t.TempDir()
+	require.NoError(t, os.Chdir(root))
+
+	var unaliasedImport strings.Builder
+	unaliasedImport.WriteString("package fixture\n\nimport \"")
+	unaliasedImport.WriteString("cryptoutil/internal/shared/magic")
+	unaliasedImport.WriteString("\"\n")
+
+	for _, directory := range []string{
+		cryptoutilSharedMagic.CICDExcludeDirGit,
+		cryptoutilSharedMagic.CICDExcludeDirVendor,
+		cryptoutilSharedMagic.CICDExcludeDirTestOutput,
+		"test",
+	} {
+		goFilePath := filepath.Join(directory, "fixture.go")
+		require.NoError(t, os.MkdirAll(filepath.Dir(goFilePath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.WriteFile(goFilePath, []byte(unaliasedImport.String()), cryptoutilSharedMagic.CacheFilePermissions))
+	}
+
+	violations, findErr := FindUnaliasedCryptoutilImports(filepath.Walk)
+	require.NoError(t, findErr)
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], filepath.Join("test", "fixture.go"))
+}
+
+// Sequential: changes the process working directory with os.Chdir.
 func TestCheck_GoFileScanError(t *testing.T) {
 	origDir, err := os.Getwd()
 	require.NoError(t, err)

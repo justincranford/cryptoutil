@@ -1,0 +1,552 @@
+{{- $root := . -}}
+{{- $configurationMapIndex := dict -}}
+{{- range $configuration := .Values.configurationMaps }}
+{{- if hasKey $configurationMapIndex $configuration.name }}
+{{- fail (printf "duplicate configuration map name: %s" $configuration.name) }}
+{{- end }}
+{{- $_ := set $configurationMapIndex $configuration.name $configuration -}}
+{{- end }}
+{{- range $configuration := .Values.configurationMaps }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $configuration.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $configuration.psid | quote }}
+    cu.io/config-kind: {{ $configuration.kind | quote }}
+data:
+  {{- toYaml $configuration.files | nindent 2 }}
+{{- end }}
+{{- range $workload := .Values.workloads }}
+{{- $materializer := mustFromJson $workload.materializerConfig -}}
+{{- if or (ne $materializer.namespace $root.Values.namespace) (ne $materializer.apiEndpoint (printf "https://%s:443" $root.Values.apiServerIP)) (ne $materializer.apiServerName "kubernetes.default.svc") }}
+{{- fail "materializer namespace/API identity must match the runtime target" }}
+{{- end }}
+{{- range $key := keys $materializer }}
+{{- if not (has $key (list "namespace" "apiEndpoint" "apiServerName" "trustFiles" "pods")) }}
+{{- fail "materializer input has an unknown property" }}
+{{- end }}
+{{- end }}
+{{- $roles := list "public-server" "admin-server" "health-client" "otlp-client" -}}
+{{- if eq $workload.pool "pg" }}{{- $roles = append $roles "postgres-client" -}}{{- end }}
+{{- if ne (len $materializer.trustFiles) (len $roles) }}{{- fail "materializer trust role coverage mismatch" }}{{- end }}
+{{- range $role := $roles }}
+{{- $file := index $materializer.trustFiles $role -}}
+{{- if or (not (regexMatch "^/run/cryptoutil/trust/[a-zA-Z0-9._-]+$" $file)) (has (base $file) (list "." "..")) }}
+{{- fail "materializer trust file must be explicit under issuer mount" }}
+{{- end }}
+{{- end }}
+{{- if ne (len $materializer.pods) (len $workload.instanceServices) }}{{- fail "materializer input must cover every reserved pod" }}{{- end }}
+{{- $podIndex := dict -}}
+{{- range $pod := $materializer.pods }}
+{{- range $key := keys $pod }}
+{{- if not (has $key (list "podName" "expectedAdminDNS" "expectedPublicDNSNames" "postgresqlClientBindings")) }}
+{{- fail "materializer pod has an unknown property" }}
+{{- end }}
+{{- end }}
+{{- if hasKey $podIndex $pod.podName }}{{- fail "materializer input duplicate pod" }}{{- end }}
+{{- $_ := set $podIndex $pod.podName $pod -}}
+{{- end }}
+{{- range $instance := $workload.instanceServices }}
+{{- if not (hasKey $podIndex $instance.podName) }}{{- fail "materializer input has an unowned pod" }}{{- end }}
+{{- $pod := index $podIndex $instance.podName -}}
+{{- $podDNS := printf "%s.%s-pods.%s.svc.%s" $instance.podName $workload.name $root.Values.namespace $root.Values.clusterDomain -}}
+{{- if ne $pod.expectedAdminDNS $podDNS }}{{- fail "materializer admin DNS identity mismatch" }}{{- end }}
+{{- if or (gt (len $pod.expectedPublicDNSNames) 16) (ne (len (uniq $pod.expectedPublicDNSNames)) (len $pod.expectedPublicDNSNames)) }}
+{{- fail "materializer public DNS identities must be bounded and unique" }}
+{{- end }}
+{{- range $requiredDNS := list $podDNS (printf "%s.%s.svc.%s" $instance.name $root.Values.namespace $root.Values.clusterDomain) (printf "%s.%s.svc.%s" $workload.name $root.Values.namespace $root.Values.clusterDomain) }}
+{{- if not (has $requiredDNS $pod.expectedPublicDNSNames) }}{{- fail "materializer public DNS must include derived pod/service identities" }}{{- end }}
+{{- end }}
+{{- if eq $workload.pool "pg" }}
+{{- if ne (len $pod.postgresqlClientBindings) (len $workload.instanceServices) }}{{- fail "materializer PostgreSQL bindings must cover every reserved pod" }}{{- end }}
+{{- $commonNames := dict -}}
+{{- range $boundInstance := $workload.instanceServices }}
+{{- $binding := index $pod.postgresqlClientBindings $boundInstance.podName -}}
+{{- if or (not $binding.CommonName) (not $binding.DatabaseRole) }}{{- fail "materializer PostgreSQL identity binding missing" }}{{- end }}
+{{- if hasKey $commonNames $binding.CommonName }}{{- fail "materializer PostgreSQL common names must be unique per pod" }}{{- end }}
+{{- $_ := set $commonNames $binding.CommonName true -}}
+{{- range $key := keys $binding }}
+{{- if not (has $key (list "CommonName" "DatabaseRole")) }}{{- fail "materializer PostgreSQL binding has an unknown property" }}{{- end }}
+{{- end }}
+{{- end }}
+{{- else }}
+{{- if $pod.postgresqlClientBindings }}{{- fail "SQLite materializer must not have PostgreSQL bindings" }}{{- end }}
+{{- end }}
+{{- end }}
+{{- if gt $workload.minReplicas $workload.maxReplicas }}
+{{- fail (printf "workload %s requires minReplicas <= maxReplicas" $workload.name) }}
+{{- end }}
+{{- if ne (len $workload.instanceServices) (int $workload.maxReplicas) }}
+{{- fail (printf "workload %s requires one reserved instance service and PKI mapping per max replica" $workload.name) }}
+{{- end }}
+{{- if ne (len $workload.tlsLeafSecretNames) (int $workload.maxReplicas) }}
+{{- fail (printf "workload %s requires one TLS leaf Secret name per max replica" $workload.name) }}
+{{- end }}
+{{- if not (hasKey $configurationMapIndex $workload.frameworkConfigMapName) }}
+{{- fail (printf "workload %s references missing framework ConfigMap %s" $workload.name $workload.frameworkConfigMapName) }}
+{{- end }}
+{{- if not (hasKey $configurationMapIndex $workload.domainConfigMapName) }}
+{{- fail (printf "workload %s references missing domain ConfigMap %s" $workload.name $workload.domainConfigMapName) }}
+{{- end }}
+{{- $frameworkConfig := index $configurationMapIndex $workload.frameworkConfigMapName -}}
+{{- $domainConfig := index $configurationMapIndex $workload.domainConfigMapName -}}
+{{- if or (ne $frameworkConfig.psid $workload.psid) (ne $frameworkConfig.kind "framework") }}
+{{- fail (printf "workload %s framework ConfigMap must match its PS-ID and framework role" $workload.name) }}
+{{- end }}
+{{- if or (ne $domainConfig.psid $workload.psid) (ne $domainConfig.kind "domain") }}
+{{- fail (printf "workload %s domain ConfigMap must match its PS-ID and domain role" $workload.name) }}
+{{- end }}
+{{- if not (hasKey $frameworkConfig.files $workload.frameworkConfigFile) }}
+{{- fail (printf "workload %s framework config file is missing: %s" $workload.name $workload.frameworkConfigFile) }}
+{{- end }}
+{{- if not (hasKey $domainConfig.files $workload.domainConfigFile) }}
+{{- fail (printf "workload %s domain config file is missing: %s" $workload.name $workload.domainConfigFile) }}
+{{- end }}
+{{- $frameworkConfigArg := printf "--config=/etc/cryptoutil/framework/%s" $workload.frameworkConfigFile -}}
+{{- $domainConfigArg := printf "--config=/etc/cryptoutil/domain/%s" $workload.domainConfigFile -}}
+{{- if or (not (has $frameworkConfigArg $workload.container.args)) (not (has $domainConfigArg $workload.container.args)) }}
+{{- fail (printf "workload %s container args must consume its selected framework and domain config files" $workload.name) }}
+{{- end }}
+{{- range $instance := $workload.instanceServices }}
+{{- if not (has $instance.tlsLeafSecretName $workload.tlsLeafSecretNames) }}
+{{- fail (printf "workload %s instance %s references an undeclared TLS leaf Secret" $workload.name $instance.podName) }}
+{{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $workload.name }}-config
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+data:
+  materializer.json: |
+    {{- $workload.materializerConfig | nindent 4 }}
+  instance.yaml: |
+    psid: {{ $workload.psid | quote }}
+    pool: {{ $workload.pool | quote }}
+    run: {{ $root.Values.run | quote }}
+    release: {{ $root.Values.helmRelease | quote }}
+    cluster-domain: {{ $root.Values.clusterDomain | quote }}
+    trust-secret: {{ $workload.trustSecretName | quote }}
+    framework-config-map: {{ $workload.frameworkConfigMapName | quote }}
+    framework-config-file: {{ $workload.frameworkConfigFile | quote }}
+    domain-config-map: {{ $workload.domainConfigMapName | quote }}
+    domain-config-file: {{ $workload.domainConfigFile | quote }}
+    credential-secret-mounts:
+      {{- $credentialMounts := list -}}
+      {{- range $index, $secretName := $workload.credentialSecretNames -}}
+      {{- $credentialMounts = append $credentialMounts (dict "secret-name" $secretName "mount-path" (printf "/run/cryptoutil/credentials/%d" $index)) -}}
+      {{- end -}}
+      {{- toYaml $credentialMounts | nindent 6 }}
+    health-client-directory: "/run/cryptoutil/pki/health-client"
+    otlp-client-directory: "/run/cryptoutil/pki/otlp-client"
+    instance-services:
+      {{- range $instance := $workload.instanceServices }}
+      - name: {{ $instance.name | quote }}
+        pod-name: {{ $instance.podName | quote }}
+        tls-leaf-secret-name: {{ $instance.tlsLeafSecretName | quote }}
+        health-client-secret-name: {{ $instance.healthClientSecretName | quote }}
+        otlp-client-secret-name: {{ $instance.otlpClientSecretName | quote }}
+      {{- end }}
+    {{- if $workload.databaseSecretName }}
+    database-secret: {{ $workload.databaseSecretName | quote }}
+    {{- end }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $workload.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $workload.name }}-cert-reader
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      {{- $materializerSecretNames := $workload.tlsLeafSecretNames -}}
+      {{- range $instance := $workload.instanceServices -}}
+      {{- $materializerSecretNames = append (append $materializerSecretNames $instance.healthClientSecretName) $instance.otlpClientSecretName -}}
+      {{- end -}}
+      {{- toYaml ($materializerSecretNames | uniq) | nindent 6 }}
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $workload.name }}-cert-reader
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $workload.name }}
+    namespace: {{ $root.Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $workload.name }}-cert-reader
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $workload.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+spec:
+  minAvailable: {{ max 0 (sub $workload.minReplicas 1) }}
+  selector:
+    matchLabels:
+      {{- include "cryptoutil-runtime.selectorLabels" (dict "root" $root "workload" $workload) | nindent 6 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $workload.name }}-pods
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector:
+    {{- include "cryptoutil-runtime.selectorLabels" (dict "root" $root "workload" $workload) | nindent 4 }}
+  ports:
+    - name: https
+      port: 8080
+      targetPort: https
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $workload.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+    cu.io/revision: {{ $root.Values.revision | quote }}
+  annotations:
+    cu.io/deployment-key: {{ $root.Values.releaseKey | quote }}
+spec:
+  serviceName: {{ $workload.name }}-pods
+  replicas: {{ $workload.minReplicas }}
+  podManagementPolicy: Parallel
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  selector:
+    matchLabels:
+      {{- include "cryptoutil-runtime.selectorLabels" (dict "root" $root "workload" $workload) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cryptoutil-runtime.selectorLabels" (dict "root" $root "workload" $workload) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ $workload.name }}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: materialize-pki
+          image: {{ $root.Values.pkiMaterializer.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            {{- toYaml $root.Values.pkiMaterializer.command | nindent 12 }}
+          {{- with $root.Values.pkiMaterializer.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MATERIALIZATION_CONFIG
+              value: /etc/cryptoutil/instance/instance.yaml
+            - name: KUBERNETES_SERVICE_HOST
+              value: {{ $root.Values.apiServerIP | quote }}
+            - name: KUBERNETES_SERVICE_PORT
+              value: "443"
+          resources:
+            {{- toYaml $root.Values.pkiMaterializer.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: pki-work
+              mountPath: /run/cryptoutil/pki
+            - name: bootstrap-api-token
+              mountPath: /run/cryptoutil/pki/input
+              readOnly: true
+            - name: trust
+              mountPath: /run/cryptoutil/trust
+              readOnly: true
+            - name: config
+              mountPath: /etc/cryptoutil/instance
+              readOnly: true
+      containers:
+        - name: cryptoutil
+          image: {{ $workload.container.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            {{- toYaml $workload.container.command | nindent 12 }}
+          {{- with $workload.container.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: https
+              containerPort: 8080
+              protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                {{- toYaml $workload.container.probes.startup | nindent 16 }}
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 60
+          livenessProbe:
+            exec:
+              command:
+                {{- toYaml $workload.container.probes.liveness | nindent 16 }}
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                {{- toYaml $workload.container.probes.readiness | nindent 16 }}
+            periodSeconds: 2
+            timeoutSeconds: 1
+            failureThreshold: 1
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  {{- toYaml $workload.container.drain | nindent 18 }}
+          resources:
+            {{- toYaml $workload.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: pki-work
+              mountPath: /run/cryptoutil/pki
+              readOnly: true
+            - name: trust
+              mountPath: /run/cryptoutil/trust
+              readOnly: true
+            - name: config
+              mountPath: /etc/cryptoutil/instance
+              readOnly: true
+            - name: framework-config
+              mountPath: /etc/cryptoutil/framework
+              readOnly: true
+            - name: domain-config
+              mountPath: /etc/cryptoutil/domain
+              readOnly: true
+            {{- range $index, $secretName := $workload.credentialSecretNames }}
+            - name: credential-{{ $index }}
+              mountPath: /run/cryptoutil/credentials/{{ $index }}
+              readOnly: true
+            {{- end }}
+            {{- if $workload.databaseSecretName }}
+            - name: database-credentials
+              mountPath: /run/cryptoutil/database
+              readOnly: true
+            {{- end }}
+            {{- if eq $workload.pool "disk" }}
+            - name: data
+              mountPath: /var/lib/cryptoutil/sqlite
+            {{- end }}
+      volumes:
+        - name: pki-work
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Mi
+        - name: trust
+          secret:
+            secretName: {{ $workload.trustSecretName }}
+            defaultMode: 0440
+        - name: config
+          configMap:
+            name: {{ $workload.name }}-config
+            defaultMode: 0444
+        - name: framework-config
+          configMap:
+            name: {{ $workload.frameworkConfigMapName }}
+            defaultMode: 0444
+        - name: domain-config
+          configMap:
+            name: {{ $workload.domainConfigMapName }}
+            defaultMode: 0444
+        - name: bootstrap-api-token
+          projected:
+            defaultMode: 0440
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  expirationSeconds: 600
+                  {{- with $root.Values.apiServerAudience }}
+                  audience: {{ . | quote }}
+                  {{- end }}
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+        {{- if $workload.databaseSecretName }}
+        - name: database-credentials
+          secret:
+            secretName: {{ $workload.databaseSecretName }}
+            defaultMode: 0440
+        {{- end }}
+        {{- range $index, $secretName := $workload.credentialSecretNames }}
+        - name: credential-{{ $index }}
+          secret:
+            secretName: {{ $secretName }}
+            defaultMode: 0440
+        {{- end }}
+  {{- if eq $workload.pool "disk" }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        annotations:
+          helm.sh/resource-policy: keep
+          cu.io/retention: "retain-on-scale-down-uninstall"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ $root.Values.storage.className | quote }}
+        resources:
+          requests:
+            storage: {{ $root.Values.storage.size | quote }}
+  {{- end }}
+{{- range $service := $workload.instanceServices }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $service.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+spec:
+  type: ClusterIP
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ $service.podName | quote }}
+    {{- include "cryptoutil-runtime.selectorLabels" (dict "root" $root "workload" $workload) | nindent 4 }}
+  ports:
+    - name: https
+      port: 8080
+      targetPort: https
+{{- end }}
+{{- if eq $workload.pool "pg" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $workload.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "cryptoutil-runtime.selectorLabels" (dict "root" $root "workload" $workload) | nindent 4 }}
+  ports:
+    - name: https
+      port: 8080
+      targetPort: https
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $workload.name }}
+  namespace: {{ $root.Values.namespace }}
+  labels:
+    {{- include "cryptoutil-runtime.labels" $root | nindent 4 }}
+    cu.io/psid: {{ $workload.psid | quote }}
+    cu.io/pool: {{ $workload.pool | quote }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: {{ $workload.name }}
+  minReplicas: {{ $workload.minReplicas }}
+  maxReplicas: {{ $workload.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+{{- end }}
+{{- end }}

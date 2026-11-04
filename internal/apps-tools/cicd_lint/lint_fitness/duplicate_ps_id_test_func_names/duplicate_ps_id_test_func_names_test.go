@@ -184,6 +184,56 @@ func TestFindDuplicates_NestedSubPackagesExcluded(t *testing.T) {
 	require.Empty(t, results)
 }
 
+func TestFindDuplicates_ExcludedDirectoriesDoNotContaminateScan(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+		psID    string
+	}{
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput, psID: "excluded-output"},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor, psID: "excluded-vendor"},
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit, psID: "excluded-git"},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv, psID: "excluded-venv"},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules, psID: "excluded-node-modules"},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports, psID: "excluded-workflow-reports"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := t.TempDir()
+
+			const testRealServiceC = "real-c"
+			for _, psID := range []string{"real-a", "real-b", testRealServiceC} {
+				funcNames := []string{"TestRealDuplicate"}
+				if psID != testRealServiceC {
+					funcNames = append(funcNames, "TestExcludedDuplicate")
+				}
+
+				writeTestFile(t, dir, psID, "server_test.go", funcNames)
+			}
+
+			writeTestFile(
+				t,
+				filepath.Join(dir, "nested", cryptoutilSharedMagic.CICDExcludeDirWorktree, tc.dirName),
+				tc.psID,
+				"server_test.go",
+				[]string{"TestExcludedDuplicate"},
+			)
+
+			results, err := lintFitnessDuplicatePSIDTestFuncNames.FindDuplicates(dir)
+
+			require.NoError(t, err)
+			require.Len(t, results, 1)
+			require.Equal(t, "TestRealDuplicate", results[0].FuncName)
+			require.Len(t, results[0].PSIDs, 3)
+		})
+	}
+}
+
 func TestCheckInDir_ReturnsNil_WhenDuplicatesFound(t *testing.T) {
 	t.Parallel()
 

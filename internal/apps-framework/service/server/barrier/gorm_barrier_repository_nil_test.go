@@ -19,8 +19,7 @@ func TestGormTransaction_GetRootKey_NotFound(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -44,8 +43,7 @@ func TestGormTransaction_GetIntermediateKey_NotFound(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -69,8 +67,7 @@ func TestGormTransaction_GetContentKey_NotFound(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -94,8 +91,7 @@ func TestGormTransaction_AddRootKey_DuplicateKey(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -135,8 +131,7 @@ func TestGormTransaction_AddIntermediateKey_DuplicateKey(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -177,8 +172,7 @@ func TestGormTransaction_AddContentKey_DuplicateKey(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)

@@ -35,6 +35,46 @@ func TestCheckInDir_Clean(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheckInDir_ExcludedDirectoriesDoNotContaminateScan(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			repositoryDir := filepath.Join(rootDir, "repository")
+			excludedDir := filepath.Join(rootDir, "nested", cryptoutilSharedMagic.CICDExcludeDirWorktree, tc.dirName, "nested")
+
+			require.NoError(t, os.MkdirAll(repositoryDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+			require.NoError(t, os.MkdirAll(excludedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+			writeFile(t, repositoryDir, "handler_coverage_test.go", "")
+			writeFile(t, excludedDir, "ignored_coverage_test.go", "")
+
+			err := leftoverCoverage.CheckInDir(
+				cryptoutilCmdCicdCommon.NewLogger(t.Name()),
+				rootDir,
+				filepath.Walk,
+			)
+
+			require.ErrorContains(t, err, "1 banned test file name(s) found")
+			require.Contains(t, err.Error(), filepath.Join("repository", "handler_coverage_test.go"))
+		})
+	}
+}
+
 func TestCheckInDir_BannedNames(t *testing.T) {
 	t.Parallel()
 
@@ -65,6 +105,62 @@ func TestCheckInDir_BannedNames(t *testing.T) {
 
 			require.Error(t, err)
 			require.Contains(t, err.Error(), tc.filename)
+		})
+	}
+}
+
+func TestCheckInDir_RepositoryScanExcludedDirectories(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                 string
+		excludedDir          string
+		includeRealViolation bool
+	}{
+		{name: "nested git metadata", excludedDir: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: "nested vendored dependencies", excludedDir: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: "nested generated test output", excludedDir: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{
+			name:                 "real violation remains detected",
+			excludedDir:          cryptoutilSharedMagic.CICDExcludeDirTestOutput,
+			includeRealViolation: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := t.TempDir()
+			excludedNestedDir := filepath.Join(dir, "nested", tc.excludedDir, "deeper")
+			require.NoError(t, os.MkdirAll(excludedNestedDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+
+			excludedFilename := "generated_coverage_test.go"
+			writeFile(t, excludedNestedDir, excludedFilename, "")
+
+			realFilename := "handler_gaps_test.go"
+
+			if tc.includeRealViolation {
+				realDir := filepath.Join(dir, "src", "handler")
+				require.NoError(t, os.MkdirAll(realDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+				writeFile(t, realDir, realFilename, "")
+			}
+
+			err := leftoverCoverage.CheckInDir(
+				cryptoutilCmdCicdCommon.NewLogger(t.Name()),
+				dir,
+				filepath.Walk,
+			)
+
+			if tc.includeRealViolation {
+				require.Error(t, err)
+				require.ErrorContains(t, err, realFilename)
+				require.NotContains(t, err.Error(), excludedFilename)
+
+				return
+			}
+
+			require.NoError(t, err)
 		})
 	}
 }

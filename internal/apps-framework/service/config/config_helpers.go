@@ -6,6 +6,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -72,6 +73,7 @@ func logSettings(s *ServiceFrameworkServerSettings) {
 			otlpEnvironment.Name:             s.OTLPEnvironment,
 			otlpHostname.Name:                s.OTLPHostname,
 			otlpEndpoint.Name:                s.OTLPEndpoint,
+			otlpHealthEndpoint.Name:          s.OTLPHealthEndpoint,
 			unsealMode.Name:                  s.UnsealMode,
 			unsealFiles.Name:                 s.UnsealFiles,
 			browserRealms.Name:               s.BrowserRealms,
@@ -345,6 +347,23 @@ func validateConfiguration(s *ServiceFrameworkServerSettings) error {
 	if s.OTLPEnabled && s.OTLPEndpoint != "" {
 		if !strings.HasPrefix(s.OTLPEndpoint, "grpc://") && !strings.HasPrefix(s.OTLPEndpoint, "http://") && !strings.HasPrefix(s.OTLPEndpoint, "https://") {
 			errors = append(errors, fmt.Sprintf("invalid OTLP endpoint format '%s': must start with 'grpc://', 'http://', or 'https://'", s.OTLPEndpoint))
+		}
+	}
+
+	if s.OTLPEnabled {
+		if s.OTLPHealthEndpoint == "" {
+			errors = append(errors, "OTLP receiver health endpoint is required when OTLP is enabled")
+		} else {
+			healthURL, err := url.Parse(s.OTLPHealthEndpoint)
+			if err != nil || healthURL.Scheme != cryptoutilSharedMagic.ProtocolHTTPS || healthURL.Host == "" ||
+				healthURL.Path == "" || healthURL.Path == "/" || healthURL.User != nil ||
+				healthURL.RawQuery != "" || healthURL.ForceQuery || healthURL.Fragment != "" {
+				errors = append(errors, "invalid OTLP receiver health endpoint: require an HTTPS URL with host and path, without credentials, query, or fragment")
+			}
+		}
+
+		if s.OTLPTLSCAFile == "" || s.OTLPTLSCertFile == "" || s.OTLPTLSKeyFile == "" {
+			errors = append(errors, "OTLP receiver health endpoint requires OTLP TLS CA, client certificate, and client key files")
 		}
 	}
 

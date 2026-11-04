@@ -176,6 +176,41 @@ func TestCheckInDir_NoErrors(t *testing.T) {
 	}
 }
 
+func TestCheckInDir_SkipsRepositoryScanExcludedDirectories(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			excludedDir := filepath.Join(rootDir, "nested", tc.dirName, "pkg")
+			require.NoError(t, os.MkdirAll(excludedDir, cryptoutilSharedMagic.DirPermissions))
+			writeFile(
+				t,
+				filepath.Join(excludedDir, "seam.go"),
+				"package pkg\n\nimport \"path/filepath\"\n\nvar walkFn = filepath.Walk\n",
+			)
+
+			err := lintGoFunctionVarRedeclaration.CheckInDir(newLogger(t), rootDir, filepath.Walk)
+
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestCheckInDir_Violations(t *testing.T) {
 	t.Parallel()
 

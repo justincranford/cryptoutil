@@ -9,6 +9,7 @@ import (
 	http "net/http"
 	"testing"
 
+	cryptoutilAppsFrameworkServiceTestHelpTls "cryptoutil/internal/apps-framework/service/test_help_tls"
 	cryptoutilAppsFrameworkServiceTestOrcIntegration "cryptoutil/internal/apps-framework/service/test_orch_integration"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -28,8 +29,12 @@ func TestSkeletonTemplateServer_Lifecycle(t *testing.T) {
 	require.Equal(t, http.StatusOK, livezResp.StatusCode, "livez should return 200 OK")
 	require.NoError(t, livezResp.Body.Close())
 
-	// Test /admin/api/v1/readyz endpoint using shared health client.
-	readyzResp, err := testHealthClient.Readyz()
+	// A background observation may transiently fail closed under concurrent load.
+	ctx, cancel := context.WithTimeout(t.Context(), cryptoutilSharedMagic.TestTimeout)
+	defer cancel()
+	readyzRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL), nil)
+	require.NoError(t, err)
+	readyzResp, err := cryptoutilAppsFrameworkServiceTestHelpTls.DoReadinessRequest(testAdminHTTPClient, readyzRequest)
 	require.NoError(t, err, "readyz request should succeed")
 	require.Equal(t, http.StatusOK, readyzResp.StatusCode, "readyz should return 200 OK")
 	require.NoError(t, readyzResp.Body.Close())
@@ -94,10 +99,12 @@ func TestSkeletonTemplateServer_HealthEndpoints(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			req, reqErr := http.NewRequestWithContext(context.Background(), http.MethodGet, tc.url, nil)
+			ctx, cancel := context.WithTimeout(t.Context(), cryptoutilSharedMagic.TestTimeout)
+			defer cancel()
+			req, reqErr := http.NewRequestWithContext(ctx, http.MethodGet, tc.url, nil)
 			require.NoError(t, reqErr)
 
-			resp, respErr := tc.client.Do(req)
+			resp, respErr := cryptoutilAppsFrameworkServiceTestHelpTls.DoReadinessRequest(tc.client, req)
 			require.NoError(t, respErr)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()

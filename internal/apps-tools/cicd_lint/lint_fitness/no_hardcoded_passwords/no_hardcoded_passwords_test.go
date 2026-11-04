@@ -174,6 +174,70 @@ func TestCheckHardcodedPasswords_ReadFileError(t *testing.T) {
 	require.Contains(t, issues[0], "Error reading file")
 }
 
+func TestCheck_SkipsNestedCheckoutAndFindsViolationsOutside(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	nestedCheckoutDir := filepath.Join(rootDir, "ordinary-named-checkout")
+	require.NoError(t, os.MkdirAll(nestedCheckoutDir, 0o700))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(nestedCheckoutDir, cryptoutilSharedMagic.CICDExcludeDirGit),
+		[]byte("gitdir: ../.git/worktrees/ordinary-named-checkout"),
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+
+	hardcodedPasswordTest := []byte(`package fixture
+
+func TestContainsHardcodedPassword() {
+	password := "test123"
+	_ = password
+}
+`)
+	require.NoError(t, os.WriteFile(
+		filepath.Join(nestedCheckoutDir, "nested_test.go"),
+		hardcodedPasswordTest,
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(rootDir, "source_test.go"),
+		hardcodedPasswordTest,
+		cryptoutilSharedMagic.CacheFilePermissions,
+	))
+
+	err := checkWithWalkDirFn(cryptoutilCmdCicdCommon.NewLogger(t.Name()), rootDir, filepath.WalkDir)
+
+	require.ErrorContains(t, err, "found 1 hardcoded password violations")
+}
+
+func TestCheck_ScansSelectedWorktreeRoots(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+	}{
+		{name: cryptoutilSharedMagic.CICDExcludeDirDotWorktree},
+		{name: cryptoutilSharedMagic.CICDExcludeDirWorktree},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := filepath.Join(t.TempDir(), tc.name)
+			require.NoError(t, os.MkdirAll(rootDir, 0o700))
+			require.NoError(t, os.WriteFile(
+				filepath.Join(rootDir, "source_test.go"),
+				[]byte(`password := "test123"`),
+				cryptoutilSharedMagic.CacheFilePermissions,
+			))
+
+			err := checkWithWalkDirFn(cryptoutilCmdCicdCommon.NewLogger(t.Name()), rootDir, filepath.WalkDir)
+
+			require.ErrorContains(t, err, "found 1 hardcoded password violations")
+		})
+	}
+}
+
 func TestCheck_WalkError(t *testing.T) {
 	t.Parallel()
 

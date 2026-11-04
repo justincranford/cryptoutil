@@ -254,7 +254,7 @@ func isDockerSecretFileReference(value string, service *composeService, compose 
 func dockerSecretTargetName(secretRef any) string {
 	targetName := extractSecretName(secretRef)
 	if secretMapping, ok := secretRef.(map[string]any); ok {
-		if configuredTarget, ok := secretMapping["target"].(string); ok && configuredTarget != "" {
+		if configuredTarget, ok := secretMapping[cryptoutilSharedMagic.CICDExcludeDirTarget].(string); ok && configuredTarget != "" {
 			targetName = configuredTarget
 		}
 	}

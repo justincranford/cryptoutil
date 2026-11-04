@@ -5,13 +5,11 @@ package barrier_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
@@ -137,25 +135,12 @@ func TestNewService_NilUnsealService(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a valid repository for this test.
-	dbID, _ := googleUuid.NewV7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
-	validSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, validSQLDB.Close())
-	}()
-
-	_, err = validSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-	_, err = validSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
+	validDB := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	validSQLDB, err := validDB.DB()
 	require.NoError(t, err)
 	validSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	validSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	validSQLDB.SetConnMaxLifetime(0)
-
-	validDB, err := gorm.Open(sqlite.Dialector{Conn: validSQLDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
 
 	require.NoError(t, createBarrierTables(validSQLDB))
 

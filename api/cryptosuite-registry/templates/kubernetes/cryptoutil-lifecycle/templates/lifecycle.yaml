@@ -1,0 +1,270 @@
+{{- $root := . -}}
+{{- $namespaces := dict -}}
+{{- $secrets := dict -}}
+{{- range $secret := .Values.externalSecrets -}}
+{{- $key := printf "%s/%s" $secret.namespace $secret.name -}}
+{{- if hasKey $secrets $key -}}{{- fail "duplicate imported lifecycle Secret" -}}{{- end -}}
+{{- $_ := set $secrets $key $secret -}}
+{{- end -}}
+{{- range $boundary := .Values.namespaces }}
+{{- if hasKey $namespaces $boundary.name -}}
+{{- fail "duplicate lifecycle namespace" -}}
+{{- end -}}
+{{- $_ := set $namespaces $boundary.name $boundary -}}
+{{- range $name := concat $boundary.readSecretNames $boundary.writeSecretNames -}}
+{{- if not (hasKey $secrets (printf "%s/%s" $boundary.name $name)) -}}
+{{- fail "bootstrap RBAC references an unowned imported Secret" -}}
+{{- end -}}
+{{- end -}}
+{{- range $name := $boundary.writeSecretNames -}}
+{{- if or (eq $name "pki-authorities") (eq $name "unseal") (eq $name "hash-pepper") (hasSuffix "-credentials" $name) (hasSuffix "-db" $name) (hasSuffix "-bootstrap" $name) (hasSuffix "-admin" $name) -}}
+{{- fail "bootstrap RBAC cannot overwrite imported authorities or credentials" -}}
+{{- end -}}
+{{- end -}}
+{{ printf "\n---\n" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bootstrap
+  namespace: {{ $boundary.name }}
+  labels:
+    cu.io/run: {{ $root.Values.run | quote }}
+    cu.io/release: {{ $boundary.release | quote }}
+automountServiceAccountToken: false
+{{ printf "\n---\n" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: bootstrap
+  namespace: {{ $boundary.name }}
+  labels:
+    cu.io/run: {{ $root.Values.run | quote }}
+    cu.io/release: {{ $boundary.release | quote }}
+rules:
+  {{- if or $boundary.readSecretNames $boundary.writeSecretNames }}
+  {{- if $boundary.readSecretNames }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames:
+      {{- toYaml $boundary.readSecretNames | nindent 6 }}
+    verbs: ["get"]
+  {{- end }}
+  {{- if $boundary.writeSecretNames }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames:
+      {{- toYaml $boundary.writeSecretNames | nindent 6 }}
+    verbs: ["get", "update", "patch"]
+  {{- end }}
+  {{- else }}
+  []
+  {{- end }}
+{{ printf "\n---\n" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bootstrap
+  namespace: {{ $boundary.name }}
+  labels:
+    cu.io/run: {{ $root.Values.run | quote }}
+    cu.io/release: {{ $boundary.release | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: bootstrap
+    namespace: {{ $boundary.name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: bootstrap
+{{- end }}
+{{- $jobNames := dict -}}
+{{- range $job := .Values.jobs }}
+{{- $key := printf "%s/%s" $job.namespace $job.name -}}
+{{- if hasKey $jobNames $key -}}
+{{- fail "duplicate lifecycle Job" -}}
+{{- end -}}
+{{- $_ := set $jobNames $key true -}}
+{{- if not (hasKey $namespaces $job.namespace) -}}
+{{- fail "lifecycle Job references an unowned namespace" -}}
+{{- end -}}
+{{- $boundary := index $namespaces $job.namespace -}}
+{{- if ne $job.release $boundary.release -}}
+{{- fail "lifecycle Job release does not match its namespace" -}}
+{{- end -}}
+{{- if not (hasSuffix (printf "-%s" $root.Values.revision) $job.name) -}}
+{{- fail "lifecycle Job must use its content-addressed revision" -}}
+{{- end -}}
+{{- $pki := or (hasPrefix "pki-init-" $job.name) (hasPrefix "infra-pki-" $job.name) -}}
+{{- if ne (and $pki (eq (first $job.args) "pki-init")) $job.apiToken -}}
+{{- fail "only PKI Jobs may project the bootstrap API token" -}}
+{{- end -}}
+{{- if and (not $pki) $job.writeSecretNames -}}
+{{- fail "database Jobs must not have Secret write permissions" -}}
+{{- end -}}
+{{- if ne $pki (or (eq (first $job.args) "pki-init") (eq (first $job.args) "pki-verify")) -}}
+{{- fail "lifecycle command does not match its PKI or database role" -}}
+{{- end -}}
+{{- if eq (first $job.args) "pki-verify" -}}
+{{- if or (ne (len $job.args) 2) $job.writeSecretNames -}}{{- fail "verify-only PKI forbids writes and requires exact input" -}}{{- end -}}
+{{- $file := trimPrefix "--input=" (index $job.args 1) -}}
+{{- $secretName := trimSuffix "/pki-verification.json" (trimPrefix "/run/cryptoutil/secrets/" $file) -}}
+{{- if or (ne (index $job.args 1) (printf "--input=/run/cryptoutil/secrets/%s/pki-verification.json" $secretName)) (not (has $secretName $job.secretNames)) -}}
+{{- fail "verify-only PKI manifest requires owned restricted mount" -}}{{- end -}}
+{{- $source := index $secrets (printf "%s/%s" $job.namespace $secretName) -}}
+{{- if or (not $source) (not (index $source.files "pki-verification.json")) -}}{{- fail "verify-only PKI manifest source missing" -}}{{- end -}}
+{{- end -}}
+{{- if not $pki -}}
+{{- $base := trimSuffix (printf "-%s" $root.Values.revision) $job.name -}}
+{{- $operation := "" -}}
+{{- $manifestSecret := "" -}}
+{{- if eq $base "db-init" -}}
+{{- $operation = "init" -}}{{- $manifestSecret = "postgres-bootstrap" -}}
+{{- else if eq $base "replication" -}}
+{{- $operation = "replicate" -}}{{- $manifestSecret = "postgres-follower-bootstrap" -}}
+{{- else if hasSuffix "-migrate" $base -}}
+{{- $operation = "migrate" -}}{{- $manifestSecret = printf "%s-migration-db" (trimSuffix "-migrate" $base) -}}
+{{- else -}}{{- fail "unsupported database lifecycle Job" -}}{{- end -}}
+{{- $expected := list "db-lifecycle" (printf "--operation=%s" $operation) (printf "--input=/run/cryptoutil/secrets/%s/lifecycle.json" $manifestSecret) -}}
+{{- if ne (toJson $expected) (toJson $job.args) -}}
+{{- fail "database Job requires exact suite operation and owned protected manifest" -}}
+{{- end -}}
+{{- $source := index $secrets (printf "%s/%s" $job.namespace $manifestSecret) -}}
+{{- if and $source (not (index $source.files "lifecycle.json")) -}}{{- fail "database Job protected manifest source is missing" -}}{{- end -}}
+{{- end -}}
+{{- range $name := $job.secretNames -}}
+{{- if not (hasKey $secrets (printf "%s/%s" $job.namespace $name)) -}}
+{{- fail "lifecycle Job mounts an unowned imported Secret" -}}
+{{- end -}}
+{{- if and $pki (not (has $name $boundary.readSecretNames)) -}}
+{{- fail "PKI Job read reference is outside bootstrap RBAC" -}}
+{{- end -}}
+{{- if and (not $pki) (or (eq $name "pki-authorities") (eq $name "unseal") (eq $name "hash-pepper") (hasSuffix "-e2e-tls" $name) (hasSuffix "-credentials" $name)) -}}
+{{- fail "database Job cannot consume signing or application credentials" -}}
+{{- end -}}
+{{- $base := trimSuffix (printf "-%s" $root.Values.revision) $job.name -}}
+{{- if and (not $pki) (hasSuffix "-migrate" $base) (ne $name (printf "%s-migration-db" (trimSuffix "-migrate" $base))) -}}
+{{- fail "migration Job may consume only its member migration Secret" -}}
+{{- end -}}
+{{- end -}}
+{{- if not $pki -}}
+{{- $base := trimSuffix (printf "-%s" $root.Values.revision) $job.name -}}
+{{- $manifestSecret := "postgres-follower-bootstrap" -}}
+{{- if eq $base "db-init" -}}{{- $manifestSecret = "postgres-bootstrap" -}}
+{{- else if hasSuffix "-migrate" $base -}}{{- $manifestSecret = printf "%s-migration-db" (trimSuffix "-migrate" $base) -}}{{- end -}}
+{{- if not (has $manifestSecret $job.secretNames) -}}{{- fail "database Job requires owned protected manifest mount" -}}{{- end -}}
+{{- end -}}
+{{- range $name := $job.writeSecretNames -}}
+{{- if not (has $name $boundary.writeSecretNames) -}}
+{{- fail "PKI Job write reference is outside bootstrap RBAC" -}}
+{{- end -}}
+{{- end -}}
+{{ printf "\n---\n" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $job.name }}
+  namespace: {{ $job.namespace }}
+  labels:
+    cu.io/run: {{ $root.Values.run | quote }}
+    cu.io/release: {{ $job.release | quote }}
+    cu.io/component: bootstrap
+  annotations:
+    cu.io/revision: {{ $root.Values.revision | quote }}
+spec:
+  completions: 1
+  parallelism: 1
+  activeDeadlineSeconds: {{ $job.activeDeadlineSeconds }}
+  backoffLimit: {{ $job.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        cu.io/run: {{ $root.Values.run | quote }}
+        cu.io/release: {{ $job.release | quote }}
+        cu.io/component: bootstrap
+        {{- if not $pki }}
+        cu.io/pool: pg
+        {{- end }}
+    spec:
+      serviceAccountName: bootstrap
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: lifecycle
+          image: {{ $job.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            {{- toYaml $job.command | nindent 12 }}
+          args:
+            {{- toYaml $job.args | nindent 12 }}
+          resources:
+            {{- toYaml $job.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: scratch
+              mountPath: /tmp
+            {{- if $job.apiToken }}
+            - name: bootstrap-api-token
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              readOnly: true
+            {{- end }}
+            {{- range $index, $name := $job.secretNames }}
+            - name: secret-{{ $index }}
+              mountPath: /run/cryptoutil/secrets/{{ $name }}
+              readOnly: true
+            {{- end }}
+            {{- range $index, $name := $job.configMapNames }}
+            - name: config-{{ $index }}
+              mountPath: /etc/cryptoutil/config/{{ $name }}
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: scratch
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
+        {{- if $job.apiToken }}
+        - name: bootstrap-api-token
+          projected:
+            defaultMode: 288
+            sources:
+              - serviceAccountToken:
+                  audience: {{ $root.Values.apiAudience | quote }}
+                  expirationSeconds: 600
+                  path: token
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+              - downwardAPI:
+                  items:
+                    - path: namespace
+                      fieldRef:
+                        fieldPath: metadata.namespace
+        {{- end }}
+        {{- range $index, $name := $job.secretNames }}
+        - name: secret-{{ $index }}
+          secret:
+            secretName: {{ $name }}
+            defaultMode: 288
+        {{- end }}
+        {{- range $index, $name := $job.configMapNames }}
+        - name: config-{{ $index }}
+          configMap:
+            name: {{ $name }}
+            defaultMode: 288
+        {{- end }}
+{{- end }}

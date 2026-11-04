@@ -3,21 +3,19 @@ package orm_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityORM "cryptoutil/internal/apps/identity/repository/orm"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
 )
 
 // TestEmailOTPRepository_Create tests all Create paths.
@@ -405,29 +403,8 @@ func TestEmailOTPRepository_DeleteExpired(t *testing.T) {
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	ctx := context.Background()
-
-	// Use cryptoutilSharedMagic.SQLiteMemoryPlaceholder for isolated per-test database (no shared cache for parallel test safety).
-	dsn := cryptoutilSharedMagic.SQLiteMemoryPlaceholder
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetConnMaxLifetime(0)
-
-	dialector := sqlite.Dialector{Conn: sqlDB}
-	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.EmailOTP{})
-	require.NoError(t, err)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	require.NoError(t, db.AutoMigrate(&cryptoutilIdentityDomain.EmailOTP{}))
 
 	return db
 }

@@ -308,6 +308,46 @@ func TestCheckInDir_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheckInDir_ExcludedDirectoriesDoNotContaminateScan(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := buildSuffixRoot(t)
+			writeTestFile(
+				t,
+				filepath.Join(rootDir, "repository", "mypkg"),
+				testFooTestGo,
+				testPackageMypkgImportTestingFuncBenchmarkFooBTestingB,
+			)
+			writeTestFile(
+				t,
+				filepath.Join(rootDir, "nested", cryptoutilSharedMagic.CICDExcludeDirWorktree, tc.dirName, "nested", "mypkg"),
+				testFooTestGo,
+				testPackageMypkgImportTestingFuncBenchmarkFooBTestingB,
+			)
+
+			err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger(t.Name()), rootDir)
+
+			require.ErrorContains(t, err, "found 1 violation(s)")
+		})
+	}
+}
+
 func TestCheckInDir_ManifestError(t *testing.T) {
 	t.Parallel()
 

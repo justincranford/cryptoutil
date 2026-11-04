@@ -292,6 +292,8 @@ func TestMagicShouldSkipPath(t *testing.T) {
 		{name: "vendor dir", path: "vendor/pkg/file.go", expected: true},
 		{name: "test-output dir", path: "test-output/report.txt", expected: true},
 		{name: "workflow-reports dir", path: "workflow-reports/report.json", expected: true},
+		{name: "Python virtual environment dir", path: ".venv/lib/module.go", expected: true},
+		{name: "Node.js dependencies dir", path: "node_modules/pkg/index.go", expected: true},
 		{name: "api client dir", path: "api/client/client.gen.go", expected: true},
 		{name: "api model dir", path: "api/model/models.gen.go", expected: true},
 		{name: "api server dir", path: "api/server/server.gen.go", expected: true},

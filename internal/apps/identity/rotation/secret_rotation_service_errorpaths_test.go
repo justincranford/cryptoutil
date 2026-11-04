@@ -11,14 +11,11 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite" // Import modernc.org/sqlite driver.
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
@@ -26,36 +23,14 @@ import (
 func setupTestDBWithTables(t *testing.T) (*gorm.DB, *sql.DB) {
 	t.Helper()
 
-	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", t.Name())
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
-	require.NoError(t, err, "Failed to open SQL database")
-
-	ctx := context.Background()
-
-	_, pragmaErr := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, pragmaErr, "Failed to enable WAL mode")
-
-	_, timeoutErr := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, timeoutErr, "Failed to set busy timeout")
-
-	db, gormErr := gorm.Open(sqlite.Dialector{
-		Conn: sqlDB,
-	}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, gormErr, "Failed to create GORM database")
-
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-	sqlDB.SetConnMaxLifetime(0)
-	sqlDB.SetConnMaxIdleTime(0)
-
-	migrateErr := db.AutoMigrate(
+	require.NoError(t, db.AutoMigrate(
 		&cryptoutilIdentityDomain.ClientSecretVersion{},
 		&cryptoutilIdentityDomain.KeyRotationEvent{},
-	)
-	require.NoError(t, migrateErr, "Failed to run migrations")
+	))
 
 	return db, sqlDB
 }

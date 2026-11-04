@@ -3,7 +3,6 @@ package apis
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	http "net/http"
 	"net/http/httptest"
@@ -15,11 +14,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-
-	_ "modernc.org/sqlite"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
@@ -169,55 +164,24 @@ func TestTokenExpiration(t *testing.T) {
 
 			dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
 
-			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-			require.NoError(t, err)
-
-			// Apply PRAGMA settings.
-			if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-				require.FailNowf(t, "failed to enable WAL mode", "%v", err)
-			}
-
-			if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-				require.FailNowf(t, "failed to set busy timeout", "%v", err)
-			}
-
-			// Create GORM database.
-			dialector := sqlite.Dialector{Conn: sqlDB}
-
-			db, err := gorm.Open(dialector, &gorm.Config{
-				Logger:                 logger.Default.LogMode(logger.Silent),
-				SkipDefaultTransaction: true,
-			})
-			require.NoError(t, err)
-
-			gormDB, err := db.DB()
-			require.NoError(t, err)
-
-			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-
-			// Auto-migrate test schemas.
-			err = db.AutoMigrate(
-				&cryptoutilIdentityDomain.User{},
-				&cryptoutilIdentityDomain.Token{},
-			)
-			require.NoError(t, err)
-
-			t.Cleanup(func() {
-				_ = sqlDB.Close() //nolint:errcheck // Test cleanup.
-			})
-
-			// Create test token.
-			tokenValue := tc.setupToken(t, db)
-
-			// Create repository factory and token service.
 			dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 				Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 				DSN:  dsn,
 			}
-
 			repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 			require.NoError(t, err)
+			t.Cleanup(func() { require.NoError(t, repoFactory.Close()) })
+
+			db := repoFactory.DB()
+
+			// Auto-migrate test schemas.
+			require.NoError(t, db.AutoMigrate(
+				&cryptoutilIdentityDomain.User{},
+				&cryptoutilIdentityDomain.Token{},
+			))
+
+			// Create test token.
+			tokenValue := tc.setupToken(t, db)
 
 			tokenCfg := &cryptoutilIdentityConfig.TokenConfig{
 				AccessTokenFormat: cryptoutilSharedMagic.IdentityTokenFormatUUID,

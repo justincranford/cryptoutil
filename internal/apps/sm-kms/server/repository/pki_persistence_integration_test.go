@@ -29,14 +29,13 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ocsp"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilCACrypto "cryptoutil/internal/apps/sm-kms/server/pki/crypto"
 	cryptoutilPKIServer "cryptoutil/internal/apps/sm-kms/server/pki/server"
 	cryptoutilPKIRevocation "cryptoutil/internal/apps/sm-kms/server/pki/service/revocation"
@@ -312,12 +311,10 @@ func TestPKIPersistence_ProductionMigrationsBarrierAndRestart(t *testing.T) {
 func openMigratedProductionSQLite(t *testing.T, dsn string) (*sql.DB, *gorm.DB) {
 	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+	gormDB := cryptoutilAppsFrameworkTestDB.NewFileBackedSQLiteDB(t, dsn)
+	sqlDB, err := gormDB.DB()
 	require.NoError(t, err)
 	sqlDB.SetMaxOpenConns(16)
-
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
 
 	runner := cryptoutilAppsFrameworkServiceServerRepository.NewMigrationRunner(
 		cryptoutilAppsFrameworkServiceServerRepository.NewMergedMigrationsFS(MigrationsFS),

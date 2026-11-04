@@ -6,15 +6,12 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
-	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
+	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
@@ -25,35 +22,7 @@ import (
 func initTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	ctx := context.Background()
-
-	// Create unique in-memory database per test.
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetConnMaxLifetime(0) // In-memory: keep connections alive.
-
-	// Wrap with GORM.
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	return db
+	return cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 }
 
 // defaultTestConfig creates minimal valid ServiceFrameworkServerSettings for tests.

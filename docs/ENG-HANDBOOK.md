@@ -654,48 +654,43 @@ See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full auto
 #### Incremental Commits
 
 - **Conventional Commits**: `<type>[scope]: <description>` format mandatory
-- **Commit Strategy**: Incremental commits (NOT amend) preserve history for bisect
-- **Restore from Clean**: When fixing regressions, restore known-good baseline first
+- **Commit Strategy**: Incremental, conventional commits for validated, reviewed, owner-authorized paths preserve history for bisect
+- **Restore from Clean**: Compare against a known-good baseline in an owner-assigned isolated worktree; never overwrite shared/inherited work
 - **Quality Gates**: Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`), linting clean (`golangci-lint run --fix` AND `golangci-lint run --build-tags e2e,integration`), tests pass (`go test ./... -shuffle=on`), deployment validators pass (when `deployments/` or `configs/` changed)
 
 #### Continuous Execution
 
 - **Beast Mode**: Work autonomously until problem completely solved
 - **Maximum Quality Strategy**: All 8 quality attributes enforced — see [Section 11.1](#111-maximum-quality-strategy---mandatory) (NO EXCEPTIONS)
-- **NO Stopping**: Task complete → Commit → IMMEDIATELY start next task (zero pause)
+- **NO Stopping**: Complete authorized work → validate → commit only reviewed, assigned paths when authorized → start the next task
 - **Blocker Handling**: Document blocker, switch to unblocked tasks, return when resolved
 - **Mandatory Review Passes**: Minimum 3 review passes before marking any task complete — see [Section 2.5](#25-quality-strategy)
 
 ##### Autonomous Execution Principles
 
 - **Quality Attributes**: Correctness (functionally correct), Completeness (all tasks done), Thoroughness (evidence-based validation), Reliability (quality gates enforced), Efficiency (maintainable/performance-optimized), Accuracy (root cause fixes)
-- **Prohibited Stop Behaviors**: No status summaries, no "ready to proceed" questions, no strategic pivots with handoff, no time/token justifications, no pauses between tasks, no asking permission, no leaving uncommitted changes, no ending with analysis, no celebrations followed by stopping, no premature completion claims, no "current task done, moving to next" announcements
-- **Execution Workflow**: Complete task → Commit → Next tool invocation (zero text, zero questions); Todo list empty → Check tracking docs → Find next incomplete task → Start immediately; All tasks done/blocked → Find quality improvements → Scan for technical debt → Review recent commits → Ask user if nothing left
-- **Completion Verification Checklist**: Build clean, linting clean, tests pass (100%, zero skips), coverage maintained, mutation testing passes, evidence exists, git commit ready; After substantive change, run relevant build/tests/linters, validate code works (fast, minimal input), provide optional fenced commands for larger runs; Fix failures up to three targeted fixes, summarize root cause if still failing
+- **Prohibited Stop Behaviors**: No status summaries, no "ready to proceed" questions, no strategic pivots with handoff, no time/token justifications, no pauses between tasks, no asking permission, no silently abandoning authorized work, no committing inherited or other-owner changes, no ending with analysis, no celebrations followed by stopping, no premature completion claims, no "current task done, moving to next" announcements
+- **Execution Workflow**: Complete task → validate → commit reviewed, assigned paths only when owner-authorized and using normal hooks → next tool invocation; if commit is owner-scheduled or not authorized, preserve changes and report exact scope/state; Todo list empty → check tracking docs → find next incomplete task → start immediately; all tasks done/blocked → find quality improvements → scan for technical debt → review recent commits → ask user if nothing left
+- **Completion Verification Checklist**: Build clean, linting clean, tests pass (100%, zero skips), coverage maintained, mutation testing passes, evidence exists, and the authorized commit path is clear; after substantive change, run relevant build/tests/linters, validate code works (fast, minimal input), provide optional fenced commands for larger runs; fix failures up to three targeted fixes, summarize root cause if still failing
 - **Blocker Resolution**: Document in tracking doc, continue with ALL unblocked tasks, maximize progress, return to blocker when resolved; NO waiting for external dependencies
 
 ##### End-of-Turn Commit Protocol
 
-<!-- NOTE: This @to-appendix target is the beast-mode instruction file, which is injected as modeInstructions at runtime (not via the standard instructions directory scan). This means the chunk is consumed in the mode prompt, not in the standard instructions context — a different injection path than all other @to-appendix targets. -->
-<!-- @to-appendix as="end-of-turn-commit-protocol" appendixes=".github/instructions/01-02.beast-mode.instructions.md" -->
-**MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
+<!-- NOTE: `01-02.beast-mode.instructions.md` is injected as `modeInstructions`; the other listed files consume this chunk through explicit source blocks. -->
+<!-- @to-appendix as="end-of-turn-commit-protocol" appendixes=".github/instructions/01-02.beast-mode.instructions.md, .github/instructions/05-02.git.instructions.md, .github/agents/beast-mode.agent.md, .claude/agents/beast-mode.md, .github/agents/fix-workflows.agent.md, .claude/agents/fix-workflows.md, .github/agents/implementation-execution.agent.md, .claude/agents/implementation-execution.md, .github/agents/implementation-planning.agent.md, .claude/agents/implementation-planning.md" -->
+**Git ownership and commit protocol (mandatory).** A dirty worktree is not authorization to stage, commit, or clean anything. Preserve inherited, staged, unstaged, untracked, and other-user/other-agent work.
 
-If `git status --porcelain` returns ANY output:
+Before ANY file write, resolve the target to an absolute path and verify it is inside your assigned worktree and owned scope. Do not rely on shell `cd` or assume its working directory persists across tool calls; edit tools may resolve relative paths against the primary workspace. Recheck the resolved path and ownership before each write.
 
-1. Stage all changes: `git add -A`
-2. Commit with a conventional commit message: `git commit -m "type(scope): description"`
-3. Verify clean: `git status --porcelain` MUST return empty
-4. Only then end the turn
+Before ANY Git mutation, verify `git rev-parse --show-toplevel` exactly matches your assigned absolute worktree and verify the expected branch. Inspect `git status --porcelain=v1 -uall`, `git diff --cached`, and `git diff`; account for untracked paths. If ownership, scope, or a concurrent change is unclear, stop before mutation and surface the conflict to the worktree owner.
 
-**Critical violations** (any one = turn is NOT complete):
-
-- Ending a turn with `M`, `A`, `D`, or `?` in `git status --porcelain` output
-- Stopping after analysis without committing changes
-- Marking work "done" with unstaged or uncommitted files
-- Responding to the user without committing work in progress
-- Assuming the worktree is clean without running the command as a tool call
-
-**Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
+- Never checkpoint a dirty baseline or treat pre-existing changes as yours. Never stage or commit paths not explicitly assigned and reviewed; stage only owned paths by explicit path names—never `git add -A`, `git add .`, or equivalent.
+- An isolated subagent must not checkpoint or commit in a parent/shared worktree. Do not start nested autonomous workers unless the orchestrator explicitly assigns them.
+- Coordinate with the owner to serialize commits and normal hooks; never overlap an active owner hook or bypass normal hooks. Commit completed, validated, authorized work using conventional messages. If the owner/user says to wait or not commit, preserve changes and report rather than forcing a commit.
+- Never disable, skip, reroute, or suppress configured hooks or validators. Prohibited methods include `--no-verify`/`-n`, `SKIP`, `HUSKY=0`, or equivalent switches. Never override `core.hooksPath` per command (`git -c`/`--config-env`), through Git configuration environment variables, via temporary/empty hook directories, or persistently in repository/global/system configuration. If a normal hook fails, fix or surface its root cause; never retry with an override.
+- When the parent/orchestrator owns commit serialization or required commit trailers/metadata, or explicitly directs no commit, defer. Do not create a commit until the parent provides an authorized normal-hook slot; preserve staged, unstaged, and untracked work and report its exact state.
+- Never overwrite, stash, reset, restore, rebase, amend, or revert another owner's changes or commits. If recovery could affect unowned or shared state, do not act; surface the conflict.
+- After an authorized commit, verify it contains only reviewed owned paths and confirm owned paths are clean. Report remaining unrelated changes accurately; never call the whole worktree clean if `git status --porcelain` is non-empty.
 <!-- @/to-appendix -->
 
 ### 2.5 Quality Strategy
@@ -3288,13 +3283,13 @@ The combined exclusion superset is: generated artifacts, vendor and dependency t
 
 **Emergency Recovery** (ENG-HANDBOOK.md only — do NOT propagate):
 
-When `git status` shows large numbers of text files as modified after formatter runs, checkout switches, or stash/apply cycles, use:
+When `git status` shows large numbers of text files as modified after formatter runs, first verify the assigned absolute worktree and inspect staged, unstaged, and untracked paths. Re-normalize only reviewed files that are explicitly assigned and owned:
 
 ```bash
-git add --renormalize .
+git add --renormalize -- path/to/reviewed-owned-file
 ```
 
-This reapplies `.gitattributes` clean rules to index entries without manual byte conversion.
+This reapplies `.gitattributes` clean rules to those index entries without manual byte conversion. Never use `.` or stage unrelated/inherited changes.
 
 ### 9.10 CICD Command Architecture
 
@@ -5141,14 +5136,10 @@ Here are local convenience commands to run the workflows locally for Development
 #### 11.2.9 Restore from Clean Baseline Pattern
 
 - When: Fixing regressions, multiple failed attempts, uncertain HEAD state
-- Steps:
-  1. Find last known-good commit: `git log --grep="baseline"` or `git bisect`
-  2. Restore package: `git checkout <hash> -- path/to/package/`
-  3. Verify baseline works: `go test`
-  4. Apply ONLY new fix (targeted change)
-  5. Verify fix works
-  6. Commit as NEW commit (NOT amend)
-- Rationale: HEAD may be corrupted by failed attempts, start from verified clean state
+- Follow §14.2.3 using an owner-assigned clean isolated worktree for baseline comparisons.
+- Do not overwrite or reset a shared/inherited worktree to recreate a baseline; verify the assigned root and inspect staged, unstaged, and untracked state before any Git mutation.
+- Apply only the minimal fix to explicitly assigned paths, surface ownership conflicts, validate, and commit only authorized work through normal hooks.
+- Rationale: A clean comparison must not destroy concurrent or inherited work.
 
 ### 11.3 Code Quality Standards
 
@@ -5318,7 +5309,9 @@ All Dockerfiles follow identical multi-stage structure. Parameterized fields dif
 | DF-23 | `LABEL org.opencontainers.image.authors` MUST equal `{AUTHORS}` | Author attribution |
 | DF-24 | `LABEL org.opencontainers.image.description` MUST equal `{PRODUCT_DISPLAY_NAME} {SERVICE_DISPLAY_NAME}` | Human-readable description |
 
-**Current state**: 7 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. 0 suite-level Dockerfiles exist. This is by design: PRODUCT and SUITE deployment domains reuse PS-ID images and PS-ID builders via compose includes.
+**Current state**: 7 PS-ID Dockerfiles exist. 0 product-level Dockerfiles exist. PRODUCT and SUITE Compose deployment domains reuse PS-ID images and PS-ID builders via compose includes.
+The separately scoped `deployments/k8s/Dockerfile` builds the current-source suite executable for local Helm selections. It requires suite OCI labels and exactly `ENTRYPOINT ["/app/cryptoutil"]`.
+Helm provides service-specific probes for this image; a default Dockerfile HEALTHCHECK is prohibited because the suite service route is selected at runtime. Other non-PS-ID deployment Dockerfiles remain prohibited.
 
 #### 12.2.2 Build Optimization
 
@@ -6403,7 +6396,7 @@ Propagation markers are added incrementally:
 | emphasis-keywords | 1.2 | 01-01.terminology |
 | abbreviations | 1.2 | 01-01.terminology |
 | quality-attributes | 11.1 | 01-02.beast-mode |
-| end-of-turn-commit-protocol | 2.4 | 01-02.beast-mode |
+| end-of-turn-commit-protocol | 2.4 | 01-02.beast-mode, 05-02.git, .github/agents/beast-mode, .claude/agents/beast-mode, .github/agents/fix-workflows, .claude/agents/fix-workflows, .github/agents/implementation-execution, .claude/agents/implementation-execution, .github/agents/implementation-planning, .claude/agents/implementation-planning |
 | mandatory-review-passes | 2.5 | 01-02.beast-mode, 06-01.evidence-based, .github/agents/beast-mode, .github/agents/fix-workflows, .github/agents/implementation-execution, .github/agents/implementation-planning, .claude/agents/beast-mode, .claude/agents/fix-workflows, .claude/agents/implementation-execution, .claude/agents/implementation-planning |
 | infrastructure-blocker-escalation | 14.7 | 01-02.beast-mode, 06-01.evidence-based |
 | service-framework-components | 5.1.1 | 02-01.architecture |
@@ -6724,25 +6717,23 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 #### 14.2.2 Incremental Commit Strategy
 
 <!-- @to-appendix as="incremental-commits" appendixes=".github/instructions/05-02.git.instructions.md" -->
-- ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
-- NEVER repeatedly amend - loses context, hard to bisect.
-- Amend ONLY for immediate typo fixes (<1 min, before push).
-- **Semantic Grouping**: Commit each semantically coherent unit of work as it completes. NEVER accumulate changes for different semantic groups into a bulk commit. Semantic boundaries: one feature, one bug fix, one refactor, one test suite, one doc update = each gets its own commit.
-- **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
+- Commit completed, validated work incrementally when the owner authorizes the commit; use a new conventional commit rather than amending shared history.
+- Stage only explicitly assigned, reviewed paths. Never checkpoint a dirty baseline or include inherited/other-owner work.
+- **Semantic Grouping**: Keep each authorized commit to one coherent unit of work; do not mix unrelated scopes.
+- **Periodic Commits**: Prefer small commits for authorized work. Coordinate normal-hook commits with the worktree owner; push only with explicit owner authorization.
 <!-- @/to-appendix -->
 
 #### 14.2.3 Restore from Clean Baseline Pattern
 
 <!-- @to-appendix as="restore-from-baseline" appendixes=".github/instructions/05-02.git.instructions.md" -->
-**When fixing regressions, ALWAYS restore clean baseline FIRST**:
+**When fixing regressions, compare against a known-good baseline without overwriting shared work:**
 
-1. Find last known-good commit (`git log --oneline --grep="baseline"`)
-2. Restore package (`git checkout <hash> -- path/to/package/`)
-3. Verify baseline works (`go test`)
-4. Apply ONLY the new fix (minimal change)
-5. Commit as NEW commit (NOT amend)
+1. Verify the assigned absolute worktree/branch and inspect staged, unstaged, and untracked paths before any Git mutation.
+2. Prefer an owner-assigned clean isolated worktree at the known-good commit; do not restore, reset, or checkout old files over a shared or inherited worktree.
+3. Apply only the minimal fix to explicitly assigned paths and surface ownership conflicts to the worktree owner.
+4. Validate the fix and commit only authorized, reviewed paths with normal hooks and a conventional message.
 
-**Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
+**Why**: A clean comparison must preserve concurrent work and keep commits within the assigned scope.
 <!-- @/to-appendix -->
 
 ### 14.3 Branching Strategy
@@ -7042,7 +7033,7 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 7. **Workflows**: Update CI/CD workflows to reflect any new quality gates or tooling discovered.
 8. **Documentation**: Update README, inline comments, and docs/ to reflect new patterns.
 9. **Verify propagation**: Run `go run ./cmd/cicd-lint lint-docs` to ensure `@from-eng-handbook` blocks are in sync with `@to-appendix` blocks.
-10. Commit all artifact updates with separate semantic commits per artifact type.
+10. Commit reviewed, assigned artifact changes in separate semantic commits only when owner-authorized and using normal hooks; otherwise preserve changes and document the owner-scheduled commit.
 
 **Every plan MUST include a final "Knowledge Propagation" phase** that executes these steps. This phase is NOT optional.
 

@@ -22,6 +22,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
 	cryptoutilCmdCicdRegistry "cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // requiredLabels lists the OCI label keys that must be present in every Dockerfile.
@@ -64,6 +65,9 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 
 	// Build maps of PS-ID deployment names → expected title and entrypoint.
 	psidTitleMap, psidEntrypointMap := buildPSIDMaps()
+	// The local Helm image routes the suite binary at runtime, not a PS-ID binary.
+	psidTitleMap[cryptoutilSharedMagic.KubernetesSuiteImageDeployment] = cryptoutilSharedMagic.DefaultOTLPServiceDefault
+	psidEntrypointMap[cryptoutilSharedMagic.KubernetesSuiteImageDeployment] = []string{cryptoutilSharedMagic.KubernetesSuiteImageBinary}
 
 	var violations []string
 
@@ -81,7 +85,7 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 
 		if _, isPSID := psidTitleMap[deploymentName]; !isPSID {
 			violations = append(violations, fmt.Sprintf(
-				"%s: non-PS-ID deployment MUST NOT define Dockerfile %q; only deployments/{PS-ID}/Dockerfile is allowed",
+				"%s: non-PS-ID deployment MUST NOT define Dockerfile %q; only PS-ID images and the local Kubernetes suite image are allowed",
 				deploymentName, dockerfilePath,
 			))
 

@@ -2,7 +2,10 @@
 
 **Status**: Phase 1 deployment contract technically accepted. The user authorized Phase 2 on
 2026-11-01: “Then implement phase 2, including post-mortem and fixes at the end. Ensure all work is committed.”
-Phase 2 is authorized but implementation has not started; this document records planning only.
+Phase 2 implementation is underway: production graph/tooling, runtime and generic
+PostgreSQL/telemetry chart foundations, Helm values schemas/fixtures, and a K3s bootstrap template
+are partial. The infrastructure typed projection, independent graph/Helm parity, lifecycle and
+integration acceptance are not complete; no application image or cluster deployment has started.
 **Created**: 2026-10-22
 **Last Updated**: 2026-11-01
 
@@ -11,8 +14,12 @@ Phase 2 is authorized but implementation has not started; this document records 
 Replace application Docker Compose models with generated Helm/Kubernetes artifacts.
 Retain Docker Compose **only to host the local K3s cluster**, not PostgreSQL, applications,
 PKI, or telemetry outside Kubernetes. Target the same charts at future Kubernetes clusters;
-that target is render/schema-checked only, explicitly **not locally runtime-certified**.
-No chart, cluster, probe implementation, or existing deployment is changed by this planning work.
+that target is render/schema-checked only, explicitly **not locally runtime-certified**. The
+current implementation adds canonical runtime and infrastructure chart templates, small
+Helm-only validation fixtures, and a K3s-only bootstrap template, but does not yet deploy or
+certify the runtime path. In particular, the existing Go runtime-values projection does not
+yet emit the chart's new ConfigMap, explicit credential, and per-ordinal health/OTLP Secret
+fields; the direct YAML fixtures do not establish generated-values/schema compatibility.
 
 The registry contains **7 PS-IDs, 3 products, 1 suite**, not four products:
 
@@ -33,16 +40,29 @@ a fourth deployable product. This assumption is not a claim of user approval.
 
 ### Evidence: effective Compose versus historical prose
 
-| Design intent | Current evidence | Kubernetes disposition |
-|---|---|---|
-| Registry-driven entities and tier host-port offsets | [registry](../api/cryptosuite-registry/registry.yaml) | Registry remains canonical; no copied product lists in the generator |
-| Recursive composition plus tier overrides | [service entrypoint](../deployments/sm-kms/compose.yml), [product](../deployments/identity/compose-apps.yml), [suite overrides](../deployments/cryptoutil/compose-apps-overrides.yml) | Explicit values composition; one independent release/namespace per selected tier scope and mode |
-| Four app identities per member | [sm-kms apps](../deployments/sm-kms/compose-apps.yml) | PG and SQLite replica groups preserve ordinals/identities, rather than doubling every existing slot |
-| In-memory SQLite versus file-backed SQLite | [durable overlay](../deployments/sm-kms/compose-sqlite-durable.yml) | Separate mem/disk pools; PVC per disk pod; no shared SQLite file |
-| Physical PostgreSQL sharing, logical isolation | [shared PostgreSQL](../deployments/shared-postgres/compose.yml), [database catalog](../api/cryptosuite-registry/templates/deployments/shared-postgres/init-databases.sql) | Run-owned leader and logical follower; DB/role per release/member; optional external provider later |
-| Shared telemetry with collector hop | [shared telemetry](../deployments/shared-telemetry/compose.yml) | Run-owned collector replicas -> run-owned LGTM; application never bypasses collector |
-| Tier-level unseal/pepper sharing | [product override template](../api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose-apps-overrides.yml), [suite override template](../api/cryptosuite-registry/templates/deployments/__SUITE__/compose-apps-overrides.yml) | Preserve effective sharing **within a release**; never share across run/mode/tier boundaries |
-| Per-instance TLS, DB mTLS, admin loopback | [instance framework config](../deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml), [TLS taxonomy](deployment-templates.md) | Preserve all trust purposes and specific leaf identities; do not substitute an unauthenticated health port |
+- **Registry-driven entities and tier host-port offsets**: [registry](../api/cryptosuite-registry/registry.yaml)
+  remains canonical; the generator does not copy product lists.
+- **Recursive composition and tier overrides**: evidence includes the
+  [service entrypoint](../deployments/sm-kms/compose.yml), [product](../deployments/identity/compose-apps.yml),
+  and [suite overrides](../deployments/cryptoutil/compose-apps-overrides.yml). Kubernetes uses explicit
+  values composition with one independent release/namespace per selected tier scope and mode.
+- **Four app identities per member**: [sm-kms apps](../deployments/sm-kms/compose-apps.yml)
+  preserve PG and SQLite replica ordinals/identities instead of doubling every existing slot.
+- **In-memory and file-backed SQLite**: the [durable overlay](../deployments/sm-kms/compose-sqlite-durable.yml)
+  maps to separate mem/disk pools, a PVC per disk pod, and no shared SQLite file.
+- **Physical PostgreSQL sharing, logical isolation**: [shared PostgreSQL](../deployments/shared-postgres/compose.yml)
+  and its [database catalog](../api/cryptosuite-registry/templates/deployments/shared-postgres/init-databases.sql)
+  map to a run-owned leader/follower and a DB/role per release/member.
+- **Shared telemetry with collector hop**: [shared telemetry](../deployments/shared-telemetry/compose.yml)
+  maps to run-owned collector replicas and LGTM; applications never bypass the collector.
+- **Tier-level unseal/pepper sharing**: the
+  [product override](../api/cryptosuite-registry/templates/deployments/__PRODUCT__/compose-apps-overrides.yml)
+  and [suite override](../api/cryptosuite-registry/templates/deployments/__SUITE__/compose-apps-overrides.yml)
+  preserve effective sharing within a release, never across run/mode/tier boundaries.
+- **Per-instance TLS, DB mTLS and admin loopback**: the
+  [framework config](../deployments/sm-kms/config/sm-kms-app-framework-postgresql-1.yml) and
+  [TLS taxonomy](deployment-templates.md) require preserving trust purposes and specific leaf identities.
+  Do not substitute an unauthenticated health port.
 
 Observed templates share the unseal shard set across PS-IDs in a product/suite, whereas some
 handbook prose describes per-PS-ID shards. Preserve observed mounts during migration; reconcile
@@ -199,6 +219,27 @@ Isolation layers:
    Init materializes the selected ordinal into a memory emptyDir mounted read-only by app.
    A shared StatefulSet service account is a **workload**, not per-pod, RBAC trust boundary;
    it can read that workload's leaf Secrets. Do not claim stronger per-pod RBAC isolation.
+   The short-lived init token uses the API server's default service-account audience
+   (configured by its issuer) unless a provider/API audience has been explicitly verified.
+   Never derive an audience from `clusterDomain`; local K3s leaves the default issuer and
+   audience unchanged, while any future provider override must agree with the API server.
+   Treat an explicit audience as an opaque nonempty string, not a DNS name; its chart schema
+   must not inherit the cluster-domain length constraint.
+
+Workload config/credential split: the runtime chart publishes only non-secret framework and
+domain configuration files as ConfigMaps and mounts the selected files read-only. Workload
+command arguments select the backend-specific framework/domain files, even when a PS-ID image
+is shared across backend pools. Explicit read-only credential Secret references carry only the
+effective unseal/pepper/realm credentials needed by that workload; E2E client TLS Secrets are
+never app credentials. The per-ordinal instance map names the server, dedicated health-client,
+and OTLP-client Secrets through `maxReplicas`. Init alone reads those exact Secret names, copies
+only the current ordinal's materials into memory-backed scratch, and the app sees that scratch
+read-only; this is the intended materializer contract, not implemented runtime behavior yet.
+Secret publication and materializer behavior remain lifecycle responsibilities;
+expected inventory/parity must compare chart objects plus lifecycle-published objects
+independently. The current Helm fixture validates chart shape and declared cross-object
+reference guards only, not a real materializer, Secret publication, or complete expected-
+inventory parity.
 
 Namespaces alone do not isolate network traffic. Test the active K3s NetworkPolicy controller;
 creating objects is not evidence they are enforced. NetworkPolicy allow rules are additive and
@@ -214,16 +255,17 @@ telemetry attributes to prevent collisions and make shared-backend provenance au
 
 ## Helm generation and local cluster boundary
 
-Proposed future layout (not implemented here):
+Target layout (partially implemented; runtime acceptance remains pending):
 
 ```text
-api/cryptosuite-registry/k8s/                 typed inputs/schema + canonical templates
-internal/apps-tools/deploymentgen/            pure Go graph, naming, rendering, validation
-cmd/cicd-deployment/                          generation/check/render/lifecycle CLI
-deployments/k8s/charts/cryptoutil-runtime/    one generic chart; iterate typed member/pool list
-deployments/k8s/charts/cryptoutil-infra/      PG/telemetry/provider resources
-deployments/k8s/generated/<run>/<key>/        values, chart metadata, expected inventory
-deployments/k8s/local/                       generated K3s-only Compose + node configs
+api/cryptosuite-registry/k8s/                    typed inputs/schema, toolchain lock, expected graph
+api/cryptosuite-registry/templates/kubernetes/  canonical runtime, infrastructure, and local-K3s templates
+internal/apps-tools/deploymentgen/               production graph, typed registry projection, values/bootstrap tools
+cmd/cicd-deployment/                             thin generation/check/render/lifecycle CLI entry
+deployments/k8s/charts/cryptoutil-runtime/       generated generic runtime chart mirror
+deployments/k8s/charts/cryptoutil-infra/         generated PG/telemetry chart; gateway remains cluster-owned
+deployments/k8s/generated/<run>/<key>/           generated values, chart metadata, expected inventory
+deployments/k8s/local/                            generated K3s-only Compose + node configs
 ```
 
 One runtime chart serves all tiers; do not nest seven duplicated subcharts plus four
@@ -237,8 +279,16 @@ Generate chart/values/schema/K3s bootstrap files from reviewed templates, not ra
 string concatenation. Humans edit the model or canonical templates, never generated copies.
 Helm provides the final Kubernetes renderer; generated expected inventory independently
 checks Helm output. `cicd-lint` remains detection/formatting-only; do **not** add generation
-to it. The planning script is deliberately outside production package discovery.
+to it. The production deployment generator is a normal tested Go package; generation remains
+an explicit CLI operation rather than a side effect of linting.
 Helm values may use idiomatic camelCase; **application config YAML remains kebab-case**.
+
+PostgreSQL 18's image default `PGDATA` is `/var/lib/postgresql/18/docker`, which can be outside
+the configured PVC mount (default `/var/lib/postgresql/data`). Set `PGDATA` beneath each validated
+leader/follower `storage.mountPath` (for example `<mountPath>/pgdata`); never rely on the image
+default or place database files on the read-only container root filesystem. Canonical and generated
+chart render tests cover both default and operator-changed mount paths; this does not establish
+`initdb`, restart durability, or runtime acceptance.
 
 Local choice: **K3s directly in Docker Compose**, one server and two agent nodes by default,
 named `cu-<run>-server-0` / `cu-<run>-agent-0/1`, project `cu-<run>-cluster`, network
@@ -263,8 +313,12 @@ routes, generated bootstrap manifests, DNS hosts mapping, and PVs are future ren
 Their omission is explicit; this is not a claim of a complete deployable Helm resource list.
 
 Kubeconfig exports use the host-reachable API, with CA validation and private file permissions;
-agents use the internal server DNS. Generate K3s node config files; mount join tokens through
-Docker secret files, not inline Compose values/environment. Preserve node data on routine Compose down/up. Multi-node
+agents use the internal server DNS via an explicit K3s `--server` CLI argument. Generate K3s
+node config files; keep the run-owned join token in a protected relative Docker Secret source
+file, mount it read-only into both nodes, and pass only its mounted path with `--token-file`;
+never place token material in Compose values, environment variables, or command arguments.
+Enable K3s Secrets-at-rest encryption explicitly on the server with
+`--secrets-encryption --secrets-encryption-provider=aescbc`. Preserve node data on routine Compose down/up. Multi-node
 spread protects against a worker loss, **not** loss of the Docker host or single control plane.
 K3s documented CPU/RAM minima cover K3s and packaged components, **excluding application
 workloads**; they are not a capacity estimate for this matrix. Preflight node-level allocatable
@@ -375,11 +429,15 @@ canonical templates, builder/lifecycle, test helpers and all seven services cons
 Do not implement seven independent probe systems. Preserve existing paths and intentional
 shutdown compatibility, documenting changed liveness-during-drain semantics.
 
-| Probe | Framework endpoint | Predicate | Failure |
-|---|---|---|---|
-| startup | `/admin/api/v1/startupz` | One-way per-process initialization latch reached only after config/secrets, TLS/barrier/session setup, expected schema, routes, both listeners and first required dependency observations succeed | Restart only after startup budget expires |
-| liveness | `/admin/api/v1/livez` | Admin event loop serves a cheap response; no DB/OTLP/network checks, startup latch, or cluster-wide synchronization | Restart after threshold |
-| readiness | `/admin/api/v1/readyz` | Public listener responsive, startup complete, not draining, required DB and collector observations healthy and fresh | Remove this pod from Service endpoints; never restart for dependency outage |
+- **Startup** (`/admin/api/v1/startupz`): a one-way per-process latch is reached only after
+  config/secrets, TLS/barrier/session setup, expected schema, routes, both listeners, and first
+  required dependency observations succeed. Restart only after the startup budget expires.
+- **Liveness** (`/admin/api/v1/livez`): the admin event loop serves a cheap response. Do not
+  perform DB/OTLP/network checks, inspect startup state, or synchronize across replicas.
+  Restart only after the liveness failure threshold.
+- **Readiness** (`/admin/api/v1/readyz`): public listener responsive, startup complete, not
+  draining, and required DB/collector observations are healthy and fresh. Remove the pod from
+  Service endpoints on failure; never restart only for a dependency outage.
 
 Startup probes disable readiness/liveness until they first succeed; kubelet then stops
 calling startup. A monotonic in-memory startup latch is appropriate here. It resets on process
@@ -404,6 +462,15 @@ be configured/tested; report stale/failed receiver checks as unready. Collector-
 are visible as degraded/backpressure and trigger readiness failure only when the configured
 required collector acceptance policy fails; no global dependency restart cascade.
 Actual telemetry delivery remains an E2E acceptance assertion.
+
+When OTLP is enabled, framework configuration requires `--otlp-health-endpoint` plus the OTLP CA,
+client certificate, and key file settings. The health URL must be HTTPS with an explicit path and
+no userinfo, query, or fragment. The framework verifies the endpoint certificate against the
+configured CA, presents the client certificate using TLS 1.3, disables proxy and redirect
+forwarding, and accepts only HTTP 200. Configure this receiver-owned endpoint to return 200 only
+while the collector accepts the application's telemetry; a generic process-alive endpoint is not
+sufficient. This check is bounded by the monitor's 500ms context and does not itself prove
+end-to-end exporter delivery.
 
 Include bounded local-public-loop responsiveness observations (verified TLS, no recursive
 readyz calls); otherwise admin responsiveness could mask a dead public listener. During a
@@ -494,27 +561,17 @@ future work, not missing input for the deployment contract.
 From repository root, PowerShell syntax (the Go program is cross-platform):
 
 ```powershell
-$src = @(
-    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-gen.go',
-    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-model.go',
-    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-json.go',
-    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-inventory.go',
-    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-render.go'
-)
-$testFiles = @(
-    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-input_test.go',
-    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-model_test.go',
-    '.\api\cryptosuite-registry\tools\k8s-plan\k8s-gen_test.go'
-)
-go run $src -write
-go run $src -check
-go run $src -format json -select p:identity:mixed-disk
-go run $src -select s:sm-kms:pg -run trial
-go test -shuffle=on -count=1 ($src + $testFiles)
-$coverage = Join-Path (Get-Location) 'test-output\coverage-analysis\k8s-planner-phase1-named.coverprofile'
-go test -shuffle=on -count=1 "-coverprofile=$coverage" ($src + $testFiles)
-go vet ($src + $testFiles)
-golangci-lint run --timeout=30m ($src + $testFiles)
+go run .\cmd\cicd-deployment -write
+go run .\cmd\cicd-deployment -check
+go run .\cmd\cicd-deployment -format json -select p:identity:mixed-disk
+go run .\cmd\cicd-deployment -select s:sm-kms:pg -run trial
+go run .\cmd\cicd-deployment -format runtime-values -select s:sm-kms:pg -runtime-input .\runtime-input.json
+go run .\cmd\cicd-deployment -write -format runtime-values -select s:sm-kms:pg -runtime-input .\runtime-input.json
+go run .\cmd\cicd-deployment -check -format runtime-values -select s:sm-kms:pg -runtime-input .\runtime-input.json
+go run .\cmd\cicd-deployment -write -format infrastructure-values
+go test -shuffle=on -count=1 .\internal\apps-tools\deploymentgen
+go vet .\internal\apps-tools\deploymentgen
+golangci-lint run --timeout=30m .\internal\apps-tools\deploymentgen
 ```
 
 Without flags, output is a Markdown preview; JSON is machine-readable names/config only.
@@ -523,32 +580,42 @@ and the committed [k8s-expected-inventory.json](../api/cryptosuite-registry/k8s/
 from the same pure model;
 `-check` compares exact bytes for both and fails if either artifact is missing or stale.
 A subset or alternate-run preview cannot overwrite either exhaustive artifact.
-Files use `//go:build ignore` and explicit named-file test/vet/lint execution to avoid adding a
-planning package to production builds or the CI package/coverage baseline. Normal repository
-package-discovery checks do not inspect these files. Do not apply `--build-tags=ignore` globally:
-it selects unrelated ignored standard-library sources and fails typechecking. Invoke the linter
-on the exact `$src + $testFiles` list instead; the command and result are recorded in the Phase 1
-evidence log. Migrate this prototype into tested production tooling during Phase 2; it does not
-belong in `cicd-lint`.
-The prototype inventory intentionally does not contain private material or live-cluster access.
-The reusable prototype, its non-secret model, generated tree and expected JSON are stored outside
-the ephemeral `docs/framework-v##` tracking directories. The command paths above and the
-generator's injected-I/O path test do not depend on those directories. Phase 1 relocation
-validation is recorded in the [evidence log](../test-output/framework-v26-phase1-evidence.log).
+`-format runtime-values` requires one exact `-select` and an explicit `-runtime-input` JSON
+document containing non-secret, digest-pinned images, resources, and backend-specific
+configuration. The generated JSON is YAML-compatible and is validated against both the input
+and runtime chart schemas before preview/write/check. `-write` and `-check` target
+`deployments/k8s/generated/<run>/<helm-release>/values.yaml`; no image/config defaults or secret
+values are invented. `-format infrastructure-values` projects the complete inventory using
+canonical infrastructure chart defaults and targets
+`deployments/k8s/generated/<run>/infra/values.yaml`. A selected infrastructure preview is
+read-only; write/check require the complete inventory. These value modes do not install or
+upgrade Kubernetes resources. Generated chart mirrors under `deployments/k8s/charts` are
+produced by the CLI and checked byte-for-byte; bootstrap execution, lifecycle operations, and
+runtime acceptance remain in progress. The production package receives normal repository build,
+test, and lint discovery. The original build-ignored prototype and its source files were removed
+after promotion. Phase 1 relocation validation remains recorded in the
+[evidence log](../test-output/framework-v26-phase1-evidence.log); the [Phase 2 evidence
+log](../test-output/framework-v26-phase2-runtime-evidence.log) records partial foundation work
+and does not inherit Phase 1 runtime claims.
 
 Review the generated [full tree](../api/cryptosuite-registry/k8s/k8s-deploy-tree.md) as an
 implementation input; the planning artifacts are not runtime certification or product-membership
-approval. The user authorized Phase 2 on 2026-11-01; it remains authorized but not started.
+approval. The user authorized Phase 2 on 2026-11-01; it is underway but has no runtime acceptance.
 The current example is exhaustive over **registered scopes x the five configured modes**,
 not all possible future input values or a fabricated fourth product. Resource limits, provider
-implementations and full chart generation remain implementation work, with no current runtime
-success claim.
+implementations, combined lifecycle-object parity, and runtime acceptance remain implementation
+work, with no current runtime success claim.
 
 ## Verified upstream references
 
-K3s networking/resource and Kubernetes NetworkPolicy/StatefulSet lifecycle semantics rechecked
-2026-11-01. Pin implementation versions rather than adopting rolling-doc versions:
+K3s token-file/server-encryption flags, PostgreSQL 18 image data-directory defaults, and
+Kubernetes NetworkPolicy/StatefulSet lifecycle semantics rechecked 2026-11-02. Pin implementation
+versions rather than adopting rolling-doc versions:
 
+- [K3s server CLI](https://docs.k3s.io/cli/server)
+- [K3s agent CLI](https://docs.k3s.io/cli/agent)
+- [K3s Secrets encryption at rest](https://docs.k3s.io/security/secrets-encryption)
+- [Docker Official PostgreSQL 18 image defaults](https://github.com/docker-library/postgres/blob/master/18/bookworm/Dockerfile)
 - [Kubernetes probe semantics](https://kubernetes.io/docs/concepts/workloads/pods/probes/)
 - [Probe configuration and transports](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 - [StatefulSet identity, headless Services, PVC retention](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)

@@ -145,6 +145,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.StringP(otlpEnvironment.Name, otlpEnvironment.Shorthand, RegisterAsStringSetting(&otlpEnvironment), otlpEnvironment.Usage)
 	fs.StringP(otlpHostname.Name, otlpHostname.Shorthand, RegisterAsStringSetting(&otlpHostname), otlpHostname.Usage)
 	fs.StringP(otlpEndpoint.Name, otlpEndpoint.Shorthand, RegisterAsStringSetting(&otlpEndpoint), otlpEndpoint.Usage)
+	fs.StringP(otlpHealthEndpoint.Name, otlpHealthEndpoint.Shorthand, RegisterAsStringSetting(&otlpHealthEndpoint), otlpHealthEndpoint.Usage)
 	fs.StringP(otlpInstance.Name, otlpInstance.Shorthand, RegisterAsStringSetting(&otlpInstance), otlpInstance.Usage)
 	fs.StringP(unsealMode.Name, unsealMode.Shorthand, RegisterAsStringSetting(&unsealMode), unsealMode.Usage)
 	fs.StringArrayP(unsealFiles.Name, unsealFiles.Shorthand, RegisterAsStringArraySetting(&unsealFiles), unsealFiles.Usage)
@@ -300,6 +301,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		OTLPEnvironment:             v.GetString(otlpEnvironment.Name),
 		OTLPHostname:                v.GetString(otlpHostname.Name),
 		OTLPEndpoint:                v.GetString(otlpEndpoint.Name),
+		OTLPHealthEndpoint:          v.GetString(otlpHealthEndpoint.Name),
 		UnsealMode:                  v.GetString(unsealMode.Name),
 		UnsealFiles:                 v.GetStringSlice(unsealFiles.Name),
 		BrowserRealms:               v.GetStringSlice(browserRealms.Name),
@@ -422,6 +424,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		fmt.Println("  -K, --otlp-environment string       OTLP environment (default " + formatDefault(cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault) + ")")
 		fmt.Println("  -O, --otlp-hostname string          OTLP hostname (default " + formatDefault(cryptoutilSharedMagic.DefaultOTLPHostnameDefault) + ")")
 		fmt.Println("  -Q, --otlp-endpoint string          OTLP endpoint (default " + formatDefault(cryptoutilSharedMagic.DefaultOTLPEndpointDefault) + ")")
+		fmt.Println("      --otlp-health-endpoint URL      HTTPS mTLS receiver health endpoint (required when OTLP is enabled)")
 		fmt.Println()
 		fmt.Println("ENVIRONMENT VARIABLES:")
 		fmt.Println("  All flags can be set via environment variables using the CRYPTOUTIL_ prefix.")

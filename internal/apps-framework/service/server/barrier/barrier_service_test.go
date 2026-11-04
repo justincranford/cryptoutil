@@ -9,16 +9,13 @@ import (
 	"fmt"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -237,26 +234,13 @@ func TestService_Shutdown(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated in-memory database for this test.
-	dbUUID, _ := googleUuid.NewV7()
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbUUID.String())
-	shutdownSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, shutdownSQLDB.Close())
-	}()
-
-	_, err = shutdownSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-	_, err = shutdownSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
+	shutdownDB := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	shutdownSQLDB, err := shutdownDB.DB()
 	require.NoError(t, err)
 
 	shutdownSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	shutdownSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	shutdownSQLDB.SetConnMaxLifetime(0)
-
-	shutdownDB, err := gorm.Open(sqlite.Dialector{Conn: shutdownSQLDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
 
 	err = createBarrierTables(shutdownSQLDB)
 	require.NoError(t, err)

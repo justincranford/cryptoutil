@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +10,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 )
+
+const helmChartMetadataFileName = "Chart.yaml"
 
 // NamingValidationResult holds the outcome of naming validation.
 type NamingValidationResult struct {
@@ -97,6 +100,11 @@ func validateNamingWithWalk(
 
 		// Validate file names (*.yml, *.yaml).
 		if isYAMLFile(name) {
+			// Helm requires the case-sensitive Chart.yaml manifest filename.
+			if isHelmChartMetadata(relPath, name) {
+				return nil
+			}
+
 			// Allow docker-compose.yml as-is (valid kebab-case).
 			if !isKebabCase(strings.TrimSuffix(strings.TrimSuffix(name, valueYml), valueYAML)) {
 				result.Errors = append(result.Errors, fmt.Sprintf(
@@ -113,6 +121,16 @@ func validateNamingWithWalk(
 
 		return nil
 	})
+}
+
+func isHelmChartMetadata(relativePath, name string) bool {
+	if name != helmChartMetadataFileName {
+		return false
+	}
+
+	segments := strings.Split(filepath.ToSlash(relativePath), "/")
+
+	return len(segments) == 4 && segments[0] == cryptoutilSharedMagic.KubernetesSuiteImageDeployment && segments[1] == "charts" && isKebabCase(segments[2])
 }
 
 // isKebabCase checks if a string follows kebab-case convention.

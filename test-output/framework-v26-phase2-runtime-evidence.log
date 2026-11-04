@@ -1,0 +1,1077 @@
+# Framework v26 Phase 2 runtime-owner evidence
+# As of 2026-11-01. This is partial implementation evidence, not Phase 2 acceptance.
+
+## Implemented foundation
+
+- Promoted the ignored planning generator into `internal/apps-tools/deploymentgen` and the
+  thin `cmd/cicd-deployment` entry; removed the eight obsolete build-ignored prototype Go files.
+- Added a strict version-2 model schema, pinned K3s/Helm/kubectl and infrastructure image lock,
+  registry-derived inventory, typed runtime and infrastructure chart-values projections,
+  canonical runtime/infra charts, and K3s-node-only Compose bootstrap template.
+- Added a generic PostgreSQL/telemetry infrastructure chart and strict values schema with a
+  PostgreSQL-enabled sample, SQLite-only overlay, and negative validation fixtures. The chart
+  renders run-scoped StatefulSets, Services, ConfigMaps, retained claim templates, quota, PDB,
+  and additive least-scope network policies; Secret data, DB catalog/roles, PKI/DB Jobs, gateway,
+  StorageClass, lifecycle actions, and combined lifecycle-object parity are not implemented.
+- Extended runtime values/schema/templates for separately published framework/domain ConfigMaps,
+  per-workload credential Secret mounts excluding E2E TLS, per-ordinal server/health-client/OTLP
+  Secret mapping/RBAC through max, init-only materialization configuration, and an optional
+  explicitly supplied API audience. Default token audience is omitted, not inferred from
+  `clusterDomain`; K3s template does not override the API issuer/audience.
+- Added template-drift classification so canonical Kubernetes source templates are rendered by
+  deploymentgen rather than incorrectly compared as static project-root copies.
+- Updated the Phase 2 plan/tasks/lessons and deployment contract with partial status and the
+  active Compose cutover/validator inventory.
+- No application image was built, no application was deployed, no workflow was edited, and no
+  Phase 3-7 work was started.
+
+## Focused checks completed
+
+- `go test -o C:\Users\justi\.copilot\session-state\3c15e0ce-6128-4d01-a69c-402d4bd62ca3\files\tools\deploymentgen.test.exe -shuffle=on -count=1 ./internal/apps-tools/deploymentgen`
+  - PASS: 307 tests in one package after the behavior-specific test-file split. Go scratch/cache
+    environment values were inherited unchanged.
+- `golangci-lint run ./internal/apps-tools/deploymentgen`
+  - PASS after the behavior-specific test-file split.
+- `gofmt -d internal/apps-tools/deploymentgen/input_test.go internal/apps-tools/deploymentgen/input_registry_test.go internal/apps-tools/deploymentgen/input_dns_test.go`
+  - PASS after normalizing the new files to LF.
+- Main-built production binary `cicd-deployment.exe -check`
+  - PASS: generated planning tree and expected inventory match canonical model/registry inputs.
+- Helm 4.3.1 `lint --strict` on the canonical runtime chart with one inline schema-valid
+  PostgreSQL workload
+  - PASS: 1 chart linted, 0 failed. This is not full-matrix parity or runtime acceptance.
+- Read-only Python JSON parsing of the model, model schema, toolchain lock, expected inventory,
+  and runtime chart values schema
+  - PASS. Independently counted 55 releases, 147 workloads, 294 maximum app pods, 63 databases,
+    84 SQLite PVCs, and 5 infra pods; checked K3s and infra image digest syntax.
+- `go test ./internal/apps-tools/cicd_lint/lint_fitness/template_drift -run TestIsStructuralMetaFile -count=1`
+  - PASS: 11 tests.
+- `go run ./cmd/cicd-lint lint-fitness`
+  - PASS after the Kubernetes template-source exclusion was added.
+- `golangci-lint run --fix ./internal/apps-tools/deploymentgen ./internal/apps-tools/cicd_lint/lint_fitness/template_drift ./internal/shared/magic`
+  - PASS: no issues found.
+- `git diff --check`
+  - PASS for the documentation/status edits.
+- Synthetic runtime chart validation previously completed:
+  Helm strict lint passed and a one-workload PostgreSQL chart rendered 15 documents. This is
+  not full matrix parity, actual cluster deployment, or runtime acceptance.
+- Helm 4.3.1 `lint --strict` and `template` on the canonical infrastructure chart:
+  - PASS for the PostgreSQL-enabled fixture: four StatefulSets, distinct ConfigMap names,
+    retained claims, run/release-scoped client selectors, and no rendered Secret objects.
+  - PASS for the SQLite-only overlay: collector/LGTM remain, PostgreSQL workloads and policies
+    are absent.
+  - PASS for negative fixtures: unpinned images and PostgreSQL clients without PostgreSQL fail
+    values-schema validation.
+- Helm 4.3.1 `lint --strict` and `template` on the runtime chart's
+  `values-min1-max3.yaml` fixture:
+  - PASS: `minReplicas=1`, `maxReplicas=3` renders one active StatefulSet replica and one PVC
+    claim template, three ordinal Services, three TLS names, and nine exact init-only Secret
+    `get` names (TLS + dedicated health-client + OTLP-client for all reserved ordinals).
+  - PASS: framework/domain ConfigMaps, read-only credential references, and PKI directory
+    mappings render; default API token audience is omitted.
+  - PASS: schema rejects an `*-e2e-tls` Secret as an application credential.
+  - PASS: Helm template rejects a missing framework ConfigMap reference, a framework ConfigMap
+    with the wrong PS-ID/role, and duplicate ConfigMap names with the expected diagnostics.
+  - Fixture uses `/bin/true` and a pinned existing image only for render validation. It is not
+    installable acceptance and does not prove a materializer, config consumer, provider token
+    audience, actual PVC creation/retention, CNI enforcement, or runtime behavior.
+- `cicd-deployment.exe -check`
+  - PASS at the earlier graph state. The current checked-in tree/inventory were not regenerated
+    after registry API-edge and infrastructure-object changes; the stale binary was not reused.
+- Both Helm values schemas parsed as JSON and `git diff --check` passed at an earlier checkpoint;
+  current text/docs checks remain pending.
+- PASS: strict Helm lint/template checks after normalization for runtime `min=1/max=3`,
+  infrastructure PostgreSQL-default, and infrastructure SQLite-only fixtures. Positive render
+  assertions confirm one active runtime StatefulSet, four PostgreSQL-default infrastructure
+  StatefulSets, two SQLite-only infrastructure StatefulSets, and no Secret objects in either
+  infrastructure render. Expected failures were verified for the E2E credential, missing/wrong-
+  role/duplicate ConfigMaps, unpinned infra images, and PostgreSQL clients without PostgreSQL.
+- PASS: byte-level scan of 23 scoped chart/fixture/tracking text files found UTF-8 without BOM
+  and LF-only line endings; 13 chart/fixture files were normalized to LF with UTF-8 without BOM.
+- PASS: the same 23 scoped chart/tracking files are within the 200-column text limit; overlong
+  contract evidence/probe rows and the chart template loop were reflowed without semantic change.
+- PASS: runtime chart strict lint and repeated template render preserve an explicitly supplied
+  provider audience byte-for-byte; this is template wiring evidence only, not API-server
+  audience acceptance.
+- The runtime schema initially applied the 253-character DNS-domain cap to the opaque audience
+  field. Removed that unsupported cap; Helm strict lint accepts and template rendering preserves
+  an explicitly supplied 300-character value. This does not claim an API server accepts it.
+- PASS: repeated Helm renders for runtime `min=1/max=3`, infrastructure PostgreSQL-default,
+  and infrastructure SQLite-only fixtures are byte-identical. Template source contains no
+  random, time-based, UUID, or lookup helpers.
+- Review found that two enabled infrastructure components could use the same schema-valid
+  ConfigMap name and render duplicate objects. Added a deterministic duplicate-name guard and
+  `invalid-duplicate-configmap.yaml` fixture; Helm `template` rejects it with the expected
+  diagnostic. Strict lint and render still pass for both PG-default and SQLite-only fixtures.
+- PASS: infrastructure render assertions verify four expected StatefulSets and four distinct
+  ConfigMaps in PostgreSQL mode, seven scoped NetworkPolicies, retained StatefulSet claims on
+  delete/scale, and no Secret objects. SQLite-only mode renders exactly collector/LGTM StatefulSets
+  with no PostgreSQL resources or PostgreSQL policy. Client telemetry/PG policies use ANDed exact
+  namespace and pod selectors, with the PostgreSQL peer additionally restricted to `pool=pg`.
+- PASS: rendered `min=1/max=3` Role has exactly nine `get`-only resource names (three each for
+  server TLS, dedicated health client, and OTLP client); the short-lived API token mount occurs
+  once in init and not in the application container section.
+- Earlier projection review found that `BuildRuntimeChartValues` omitted ConfigMaps, explicit
+  credentials, ordinal health/OTLP Secret mapping, per-pool args/config selection and optional
+  API-server audience. The resumed implementation closes those projection/schema gaps; actual
+  generated values now pass the 55-release Helm render/parity test below.
+- Earlier inventory review found graph names did not match split PostgreSQL ConfigMaps and
+  component NetworkPolicies. The resumed graph now matches chart-owned identities in full and
+  SQLite-only Helm renders. Lifecycle-owned objects remain outside this chart comparison, and
+  checked-in graph outputs remain stale until the current production CLI can be rebuilt.
+- Earlier NetworkPolicy review found no registry-derived API edge. The resumed implementation
+  adds the registry `identity-rp → identity-authz` edge and tests rendered exact selectors/ports;
+  runtime CNI enforcement remains unverified.
+
+## Resumed typed projection and actual Helm parity
+
+- `go test -shuffle=on -count=1 ./internal/apps-tools/deploymentgen ./internal/apps-tools/cicd_lint/lint_fitness/registry`
+  - PASS in the owned Linux validator after adding strict runtime/infrastructure values-schema
+    validation, typed infrastructure projection, runtime ConfigMap/credential/ordinal-secret
+    projection tests, whitespace-only audience rejection, conflicting-file rejection, and API
+    dependency validation/accessor tests.
+- `go test -tags integration -run 'TestHelm' -shuffle=on -count=1 ./internal/apps-tools/deploymentgen`
+  - PASS with verified Helm `v4.3.1+gc0d08d0`.
+  - Runtime: all 55 generated release projections were rendered through the canonical Helm chart;
+    rendered chart-owned `(kind,name)` identities matched the independent registry-derived graph.
+  - Infrastructure: full-matrix and SQLite-only projected values rendered; chart-owned resource
+    identities matched the independent graph. The comparison explicitly excludes the
+    lifecycle-owned `database-catalog` ConfigMap, external Secrets, Jobs/RBAC, and PVC objects
+    created by StatefulSet controllers; their combined parity is still outstanding.
+  - Approved edge: rendered identity product NetworkPolicies have exact run/release/PS-ID source
+    and target selectors and TCP/8080 ports for `identity-rp → identity-authz`; the 55-cell set
+    comparison also verifies no edge object is generated in releases without both members.
+  - Min=1/max=3 SQLite render: StatefulSet replicas remain 1, all three max-ordinal TLS plus
+    health/OTLP Secret names appear in the exact get-only Role, and the disk volume-claim template
+    is present without direct PVC documents. The independent graph marks one active claim identity.
+- `BuildRuntimeChartValues` now preserves per-pool arguments and selected framework/domain files,
+  emits their ConfigMaps, effective credential Secret references, per-ordinal PKI Secret mapping,
+  optional explicitly supplied API audience, and registry-derived approved API edges. The PKI
+  materializer image now has its own strict shape without application-only probe fields.
+- `BuildInfrastructureChartValues` now decodes canonical chart defaults into strict Go types,
+  binds run/namespace/revision/API-server identity, enables PostgreSQL only when selected
+  inventory includes PG clients, and derives exact sorted namespace/release/PostgreSQL client
+  selectors. The infra chart explicitly permits bootstrap-component egress to the configured API
+  service IP and the independent graph uses the chart's split PostgreSQL ConfigMaps and policy
+  names.
+- Focused Helm 4.3.1 strict lint passed for the infrastructure chart after adding required
+  `apiServerIP` schema support and the bootstrap API policy.
+- A required fresh native production CLI rebuild was attempted:
+  `go build -o C:\Users\justi\.copilot\session-state\3c15e0ce-6128-4d01-a69c-402d4bd62ca3\files\tools\cicd-deployment.exe .\cmd\cicd-deployment`
+  - BLOCKED: Windows linker could not resize `$WORK\b001\exe\a.out.exe` because `R:` reported
+    insufficient disk space. The previous binary predates these Go edits and was not used for
+    current artifact checks at that point; the checked-in generated tree/inventory had not yet been
+    refreshed.
+
+## Blocked gates and root cause
+
+- Full normal/tagged builds, shuffled repository tests, and deployment matrix validation have not
+  been rerun after these changes.
+- Baseline commit hooks initially found test `goconst` findings and UTF-8/LF/editorconfig drift;
+  those source issues were corrected. A later hook run passed `lint-fitness`, but
+  `golangci-lint` typechecking failed while writing Go work files under `R:\Go\GOTMP` with
+  “There is not enough space on the disk.” The focused package test and lint later passed; the
+  full hooks have not been rerun, so that prior capacity failure remains unresolved for checkpoint
+  purposes.
+- Main's read-only investigation measures the fixed `R:` volume at 8 GiB with approximately
+  3.7 MiB free and found no large abandoned Go build directories under `GOTMP`/`OSTMP`. After
+  the focused test/lint run, a local read-only measurement showed 112.43 MiB free. The
+  prior listing of `R:\Go\GOTMP\TestTelemetryInitializers_ApplyMTLSCredentials1785621155\001`
+  contains `ca.crt` (570 bytes), `client.crt` (542 bytes), and `client.key` (241 bytes). No
+  certificate contents were inspected and no cache or temp data was removed.
+- Main measured `GOCACHE` file lengths totaling 6,426,931,500 bytes and `MOD_CACHE` file lengths
+  totaling 1,506,695,524 bytes. Host `C:` has abundant free space, but inherited cache/temp paths
+  remain unchanged; no cache was cleared, storage resized, or shared setting reconfigured.
+- `GOCACHE`, `GOTMPDIR`, `TMP`, `TEMP`, Docker allocations, and user caches were not changed or
+  cleared. No `--no-verify` or hook bypass was used. No commit was made; the clean checkpoint
+  still requires full hooks/builds to pass and a clean worktree.
+- Main has since supplied an owned Linux validator image/container with Go 1.27.3, pre-commit
+  4.6.2, golangci-lint 2.14, 4 CPU/6 GiB and fresh owned Linux storage. The framework worker
+  owns the broad Go-validation slot; focused deploymentgen tests and Helm integration checks have
+  been run there, but runtime-owned broad gates remain pending serialized scheduling. No host
+  cache/temp settings or shared storage were changed.
+
+## Latest focused projection follow-up (2026-11-01)
+
+- Added infrastructure projection guards tying the model collector replica count to canonical
+  chart defaults and rejecting PostgreSQL pod identities when the selected inventory has no
+  PostgreSQL clients. Added table-driven error-path coverage for invalid infrastructure defaults,
+  resource graph/pod-count mismatches, YAML-to-JSON encoding failure, and typed decode failure.
+- Runtime projection tests now cover conflicting framework and domain ConfigMap file names,
+  unsafe domain keys, and API-edge/audience projections. Bootstrap tests reject embedded
+  `K3S_TOKEN` values and invalid agent commands. Model-schema checks cover duplicate document
+  keys and unresolved schema references. The bootstrap test fixture now supplies the required
+  empty `approvedAPIEdges` property.
+- PASS in the owned Linux validator:
+  `go test -shuffle=on -count=1 ./internal/apps-tools/deploymentgen`
+  and
+  `go test -tags integration -run 'TestHelm' -shuffle=on -count=1 ./internal/apps-tools/deploymentgen`.
+  The integration checks render all 55 runtime projections and compare chart-owned identities to
+  the independent graph, check full/SQLite-only infra identities, and verify min=1/max=3 reserved
+  ordinal Secret RBAC and the registry-derived RP-to-authz edge.
+- PASS controller-created PVC identity parity: the integration test expands rendered StatefulSet
+  claim templates using actual replica counts and compares generated claim names with active
+  runtime graph ordinals across all 55 releases and infrastructure claims for full and
+  SQLite-only selections. The min=1/max=3 case verifies only ordinal 0 has an active claim.
+  This does not create a cluster or validate PV retention/persistence.
+- PASS focused coverage:
+  `go test -shuffle=on -count=1 -coverprofile test-output/coverage-analysis/deploymentgen.cover ./internal/apps-tools/deploymentgen`
+  reports **99.9%** statement coverage (threshold: 98%). The HTML report is
+  `test-output/coverage-analysis/deploymentgen.html`. The sole uncovered statement is the
+  defensive `Compiler.AddResource` error return in `schema.go`; input is already strictly parsed
+  JSON and the resource ID is a fixed valid URI. New capacity tests cover inventory/projection
+  mismatches, malformed runtime/PKI/infra resource requirements, maximum-replica request totals,
+  multiplication/addition overflow, and host-reserve boundaries.
+- PASS focused capacity logic: the 294-maximum-pod matrix exceeds the recorded 14-CPU,
+  8,326,410,240-byte Docker-host fixture after explicit reserves; a selected PostgreSQL release
+  fits its test budget. Docker-info parsing is exercised through an injected command runner only;
+  no live host-capacity query, Kubernetes scheduler admission, or runtime lifecycle was executed.
+- PASS Helm 4.3.1:
+  strict lint of `cryptoutil-runtime` with its complete `fixtures/values-min1-max3.yaml`, and
+  strict lint of `cryptoutil-infra` with canonical defaults. The runtime chart intentionally has
+  no values.yaml; a no-input lint correctly fails required-property validation and is not a
+  schema defect.
+- A bounded native focused deploymentgen test attempt failed during Windows linker output resize
+  on the constrained `R:` scratch volume. The same focused test passed in the owned Linux
+  container. The stale binary was not used for `-check`, render, or generation. A fresh
+  `go run ./cmd/cicd-deployment -check` then detected the stale tree; `go run
+  ./cmd/cicd-deployment -write` refreshed the checked-in tree and expected inventory, and a fresh
+  `-check` passed. Repeated `-write` outputs retained exact SHA-256 digests:
+  tree `903a994396ab7fa5eafce85571867b5df560b76042d02a62c364389688485cc2`;
+  expected inventory `4bf1a11d37e81df184be4db2ccc2afb1ffb6a90bed1f62ba481386ac1f12d6bc`.
+  This is a current-source production CLI execution via `go run`, not a persistent standalone
+  binary build.
+- A second native focused test attempt used `-o
+  C:\Users\justi\.copilot\session-state\3c15e0ce-6128-4d01-a69c-402d4bd62ca3\files\tools\deploymentgen.test.exe`;
+  the Windows linker still failed while writing under the constrained `R:` work area. No cache,
+  temp variable, or shared storage setting was changed.
+- No application image, cluster deployment, workflow edit, commit, or push occurred. Combined
+  lifecycle-object parity, refreshed CLI generation, broad Go quality gates, safe lifecycle
+  tooling, and runtime acceptance remain outstanding; this is not a clean checkpoint.
+
+## Infrastructure database-catalog projection follow-up (2026-11-01)
+
+- Added typed infrastructure chart values for database definitions and projected all selected
+  release databases from the independent inventory in deterministic name order. The strict
+  infrastructure schema requires and validates the catalog entries; the canonical infra chart
+  renders `database-catalog` only when PostgreSQL is selected and rejects PostgreSQL/catalog
+  mismatches.
+- Expanded Helm integration parsing to compare rendered `databases.yaml` entries against an
+  independently flattened and sorted inventory list. The full inventory renders and matches all
+  63 PostgreSQL database records; the SQLite-only selection renders no database catalog. This
+  supplements resource-identity parity, not a live PostgreSQL bootstrap/runtime check.
+- PASS in the owned Linux validator:
+  `go test -run TestBuildInfrastructureChartValuesMatchesSchema -shuffle=on -count=1
+  ./internal/apps-tools/deploymentgen`;
+  the full focused `go test -tags integration -run TestHelm -shuffle=on -count=1
+  ./internal/apps-tools/deploymentgen` matrix after adding database-content parity; and, after
+  the final projection sort simplification, `go test -shuffle=on -count=1
+  ./internal/apps-tools/deploymentgen` plus
+  `go test -tags integration -run TestHelmInfrastructureChartMatchesIndependentInventory
+  -shuffle=on -count=1 ./internal/apps-tools/deploymentgen`.
+- PASS current focused coverage: **99.9%** statement coverage (98% utility target). All
+  `BuildInfrastructureChartValues` statements are covered. The sole remaining uncovered statement
+  is the defensive `jsonschema.Compiler.AddResource` error return in `schema.go`; validated JSON
+  and a fixed valid resource URI make this failure structurally unreachable through the public
+  validation API.
+- PASS final scoped quality checks in the owned Linux validator:
+  `go vet ./internal/apps-tools/deploymentgen`,
+  `golangci-lint run --fix ./internal/apps-tools/deploymentgen`,
+  `golangci-lint run ./internal/apps-tools/deploymentgen`,
+  `golangci-lint run --fix --build-tags integration ./internal/apps-tools/deploymentgen`, and
+  `golangci-lint run --build-tags integration ./internal/apps-tools/deploymentgen` plus
+  `golangci-lint run --build-tags e2e,integration ./internal/apps-tools/deploymentgen` all
+  complete cleanly. The final shuffled package tests and full focused `TestHelm` integration
+  suite pass after the lint fixes.
+- PASS fresh production CLI validation after the latest Go source edit:
+  `go build -o /tmp/cicd-deployment ./cmd/cicd-deployment` and
+  `/tmp/cicd-deployment -check` in the owned Linux validator. The generated tree and expected
+  inventory match their committed inputs. This binary does not implement chart-values CLI
+  emission.
+- PASS Helm 4.3.1 strict lint for `cryptoutil-infra` with canonical `values.yaml` and
+  `cryptoutil-runtime` with `fixtures/values-min1-max3.yaml`.
+- PASS database-catalog negative Helm renders: PostgreSQL enabled with an empty catalog and a
+  non-empty catalog without PostgreSQL both fail with the intended template guard. The complete
+  focused `TestHelm` integration suite passes after adding these cases.
+- At this evidence point, no application image, K3S deployment, workflow edit, commit, push,
+  broad Go build/test suite, combined lifecycle-object parity, or runtime acceptance had occurred.
+  The native Windows linker remains constrained by `R:` capacity; no cache/temp variables or
+  shared storage were changed.
+
+## 2026-11-01: Helm namespace parity and test layout
+
+- Changed rendered chart identity comparison from kind/name to exact kind/namespace/name, using
+  the independently selected runtime or infrastructure namespace. Cluster-scoped resources are
+  not assigned a synthetic namespace by this comparison.
+- Controller-expanded PVC identities now carry the owning StatefulSet namespace; expected runtime
+  and infrastructure PVCs carry their independently selected namespace. Added named parallel
+  cases proving wrong rendered-object and wrong StatefulSet namespaces are rejected and correct
+  controller-created PVC keys include the namespace.
+- Split the former 568-line Helm parity integration test by runtime parity, infrastructure parity,
+  and shared render/identity helpers. The four resulting integration test files contain 187, 192,
+  217, and 234 lines, all below the 500-line test-file limit. The 55-release runtime matrix and
+  infrastructure full/SQLite-only selector loop now use named `t.Parallel()` subtests.
+- PASS focused namespace assertions in the owned Linux validator:
+  `go test -tags integration -run '^(TestRenderedObjectIdentityRequiresExpectedNamespace|TestControllerGeneratedPVCIdentityUsesStatefulSetNamespace)$' -shuffle=on -count=1 -o /tmp/deploymentgen.test ./internal/apps-tools/deploymentgen`.
+- PASS full focused Helm parity after the split and final chart/schema formatting:
+  `go test -tags integration -run '^TestHelm' -shuffle=on -count=1 -o /tmp/deploymentgen.test ./internal/apps-tools/deploymentgen`.
+- PASS Helm 4.3.1 strict lint for canonical infrastructure and runtime charts. PASS targeted JSON
+  `pretty-format-json` → `mixed-line-ending` → EditorConfig pipeline and chart/helper EditorConfig
+  checks. The formatter's Windows CRLF output was the reason the earlier EditorConfig check
+  failed; `.pre-commit-config.yaml` now pins the mixed-line-ending fixer to LF.
+- A normal commit attempt did not commit. Required pre-commit Go lint and custom CI/CD lint/format
+  hooks failed when the inherited `R:\Go\GOTMP` volume ran out of space; no bypass was used.
+  The attempted hooks also surfaced the JSON line-ending issue above, which is now fixed. Broad
+  validation remains unverified; no app image, K3S deployment, or runtime acceptance occurred.
+
+## 2026-11-01: Broad validation in clean Linux validator
+
+- The replacement container `cryptoutil-v26-validator-clean-3c15e0ce` ran without Git environment
+  overrides; `go version` is Go 1.27.3 and `golangci-lint` is 2.14.0. No host cache/temp values,
+  container CPU quota, or Docker VM allocation was changed.
+- PASS `go build ./...` and `go build -tags e2e,integration ./...`.
+- PASS `go test ./... -shuffle=on`: 333 packages passed, 37 packages have no test files, zero
+  failures. The first run exposed blocking duplicate magic literals in the new deployment and
+  registry code; those were replaced with existing `internal/shared/magic` constants. The final
+  rerun passed after also removing obsolete Go 1.22 range-variable copies and factoring duplicate
+  namespace fixture strings.
+- PASS focused generator/registry tests and the `TestHelm` integration matrix after lint fixes.
+- PASS `golangci-lint run --fix`, `golangci-lint run`, and
+  `golangci-lint run --build-tags e2e,integration` (all zero issues).
+- PASS `go run ./cmd/cicd-lint lint-deployments` (51 validators) and
+  `go run ./cmd/cicd-lint lint-fitness` (all fitness checks). PASS deploymentgen statement
+  coverage at 99.9%.
+- Real configured pre-commit hooks have not yet been rerun in the clean container. The earlier
+  native attempt did not commit because the R-drive scratch volume was full. No broad validation
+  failure remains; the independent LF hook fix and foundation commits are next. No application
+  image, cluster deployment, migration, persistence, rollback, or runtime acceptance occurred.
+
+## 2026-11-01: Explicit chart-values CLI extension
+
+- Added production CLI modes `runtime-values` and `infrastructure-values`. Runtime values require
+  an exact single-release selector and explicit non-secret JSON input; the input and projected
+  output are validated against canonical schemas. The input supplies digest-pinned images,
+  resources, backend-specific arguments/configuration, and storage values rather than relying on
+  invented defaults. Infrastructure values project the complete inventory using canonical infra
+  defaults; partial infrastructure preview is read-only.
+- `-write` and `-check` for runtime values target
+  `deployments/k8s/generated/<run>/<helm-release>/values.yaml`; infrastructure values target
+  `deployments/k8s/generated/<run>/infra/values.yaml`. The command entry creates parent
+  directories for generated outputs. Values are JSON, which is YAML-compatible; no cluster
+  operations occur.
+- Focused PASS in the owned Linux validator after the CLI edits:
+  `go test -shuffle=on -count=1 ./internal/apps-tools/deploymentgen
+  ./internal/apps-tools/cicd_deployment` (1.540s and 0.011s respectively).
+  Earlier targeted checks also passed the strict input-schema/decoder test, chart projection helper
+  across every release, the CLI preview/write/check/failure matrix, and generated-directory writer.
+- These are focused current-source checks only. The production binary has not yet been rebuilt
+  after the latest Go edits; broad normal/tagged builds, full shuffled suite, coverage, linters,
+  deployment/fitness validators, configured hooks, CLI-driven Helm render, and clean checkpoint
+  remain pending. Generated chart mirrors under `deployments/k8s/charts`, lifecycle object parity,
+  application image/deployment, K3S runtime acceptance, workflow integration, and postmortem remain
+  outstanding. No commit/push/deployment/Phase 3-7 work is claimed.
+
+## Outstanding before runtime checkpoint
+
+- Implement external Secret, bootstrap RBAC, and PKI/DB Job projections and compare their
+  combined object identities with the independent graph. Database-catalog data parity and
+  controller-created PVC identity parity are implemented; actual storage retention remains
+  unverified. Runtime/infra values CLI modes and exact canonical chart mirrors are implemented.
+- Implement honest capacity and ownership preflight plus safe K3s lifecycle execution.
+- Add restricted PKI leaf materialization and migration-only job helpers; coordinate the
+  external-migration/verify-only builder contract with the framework worker.
+- Run the real configured pre-commit hooks and commit the independent LF fix and coherent
+  foundation. Normal/tagged builds, repository-wide shuffled tests, normal/tagged Go lint and vet,
+  deployment validators, fitness/text/docs checks, and focused coverage pass in the clean validator.
+- Finish capacity/lifecycle tooling and PKI/migration interfaces; then obtain the serialized
+  broad Go-validation slot, run all required gates, create complete evidence, commit coherent changes,
+  and verify the worktree is clean before any app-image build or deployment.
+- Post-merge selected-subset K3s deployment, migration/rollback, persistence, network-policy,
+  and functional E2E acceptance remain for the main agent's continuation.
+
+## 2026-11-01: Canonical chart mirrors and current broad validation
+
+- Production `charts` CLI mode now generates the 11 deployable chart files from
+  `api/cryptosuite-registry/templates/kubernetes/` into `deployments/k8s/charts/`; fixture
+  subtrees are excluded. Target paths and the emitted manifest use slash-canonical paths on
+  Windows and Linux. CLI `-check -format charts` verifies byte equality and exact path inventory,
+  rejecting missing, stale, extra, and non-regular mirrored files. Unit tests cover those
+  negatives and CLI preview/write/check, injected write/status errors, and partial writes.
+- Rebuilt the production binary after the latest Go edits:
+  `go build -o /tmp/cicd-deployment ./cmd/cicd-deployment`.
+  PASS `-check -format charts`, `-check -format infrastructure-values`, and graph `-check`.
+  PASS generated infrastructure values at
+  `deployments/k8s/generated/review/infra/values.yaml`.
+- PASS Helm 4.3.1 `lint --strict` and `template` for the generated infrastructure chart using
+  production-generated infrastructure values, and for the generated runtime chart using the
+  canonical `values-min1-max3.yaml` fixture. The runtime fixture is a direct Helm fixture, not
+  generated typed runtime input or runtime acceptance.
+- PASS `go test -shuffle=on -count=1 ./internal/apps-tools/deploymentgen
+  ./internal/apps-tools/cicd_deployment`; `deploymentgen` coverage is 99.0%.
+- PASS current `go build ./...` and `go build -tags e2e,integration ./...`.
+- PASS current `go test ./... -shuffle=on`: 333 package tests passed, 37 packages have no test
+  files, zero failures. An initial run exposed a required Helm `Chart.yaml` naming exception and
+  a blocking duplicated test literal; both were fixed before this successful rerun.
+- PASS `golangci-lint run --fix`, `golangci-lint run --build-tags e2e,integration`,
+  `go vet ./...`, and `go vet -tags e2e,integration ./...`.
+- PASS `go run ./cmd/cicd-lint lint-go`, `lint-fitness`, `lint-deployments` (52/52 validators),
+  `lint-text`, and `lint-docs`. `lint-text` first identified CRLF in
+  `k8s-chart-values-input.schema.json`; the exact file was normalized to UTF-8/LF and the full
+  text check then passed.
+- Pre-commit 4.6.2 is present in the clean Linux validator. Docker CLI is absent there, so
+  Docker-backed hook execution remains unverified; no hook bypass or commit has occurred.
+  Configured pre-commit hooks and coherent commits remain mandatory before the clean checkpoint.
+- No application image, cluster deployment, migration, persistence/rollback, workflow change,
+  Phase 3-7 work, push, or Phase 2 runtime acceptance is claimed.
+
+## Recovery rerun: repository-wide shuffled tests
+Started UTC: 2026-11-02T00:32:23.375038+00:00
+Command: go test ./... -shuffle=on
+?   	cryptoutil/api/identity-authz	[no test files]
+?   	cryptoutil/api/identity-idp	[no test files]
+?   	cryptoutil/api/identity-rp	[no test files]
+?   	cryptoutil/api/identity-rs	[no test files]
+?   	cryptoutil/api/identity-spa	[no test files]
+?   	cryptoutil/api/skeleton-template	[no test files]
+?   	cryptoutil/api/skeleton-template/client	[no test files]
+?   	cryptoutil/api/skeleton-template/models	[no test files]
+?   	cryptoutil/api/skeleton-template/server	[no test files]
+?   	cryptoutil/api/sm-kms	[no test files]
+?   	cryptoutil/api/sm-kms/client	[no test files]
+?   	cryptoutil/api/sm-kms/models	[no test files]
+?   	cryptoutil/api/sm-kms/pki	[no test files]
+?   	cryptoutil/api/sm-kms/pki/client	[no test files]
+?   	cryptoutil/api/sm-kms/pki/models	[no test files]
+?   	cryptoutil/api/sm-kms/pki/server	[no test files]
+?   	cryptoutil/api/sm-kms/server	[no test files]
+?   	cryptoutil/cmd/cicd-deployment	[no test files]
+?   	cryptoutil/cmd/cicd-dev-setup	[no test files]
+?   	cryptoutil/cmd/cicd-lint	[no test files]
+?   	cryptoutil/cmd/cicd-workflow	[no test files]
+?   	cryptoutil/cmd/cryptoutil	[no test files]
+?   	cryptoutil/cmd/identity	[no test files]
+?   	cryptoutil/cmd/identity-authz	[no test files]
+?   	cryptoutil/cmd/identity-idp	[no test files]
+?   	cryptoutil/cmd/identity-rp	[no test files]
+?   	cryptoutil/cmd/identity-rs	[no test files]
+?   	cryptoutil/cmd/identity-spa	[no test files]
+?   	cryptoutil/cmd/skeleton	[no test files]
+?   	cryptoutil/cmd/skeleton-template	[no test files]
+?   	cryptoutil/cmd/sm	[no test files]
+?   	cryptoutil/cmd/sm-kms	[no test files]
+ok  	cryptoutil/internal/apps/cryptoutil	0.050s
+ok  	cryptoutil/internal/apps/identity	0.066s
+ok  	cryptoutil/internal/apps/identity/apperr	0.012s
+ok  	cryptoutil/internal/apps/identity/config	0.042s
+ok  	cryptoutil/internal/apps/identity/domain	0.214s
+ok  	cryptoutil/internal/apps/identity/email	0.179s
+ok  	cryptoutil/internal/apps/identity/issuer	2.696s
+ok  	cryptoutil/internal/apps/identity/jobs	2.374s
+ok  	cryptoutil/internal/apps/identity/mfa	74.142s
+ok  	cryptoutil/internal/apps/identity/repository	1.055s
+ok  	cryptoutil/internal/apps/identity/repository/orm	1.708s
+ok  	cryptoutil/internal/apps/identity/rotation	2.773s
+ok  	cryptoutil/internal/apps/identity-authz	0.108s
+ok  	cryptoutil/internal/apps/identity-authz/client	0.023s
+ok  	cryptoutil/internal/apps/identity-authz/clientauth	7.987s
+ok  	cryptoutil/internal/apps/identity-authz/dpop	0.080s
+ok  	cryptoutil/internal/apps/identity-authz/e2e	1.014s
+ok  	cryptoutil/internal/apps/identity-authz/pkce	0.028s
+ok  	cryptoutil/internal/apps/identity-authz/server	1.965s
+ok  	cryptoutil/internal/apps/identity-authz/server/apis	61.241s
+ok  	cryptoutil/internal/apps/identity-authz/server/config	0.044s
+ok  	cryptoutil/internal/apps/identity-authz/server/model	0.012s
+ok  	cryptoutil/internal/apps/identity-authz/server/repository	0.080s
+ok  	cryptoutil/internal/apps/identity-authz/unified	0.149s
+ok  	cryptoutil/internal/apps/identity-idp	0.107s
+ok  	cryptoutil/internal/apps/identity-idp/auth	0.957s
+ok  	cryptoutil/internal/apps/identity-idp/client	0.028s
+ok  	cryptoutil/internal/apps/identity-idp/server	2.699s
+ok  	cryptoutil/internal/apps/identity-idp/server/apis	5.252s
+ok  	cryptoutil/internal/apps/identity-idp/server/config	0.066s
+ok  	cryptoutil/internal/apps/identity-idp/server/model	0.049s
+ok  	cryptoutil/internal/apps/identity-idp/server/repository	0.162s
+ok  	cryptoutil/internal/apps/identity-idp/unified	0.196s
+ok  	cryptoutil/internal/apps/identity-idp/userauth	10.112s
+ok  	cryptoutil/internal/apps/identity-idp/userauth/mocks	0.013s
+ok  	cryptoutil/internal/apps/identity-rp	0.133s
+ok  	cryptoutil/internal/apps/identity-rp/client	0.075s
+ok  	cryptoutil/internal/apps/identity-rp/server	2.373s
+ok  	cryptoutil/internal/apps/identity-rp/server/apis	0.027s
+ok  	cryptoutil/internal/apps/identity-rp/server/config	0.028s
+ok  	cryptoutil/internal/apps/identity-rp/server/model	0.016s
+ok  	cryptoutil/internal/apps/identity-rp/server/repository	0.056s
+ok  	cryptoutil/internal/apps/identity-rp/unified	0.089s
+ok  	cryptoutil/internal/apps/identity-rs	0.110s
+ok  	cryptoutil/internal/apps/identity-rs/client	0.082s
+ok  	cryptoutil/internal/apps/identity-rs/server	2.141s
+ok  	cryptoutil/internal/apps/identity-rs/server/apis	0.023s
+ok  	cryptoutil/internal/apps/identity-rs/server/config	0.055s
+ok  	cryptoutil/internal/apps/identity-rs/server/model	0.009s
+ok  	cryptoutil/internal/apps/identity-rs/server/repository	0.171s
+ok  	cryptoutil/internal/apps/identity-rs/unified	0.062s
+ok  	cryptoutil/internal/apps/identity-spa	0.106s
+ok  	cryptoutil/internal/apps/identity-spa/client	0.041s
+ok  	cryptoutil/internal/apps/identity-spa/server	1.953s
+ok  	cryptoutil/internal/apps/identity-spa/server/apis	0.033s
+ok  	cryptoutil/internal/apps/identity-spa/server/config	0.039s
+ok  	cryptoutil/internal/apps/identity-spa/server/model	0.014s
+ok  	cryptoutil/internal/apps/identity-spa/server/repository	0.088s
+ok  	cryptoutil/internal/apps/identity-spa/unified	0.214s
+ok  	cryptoutil/internal/apps/skeleton	0.160s
+ok  	cryptoutil/internal/apps/skeleton-template	0.121s
+ok  	cryptoutil/internal/apps/skeleton-template/client	0.042s
+ok  	cryptoutil/internal/apps/skeleton-template/server	1.651s
+ok  	cryptoutil/internal/apps/skeleton-template/server/apis	0.157s
+ok  	cryptoutil/internal/apps/skeleton-template/server/config	0.062s
+ok  	cryptoutil/internal/apps/skeleton-template/server/model	0.039s
+ok  	cryptoutil/internal/apps/skeleton-template/server/repository	0.197s
+ok  	cryptoutil/internal/apps/sm	0.101s
+ok  	cryptoutil/internal/apps/sm-kms	0.087s
+ok  	cryptoutil/internal/apps/sm-kms/client	0.437s
+ok  	cryptoutil/internal/apps/sm-kms/server	3.381s
+ok  	cryptoutil/internal/apps/sm-kms/server/businesslogic	3.299s
+ok  	cryptoutil/internal/apps/sm-kms/server/handler	0.141s
+ok  	cryptoutil/internal/apps/sm-kms/server/jwkservice	1.773s
+ok  	cryptoutil/internal/apps/sm-kms/server/model	0.024s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/api/handler	3.515s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/bootstrap	0.401s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/compliance	0.039s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/config	0.077s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/crypto	3.540s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/domain	0.016s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/domain-v2	0.029s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/intermediate	0.604s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/observability	0.078s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/profile/certificate	0.097s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/profile/subject	0.053s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/security	0.823s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/server	0.344s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/server/middleware	0.043s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/service/issuer	0.406s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/service/ra	0.604s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/service/revocation	0.033s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/service/timestamp	0.056s
+ok  	cryptoutil/internal/apps/sm-kms/server/pki/storage	0.653s
+ok  	cryptoutil/internal/apps/sm-kms/server/repository	0.190s
+ok  	cryptoutil/internal/apps/sm-kms/server/repository/orm	0.494s
+ok  	cryptoutil/internal/apps-framework/product/cli	0.043s
+ok  	cryptoutil/internal/apps-framework/service/cli	0.322s
+ok  	cryptoutil/internal/apps-framework/service/client	0.100s
+ok  	cryptoutil/internal/apps-framework/service/config	0.164s
+ok  	cryptoutil/internal/apps-framework/service/config/tls_generator	0.298s
+ok  	cryptoutil/internal/apps-framework/service/lifecycle	0.054s
+ok  	cryptoutil/internal/apps-framework/service/ratelimit	0.103s
+ok  	cryptoutil/internal/apps-framework/service/server	1.451s
+ok  	cryptoutil/internal/apps-framework/service/server/apis	1.647s
+ok  	cryptoutil/internal/apps-framework/service/server/application	28.270s
+ok  	cryptoutil/internal/apps-framework/service/server/barrier	0.952s
+ok  	cryptoutil/internal/apps-framework/service/server/barrier/unsealkeysservice	0.461s
+ok  	cryptoutil/internal/apps-framework/service/server/builder	21.134s
+ok  	cryptoutil/internal/apps-framework/service/server/businesslogic	13.370s
+ok  	cryptoutil/internal/apps-framework/service/server/domain	0.047s
+ok  	cryptoutil/internal/apps-framework/service/server/listener	19.797s
+ok  	cryptoutil/internal/apps-framework/service/server/middleware	0.104s
+ok  	cryptoutil/internal/apps-framework/service/server/realm	3.437s
+ok  	cryptoutil/internal/apps-framework/service/server/realms	2.629s
+ok  	cryptoutil/internal/apps-framework/service/server/repository	2.623s
+ok  	cryptoutil/internal/apps-framework/service/server/repository/orm	0.239s
+ok  	cryptoutil/internal/apps-framework/service/server/service	0.264s
+ok  	cryptoutil/internal/apps-framework/service/server/tenant	0.132s
+?   	cryptoutil/internal/apps-framework/service/server/testutil	[no test files]
+ok  	cryptoutil/internal/apps-framework/service/test_help_api	0.078s
+ok  	cryptoutil/internal/apps-framework/service/test_help_barrier	2.015s
+ok  	cryptoutil/internal/apps-framework/service/test_help_bootstrap	0.046s
+ok  	cryptoutil/internal/apps-framework/service/test_help_cli	0.035s
+ok  	cryptoutil/internal/apps-framework/service/test_help_db	0.131s
+ok  	cryptoutil/internal/apps-framework/service/test_help_tls	0.250s
+ok  	cryptoutil/internal/apps-framework/service/test_orch_integration	0.329s
+ok  	cryptoutil/internal/apps-framework/service/testing/assertions	0.049s
+?   	cryptoutil/internal/apps-framework/service/testing/e2e_helpers	[no test files]
+ok  	cryptoutil/internal/apps-framework/service/testing/e2e_infra	1.110s
+ok  	cryptoutil/internal/apps-framework/service/testing/fixtures	0.130s
+ok  	cryptoutil/internal/apps-framework/service/testing/healthclient	0.071s
+?   	cryptoutil/internal/apps-framework/service/testing/httpservertests	[no test files]
+ok  	cryptoutil/internal/apps-framework/service/testing/stubs	0.149s
+?   	cryptoutil/internal/apps-framework/service/testing/testcli	[no test files]
+ok  	cryptoutil/internal/apps-framework/service/testing/testserver	0.221s
+?   	cryptoutil/internal/apps-framework/service/testutil	[no test files]
+ok  	cryptoutil/internal/apps-framework/service/usage	0.020s
+ok  	cryptoutil/internal/apps-framework/suite/cli	0.047s
+ok  	cryptoutil/internal/apps-framework/tls	2.816s
+ok  	cryptoutil/internal/apps-tools/cicd_deployment	0.115s
+ok  	cryptoutil/internal/apps-tools/cicd_dev_setup	0.111s
+ok  	cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/checker	0.045s
+ok  	cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/cmdsplit	0.050s
+ok  	cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/config	0.042s
+ok  	cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/installer	0.102s
+ok  	cryptoutil/internal/apps-tools/cicd_dev_setup/pkg/reporter	0.024s
+ok  	cryptoutil/internal/apps-tools/cicd_lint	298.124s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/cmd	17.006s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/common	0.158s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/docs_validation	1.025s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_go	0.677s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_go/copyloopvar	0.554s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_go/enforce_any	0.595s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_go/enforce_time_now_utc	0.492s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_gotest	0.406s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_gotest/failures	0.179s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_gotest/parallel	0.169s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_gotest/thelper	0.143s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/format_text	0.048s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/github_cleanup	0.059s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_compose	0.106s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_compose/admin_port_exposure	0.082s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_compose/common	0.038s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_compose/docker_secrets	0.056s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_deployments	19.854s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs	2.722s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/check_chunk_verification	0.090s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_agent_drift	0.081s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_agent_self_containment	0.074s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_architecture_links	0.259s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_catalog_files	0.434s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_catalog_propagation	0.102s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_doc_file_encoding	0.438s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/lint_skill_command_drift	0.292s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/propagation_coverage	0.148s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/validate_chunks	0.224s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/validate_coverage	0.405s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_docs/validate_propagation	0.224s
+-test.shuffle 1793579662968961425
+[CICD] start=2026-11-02T00:34:22.977139699Z operation=test-lint-fitness
+[CICD] dur=137.75µs now=2026-11-02T00:34:22.977277449Z: Running architecture fitness functions...
+[CICD] dur=173.367µs now=2026-11-02T00:34:22.977313066Z: Running fitness linter: cgo-free-sqlite
+[CICD] dur=183.633µs now=2026-11-02T00:34:22.977323332Z: Checking CGO-free SQLite compliance
+[CICD] dur=36.090742001s now=2026-11-02T00:34:59.0678817Z: ✅ CGO-free validation passed
+[CICD] dur=36.090791801s now=2026-11-02T00:34:59.0679315Z: Running fitness linter: circular-deps
+[CICD] dur=36.090794156s now=2026-11-02T00:34:59.067933855Z: Checking for circular package dependencies...
+[CICD] dur=36.099944219s now=2026-11-02T00:34:59.077083918Z: Cache expired (age: 7232.1s > 3600s)
+[CICD] dur=36.099968789s now=2026-11-02T00:34:59.077108488Z: Running: go list -json ./...
+[CICD] dur=3m10.287025786s now=2026-11-02T00:37:33.264165485Z circular-deps: ✅ RESULT: No circular dependencies found
+[CICD] dur=3m10.287065986s now=2026-11-02T00:37:33.264205685Z circular-deps: All internal package dependencies are acyclic.
+[CICD] dur=3m10.287068756s now=2026-11-02T00:37:33.264208455Z: Circular dependency check completed (no circular dependencies)
+[CICD] dur=3m10.287072658s now=2026-11-02T00:37:33.264212357Z: Running fitness linter: cmd-main-pattern
+[CICD] dur=3m10.458282245s now=2026-11-02T00:37:33.435421944Z: Running fitness linter: insecure-skip-verify
+[CICD] dur=3m10.458308928s now=2026-11-02T00:37:33.435448627Z: Checking for InsecureSkipVerify usage...
+[CICD] dur=3m38.274118182s now=2026-11-02T00:38:01.251257881Z: ✅ InsecureSkipVerify validation passed
+[CICD] dur=3m38.274154105s now=2026-11-02T00:38:01.251293804Z: Running fitness linter: migration-numbering
+[CICD] dur=3m41.79633978s now=2026-11-02T00:38:04.773479479Z: migration-numbering: all migration files pass naming validation
+[CICD] dur=3m41.796384536s now=2026-11-02T00:38:04.773524235Z: Running fitness linter: product-structure
+[CICD] dur=3m41.812719094s now=2026-11-02T00:38:04.789858793Z: product-structure: all products pass structural validation
+[CICD] dur=3m41.812752014s now=2026-11-02T00:38:04.789891713Z: Running fitness linter: product-wiring
+[CICD] dur=3m41.829318824s now=2026-11-02T00:38:04.806458523Z: product-wiring: all cmd/ entry points present
+[CICD] dur=3m41.829411464s now=2026-11-02T00:38:04.806551163Z: Running fitness linter: service-structure
+[CICD] dur=3m41.877535985s now=2026-11-02T00:38:04.854675684Z: service-structure: all services pass structural validation
+[CICD] dur=3m41.87758676s now=2026-11-02T00:38:04.854726459Z: Running fitness linter: bind-address-safety
+[CICD] dur=3m52.721952335s now=2026-11-02T00:38:15.699092034Z: Enforcing bind address safety in test files...
+[CICD] dur=3m52.722505298s now=2026-11-02T00:38:15.699644997Z: Found 5223 test files to check
+[CICD] dur=4m16.935706301s now=2026-11-02T00:38:39.912846Z bind-address-safety: ✅ All test files use safe bind addresses (127.0.0.1)
+[CICD] dur=4m16.935736222s now=2026-11-02T00:38:39.912875921Z: Bind address safety check completed
+[CICD] dur=4m16.935741504s now=2026-11-02T00:38:39.912881203Z: Running fitness linter: no-hardcoded-passwords
+[CICD] dur=4m26.312164687s now=2026-11-02T00:38:49.289304386Z: Enforcing no hardcoded passwords in tests...
+[CICD] dur=4m26.313922962s now=2026-11-02T00:38:49.291062661Z: Found 4604 test files to check for hardcoded passwords
+[CICD] dur=4m44.597997329s now=2026-11-02T00:39:07.575137028Z no-hardcoded-passwords: ✅ No hardcoded passwords found in tests
+[CICD] dur=4m44.598035517s now=2026-11-02T00:39:07.575175216Z: Hardcoded password enforcement completed
+[CICD] dur=4m44.598040297s now=2026-11-02T00:39:07.575179996Z: Running fitness linter: parallel-tests
+[CICD] dur=4m54.81763413s now=2026-11-02T00:39:17.794773829Z: Enforcing t.Parallel() in tests...
+[CICD] dur=4m54.819391227s now=2026-11-02T00:39:17.796530926Z: Found 4604 test files to check for t.Parallel()
+[CICD] dur=5m18.151521677s now=2026-11-02T00:39:41.128661376Z parallel-tests: ✅ All test functions use t.Parallel()
+[CICD] dur=5m18.151590348s now=2026-11-02T00:39:41.128730047Z: t.Parallel() enforcement completed
+[CICD] dur=5m18.151602852s now=2026-11-02T00:39:41.128742551Z: Running fitness linter: test-patterns
+[CICD] dur=5m28.145553022s now=2026-11-02T00:39:51.122692721Z: Enforcing Go test patterns...
+[CICD] dur=5m28.147344834s now=2026-11-02T00:39:51.124484533Z: Found 5260 test files to check
+[CICD] dur=5m45.48472932s now=2026-11-02T00:40:08.461869019Z test-patterns: ✅ All test files follow established patterns
+[CICD] dur=5m45.484759133s now=2026-11-02T00:40:08.461898832Z: Test pattern enforcement completed
+[CICD] dur=5m45.484762588s now=2026-11-02T00:40:08.461902287Z: Running fitness linter: check-skeleton-placeholders
+[CICD] dur=5m45.484764032s now=2026-11-02T00:40:08.461903731Z: Checking for unreplaced skeleton placeholders in non-skeleton Go source files...
+[CICD] dur=5m49.021746239s now=2026-11-02T00:40:11.998885938Z: ✅ Skeleton placeholder check passed — no unreplaced placeholders found
+[CICD] dur=5m49.021788467s now=2026-11-02T00:40:11.998928166Z: Running fitness linter: cross-service-import-isolation
+[CICD] dur=5m49.021791039s now=2026-11-02T00:40:11.998930738Z: Checking cross-service import isolation...
+[CICD] dur=5m54.326079281s now=2026-11-02T00:40:17.30321898Z: Cross-service import isolation check passed
+[CICD] dur=5m54.326115512s now=2026-11-02T00:40:17.303255211Z: Running fitness linter: domain-layer-isolation
+[CICD] dur=5m54.326117846s now=2026-11-02T00:40:17.303257545Z: Checking domain layer isolation...
+[CICD] dur=6m4.457959201s now=2026-11-02T00:40:27.4350989Z: Domain layer isolation check passed
+[CICD] dur=6m4.458016085s now=2026-11-02T00:40:27.435155784Z: Running fitness linter: file-size-limits
+[CICD] dur=6m4.458018388s now=2026-11-02T00:40:27.435158087Z: Checking file size limits...
+WARN:  internal/apps/identity/issuer/jws.go (494 lines, 300 soft max)
+WARN:  internal/apps/identity/issuer/key_rotation.go (485 lines, 300 soft max)
+WARN:  internal/apps/identity/repository/interfaces.go (328 lines, 300 soft max)
+WARN:  internal/apps/identity-authz/clientauth/jwt_validator.go (335 lines, 300 soft max)
+WARN:  internal/apps/identity-authz/server/admin.go (361 lines, 300 soft max)
+WARN:  internal/apps/identity-authz/server/apis/handlers_mfa_admin.go (319 lines, 300 soft max)
+WARN:  internal/apps/identity-authz/server/apis/handlers_token.go (433 lines, 300 soft max)
+WARN:  internal/apps/identity-authz/server/apis/handlers_totp.go (385 lines, 300 soft max)
+WARN:  internal/apps/identity-authz/server/apis/handlers_webauthn.go (489 lines, 300 soft max)
+WARN:  internal/apps/identity-idp/server/admin.go (362 lines, 300 soft max)
+WARN:  internal/apps/identity-idp/userauth/context_analyzer.go (315 lines, 300 soft max)
+WARN:  internal/apps/identity-idp/userauth/rate_limiter.go (330 lines, 300 soft max)
+WARN:  internal/apps/identity-idp/userauth/risk_engine.go (440 lines, 300 soft max)
+WARN:  internal/apps/identity-idp/userauth/step_up_auth.go (396 lines, 300 soft max)
+WARN:  internal/apps/identity-idp/userauth/totp_hotp_auth.go (420 lines, 300 soft max)
+WARN:  internal/apps/identity-idp/userauth/webauthn_authenticator.go (334 lines, 300 soft max)
+WARN:  internal/apps/identity-rs/server/admin.go (344 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/businesslogic/businesslogic.go (429 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/businesslogic/businesslogic_crypto.go (433 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/businesslogic/oam_orm_mapper_query.go (332 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/handler/oam_oas_mapper.go (404 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/jwkservice/elastic_jwk_service.go (301 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/jwkservice/jwt_service.go (407 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/jwkservice/material_rotation_service.go (312 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/bootstrap/bootstrap.go (325 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/compliance/compliance.go (418 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/compliance/compliance_checker.go (339 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/intermediate/intermediate.go (375 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/observability/observability.go (342 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/profile/certificate/certificate.go (396 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/profile/subject/subject.go (460 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/security/security.go (471 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/security/security_threat_model.go (361 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/server/pki_authority_config.go (378 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/server/pki_components.go (482 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/service/issuer/issuer.go (433 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/service/ra/ra.go (370 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/service/ra/ra_workflow.go (316 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/service/revocation/revocation.go (346 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/service/timestamp/timestamp.go (314 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/service/timestamp/timestamp_tsa.go (396 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/storage/gorm_store.go (475 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/pki/storage/storage.go (478 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/repository/orm/business_entities_operations.go (317 lines, 300 soft max)
+WARN:  internal/apps/sm-kms/server/server.go (379 lines, 300 soft max)
+WARN:  internal/apps-framework/service/config/config.go (335 lines, 300 soft max)
+WARN:  internal/apps-framework/service/config/config_helpers.go (399 lines, 300 soft max)
+WARN:  internal/apps-framework/service/config/config_parse.go (456 lines, 300 soft max)
+WARN:  internal/apps-framework/service/config/config_settings_b.go (402 lines, 300 soft max)
+WARN:  internal/apps-framework/service/config/config_test_util.go (417 lines, 300 soft max)
+WARN:  internal/apps-framework/service/config/tls_generator/tls_generator.go (387 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/application/application_core_db.go (354 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/application/application_tls.go (309 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/application.go (321 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/barrier/rotation_service.go (310 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/builder/server_builder_build.go (479 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/businesslogic/session_manager.go (438 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/businesslogic/session_manager_jws.go (314 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/businesslogic/session_manager_session.go (430 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/listener/admin.go (500 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/listener/application_listener.go (356 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/listener/public.go (417 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/realm/authenticator.go (396 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/realm/db_realm.go (341 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/realm/federation.go (414 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/realm/tenant.go (326 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/realms/handlers.go (370 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/repository/user_repository.go (327 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/service/realm_service.go (352 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/service/realm_service_impl.go (388 lines, 300 soft max)
+WARN:  internal/apps-framework/service/server/tenant/tenant.go (341 lines, 300 soft max)
+WARN:  internal/apps-framework/service/test_help_db/database.go (466 lines, 300 soft max)
+WARN:  internal/apps-framework/service/test_orch_integration/test_orch_integration.go (393 lines, 300 soft max)
+WARN:  internal/apps-framework/service/testing/e2e_infra/compose_manager.go (484 lines, 300 soft max)
+WARN:  internal/apps-framework/tls/generator.go (459 lines, 300 soft max)
+WARN:  internal/apps-framework/tls/generator_publish.go (495 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/cicd.go (409 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/docs_validation/catalog_files.go (434 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/docs_validation/validate_chunks.go (411 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/docs_validation/validate_coverage.go (311 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/docs_validation/validate_propagation.go (470 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/format_gotest/failures/failures.go (415 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_deployments/validate_all.go (428 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_deployments/validate_compose_includes.go (329 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_deployments/validate_compose_security.go (337 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_deployments/validate_deployments.go (326 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_deployments/validate_schema.go (493 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_deployments/validate_secrets.go (370 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_deployments/validate_structure.go (305 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template.go (392 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template/apps_ps_id_template_service_template.go (383 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/config_rules/config_rules.go (460 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/dockerfile_labels/dockerfile_labels.go (322 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/if_else_chain/if_else_chain.go (444 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/migration_range_compliance/migration_range_compliance.go (334 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/pki_profile_schema/pki_ca_profile_schema.go (393 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/registry/derivations.go (357 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/registry/loader.go (385 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/template_drift/template_drift_params.go (369 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_fitness/test_file_suffix_structure/test_file_suffix_structure.go (342 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_go/magic_usage/magic_usage.go (304 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_go_mod/outdated_deps/outdated_deps.go (323 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_lint/lint_workflow/github_actions/github_actions.go (314 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_workflow/workflow.go (390 lines, 300 soft max)
+WARN:  internal/apps-tools/cicd_workflow/workflow_executor.go (462 lines, 300 soft max)
+WARN:  internal/apps-tools/deploymentgen/bootstrap.go (369 lines, 300 soft max)
+WARN:  internal/apps-tools/deploymentgen/chart_values.go (446 lines, 300 soft max)
+WARN:  internal/apps-tools/deploymentgen/cli.go (316 lines, 300 soft max)
+WARN:  internal/apps-tools/deploymentgen/graph.go (426 lines, 300 soft max)
+WARN:  internal/shared/apperr/http_status_line_and_code.go (313 lines, 300 soft max)
+WARN:  internal/shared/crypto/certificate/certificates.go (499 lines, 300 soft max)
+WARN:  internal/shared/crypto/jose/elastic_key_algorithm.go (362 lines, 300 soft max)
+WARN:  internal/shared/crypto/jose/jwe_jwk_util.go (382 lines, 300 soft max)
+WARN:  internal/shared/crypto/jose/jwk_util.go (352 lines, 300 soft max)
+WARN:  internal/shared/crypto/jose/jwk_util_validate.go (428 lines, 300 soft max)
+WARN:  internal/shared/crypto/jose/jws_jwk_util.go (336 lines, 300 soft max)
+WARN:  internal/shared/crypto/tls/chain.go (346 lines, 300 soft max)
+WARN:  internal/shared/pool/pool.go (496 lines, 300 soft max)
+WARN:  internal/shared/pwdgen/pwdgen.go (346 lines, 300 soft max)
+WARN:  internal/shared/telemetry/telemetry_service.go (472 lines, 300 soft max)
+[CICD] dur=6m15.55195931s now=2026-11-02T00:40:38.529099009Z: File size limits check passed
+[CICD] dur=6m15.55196654s now=2026-11-02T00:40:38.529106239Z: Running fitness linter: health-endpoint-presence
+[CICD] dur=6m15.551967918s now=2026-11-02T00:40:38.529107617Z: Checking health endpoint presence in services...
+[CICD] dur=6m15.616302404s now=2026-11-02T00:40:38.593442103Z: Health endpoint presence check passed
+[CICD] dur=6m15.616333722s now=2026-11-02T00:40:38.593473421Z: Running fitness linter: tls-minimum-version
+[CICD] dur=6m15.616335934s now=2026-11-02T00:40:38.593475633Z: Checking TLS minimum version requirements...
+[CICD] dur=6m28.059027897s now=2026-11-02T00:40:51.036167596Z: TLS minimum version check passed
+[CICD] dur=6m28.059061401s now=2026-11-02T00:40:51.0362011Z: Running fitness linter: admin-bind-address
+[CICD] dur=6m28.059063348s now=2026-11-02T00:40:51.036203047Z: Checking admin bind address (must be 127.0.0.1, not 0.0.0.0)...
+[CICD] dur=6m39.25134037s now=2026-11-02T00:41:02.228480069Z: Admin bind address check passed
+[CICD] dur=6m39.251377884s now=2026-11-02T00:41:02.228517583Z: Running fitness linter: service-contract-compliance
+[CICD] dur=6m39.251380317s now=2026-11-02T00:41:02.228520016Z: Checking service contract compliance (compile-time assertions)...
+[CICD] dur=6m39.331505646s now=2026-11-02T00:41:02.308645345Z: Service contract compliance check passed
+[CICD] dur=6m39.331549006s now=2026-11-02T00:41:02.308688705Z: Running fitness linter: migration-range-compliance
+[CICD] dur=6m39.331551431s now=2026-11-02T00:41:02.30869113Z: Checking migration range compliance...
+[CICD] dur=6m40.296256142s now=2026-11-02T00:41:03.273395841Z: Migration range compliance check passed
+[CICD] dur=6m40.296287439s now=2026-11-02T00:41:03.273427138Z: Running fitness linter: no-local-closed-db-helper
+[CICD] dur=6m40.296289652s now=2026-11-02T00:41:03.273429351Z: Checking for local createClosedDatabase-style helpers outside test_help_db package...
+[CICD] dur=7m5.110236562s now=2026-11-02T00:41:28.087376261Z: ✅ No local closed-DB helpers found
+[CICD] dur=7m5.110294876s now=2026-11-02T00:41:28.087434575Z: Running fitness linter: no-postgres-in-non-e2e
+[CICD] dur=7m5.110298366s now=2026-11-02T00:41:28.087438065Z: Checking for PostgreSQL containers in non-E2E tests...
+[CICD] dur=7m27.834958954s now=2026-11-02T00:41:50.812098653Z: ✅ No PostgreSQL containers found in non-E2E tests
+[CICD] dur=7m27.834995513s now=2026-11-02T00:41:50.812135212Z: Running fitness linter: no-unit-test-real-db
+[CICD] dur=7m27.834997658s now=2026-11-02T00:41:50.812137357Z: Checking for unit tests creating real database containers...
+[CICD] dur=7m50.527880844s now=2026-11-02T00:42:13.505020543Z: ✅ No real database containers found in unit tests
+[CICD] dur=7m50.527922496s now=2026-11-02T00:42:13.505062195Z: Running fitness linter: no-unit-test-real-server
+[CICD] dur=7m50.527925044s now=2026-11-02T00:42:13.505064743Z: Checking for unit tests starting real HTTP servers...
+[CICD] dur=8m15.703625972s now=2026-11-02T00:42:38.680765671Z: ✅ No real server starts found in unit tests
+[CICD] dur=8m15.703662181s now=2026-11-02T00:42:38.68080188Z: Running fitness linter: gen-config-initialisms
+[CICD] dur=8m15.819617984s now=2026-11-02T00:42:38.796757683Z: gen-config-initialisms: all server gen configs contain the base initialisms list
+[CICD] dur=8m15.819651985s now=2026-11-02T00:42:38.796791684Z: Running fitness linter: require-api-dir
+[CICD] dur=8m15.819654427s now=2026-11-02T00:42:38.796794126Z: Checking api/ directory presence for registered services...
+[CICD] dur=8m15.830115464s now=2026-11-02T00:42:38.807255163Z: require-api-dir: all services have required api/ directories
+[CICD] dur=8m15.830167585s now=2026-11-02T00:42:38.807307284Z: Running fitness linter: require-framework-naming
+[CICD] dur=8m15.830169488s now=2026-11-02T00:42:38.807309187Z: Checking for banned internal/apps/template/ imports...
+panic: test timed out after 10m0s
+	running tests:
+		TestLint_Integration (10m0s)
+
+goroutine 22 [running]:
+testing.(*M).startAlarm.func1()
+	/usr/local/go/src/testing/testing.go:2961 +0x34a
+created by time.goFunc
+	/usr/local/go/src/time/sleep.go:182 +0x2d
+
+goroutine 1 [chan receive, 9 minutes]:
+testing.(*T).Run(0x213eda934908, {0x751633?, 0x213eda893aa0?}, 0xa7c6f0)
+	/usr/local/go/src/testing/testing.go:2268 +0x4f2
+testing.runTests.func1(0x213eda934908)
+	/usr/local/go/src/testing/testing.go:2744 +0x37
+testing.tRunner(0x213eda934908, 0x213eda893bc8)
+	/usr/local/go/src/testing/testing.go:2195 +0xea
+testing.runTests({0x74c143, 0xa}, {0x7651c7, 0x35}, 0x213eda8bc4b0, {0xad3a48, 0x4, 0x4}, {0xc2b21519b9c1f610, 0x8bb3adfa94, ...})
+	/usr/local/go/src/testing/testing.go:2742 +0x510
+testing.(*M).Run(0x213eda971680)
+	/usr/local/go/src/testing/testing.go:2602 +0x6af
+main.main()
+	_testmain.go:52 +0x9b
+
+goroutine 21 [syscall]:
+syscall.Syscall6(0x106, 0xffffffffffffff9c, 0x213edab52d90, 0x213edab54518, 0x100, 0x0, 0x0)
+	/usr/local/go/src/syscall/syscall_linux.go:96 +0x39
+syscall.fstatat(0xffffffffffffff9c, {0x213edab52d20?, 0x6f?}, 0x213edab54518, 0x100)
+	/usr/local/go/src/syscall/zsyscall_linux_amd64.go:1437 +0x96
+syscall.Lstat(...)
+	/usr/local/go/src/syscall/syscall_linux_amd64.go:71
+os.lstatNolog.func1(...)
+	/usr/local/go/src/os/stat_unix.go:45
+os.ignoringEINTR(...)
+	/usr/local/go/src/os/file_posix.go:263
+os.lstatNolog({0x213edab52d20, 0x6f})
+	/usr/local/go/src/os/stat_unix.go:44 +0x55
+os.Lstat({0x213edab52d20, 0x6f})
+	/usr/local/go/src/os/stat.go:26 +0x2c
+path/filepath.walk({0x213edab0e960, 0x2c}, {0xa7c0c8, 0x213edab4e340}, 0x213eda800500)
+	/usr/local/go/src/path/filepath/path.go:364 +0x19b
+path/filepath.walk({0x213edad4e480, 0x29}, {0xa7c0c8, 0x213edad5e5b0}, 0x213eda800500)
+	/usr/local/go/src/path/filepath/path.go:370 +0x245
+path/filepath.walk({0x213edacc28c0, 0x1a}, {0xa7c0c8, 0x213edacf6680}, 0x213eda800500)
+	/usr/local/go/src/path/filepath/path.go:370 +0x245
+path/filepath.walk({0x213edabfe1d0, 0xb}, {0xa7c0c8, 0x213edaaa04e0}, 0x213eda800500)
+	/usr/local/go/src/path/filepath/path.go:370 +0x245
+path/filepath.walk({0x772da8, 0x1}, {0xa7c0c8, 0x213eda9cca90}, 0x213eda800500)
+	/usr/local/go/src/path/filepath/path.go:370 +0x245
+path/filepath.Walk({0x772da8, 0x1}, 0x213eda800500)
+	/usr/local/go/src/path/filepath/path.go:428 +0x66
+cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/require_framework_naming.checkInDir(0x213eda97b200, {0x772da8, 0x1}, 0xa7d260)
+	/primary/internal/apps-tools/cicd_lint/lint_fitness/require_framework_naming/require_framework_naming.go:50 +0xc2
+cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/require_framework_naming.CheckInDir(...)
+	/primary/internal/apps-tools/cicd_lint/lint_fitness/require_framework_naming/require_framework_naming.go:42
+cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/require_framework_naming.Check(0x213eda97b200?)
+	/primary/internal/apps-tools/cicd_lint/lint_fitness/require_framework_naming/require_framework_naming.go:37 +0x26
+cryptoutil/internal/apps-tools/cicd_lint/lint_fitness.Lint(0x213eda97b200)
+	/primary/internal/apps-tools/cicd_lint/lint_fitness/lint_fitness.go:245 +0x12d
+cryptoutil/internal/apps-tools/cicd_lint/lint_fitness.TestLint_Integration(0x213eda934b48)
+	/primary/internal/apps-tools/cicd_lint/lint_fitness/lint_fitness_test.go:104 +0x13a
+testing.tRunner(0x213eda934b48, 0xa7c6f0)
+	/usr/local/go/src/testing/testing.go:2195 +0xea
+created by testing.(*T).Run in goroutine 1
+	/usr/local/go/src/testing/testing.go:2260 +0x4d4
+FAIL	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness	600.040s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/admin_bind_address	29.046s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/api_path_registry	0.244s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_product_no_service_dirs	0.144s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_product_template	0.067s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_required_files	0.112s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_server_package	0.122s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_swagger_presence	0.145s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_template	1.506s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_ps_id_test_patterns	0.287s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/apps_suite_template	0.102s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/archive_detector	24.380s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/banned_product_names	15.072s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/bind_address_safety	74.625s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cgo_free_sqlite	45.582s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/check_skeleton_placeholders	0.082s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cicd_coverage	0.050s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/circular_deps	324.386s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_anti_pattern	0.075s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_entry_whitelist	0.074s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_main_pattern	0.264s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_product_template	0.068s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_ps_id_template	0.160s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cmd_suite_template	0.062s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_db_naming	0.076s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_entrypoint_uniformity	0.145s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_header_format	0.193s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_port_formula	0.204s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_service_names	0.103s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/compose_tier_override_integrity	0.026s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/config_overlay_freshness	0.810s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/config_rules	0.633s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/configs_deployments_consistency	0.103s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/configs_empty_dir	0.197s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/configs_naming	0.061s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/cross_service_import_isolation	11.959s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/database_key_uniformity	0.638s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/deployment_dir_completeness	0.747s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/dockerfile_healthcheck	0.202s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/dockerfile_labels	0.120s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/domain_layer_isolation	27.872s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/duplicate_ps_id_test_func_names	0.022s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/entity_registry_completeness	0.170s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/entity_registry_schema	0.076s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/file_size_limits	30.482s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/fitness_registry_completeness	0.047s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/gen_config_initialisms	0.434s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/health_endpoint_presence	0.206s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/health_path_completeness	0.169s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/if_else_chain	0.039s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/import_alias_formula	0.046s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/infra_tool_naming	0.048s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/insecure_skip_verify	53.083s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/legacy_dir_detection	0.044s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/magic_constant_location	229.788s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/magic_e2e_compose_path	0.092s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/magic_e2e_container_names	0.085s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/migration_comment_headers	9.456s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/migration_numbering	9.275s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/migration_range_compliance	1.888s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/no_hardcoded_passwords	61.710s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/no_local_closed_db_helper	67.343s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/no_local_ps_id_server_stubs	0.018s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/no_postgres_in_non_e2e	60.872s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/no_unit_test_real_db	136.018s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/no_unit_test_real_server	139.637s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/otlp_service_name_pattern	0.788s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/parallel_tests	74.426s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/pki_profile_schema	0.336s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/precommit_cicd_architecture	0.019s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/product_structure	0.090s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/product_wiring	0.116s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/registry	0.053s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/require_api_dir	0.071s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/require_framework_naming	224.586s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/root_junk_detection	0.018s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/secret_content	2.102s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/secret_naming	0.235s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/secrets_compliance	0.764s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/service_contract_compliance	0.135s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/service_structure	0.138s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/standalone_config_otlp_names	0.050s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/standalone_config_presence	0.059s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/subcommand_completeness	0.081s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/template_consistency	0.047s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/template_drift	8.028s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/test_file_suffix_structure	82.468s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/test_patterns	75.854s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/testmain_e2e_policy	0.021s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/testmain_integration_tag_policy	0.015s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/testmain_orchestration_policy	0.044s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/tls_minimum_version	40.794s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_fitness/unseal_secret_content	0.446s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go	384.474s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/common	0.015s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/function_var_redeclaration	0.040s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/leftover_coverage	0.025s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/magic_aliases	54.924s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/magic_duplicates	55.562s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/magic_usage	0.020s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/no_unaliased_cryptoutil_imports	0.043s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/source_header_policy	0.039s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go/test_presence	4.962s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go_mod	0.031s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_go_mod/outdated_deps	0.034s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_golangci	0.014s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_golangci/golangci_config	0.028s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_gotest	0.012s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_gotest/common	0.010s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_gotest/lint_gotest_hardcoded_uuid	0.023s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_gotest/lint_gotest_real_http_server	0.022s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_gotest/lint_gotest_test_sleep	0.024s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_gotest/require_over_assert	0.024s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_javatest	0.016s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_openapi	0.014s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_openapi/codegen_config	0.019s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_openapi/openapi_version	0.021s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_ports	0.017s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_ports/common	0.018s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_ports/health_paths	0.020s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_ports/host_port_ranges	0.018s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_ports/legacy_ports	0.018s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_pythontest	0.014s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_text	0.012s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_text/utf8	0.021s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_workflow	0.021s
+ok  	cryptoutil/internal/apps-tools/cicd_lint/lint_workflow/github_actions	0.035s
+ok  	cryptoutil/internal/apps-tools/cicd_workflow	0.042s
+ok  	cryptoutil/internal/apps-tools/deploymentgen	1.808s
+ok  	cryptoutil/internal/shared/apperr	0.026s
+ok  	cryptoutil/internal/shared/container	0.037s
+ok  	cryptoutil/internal/shared/crypto/asn1	0.167s
+ok  	cryptoutil/internal/shared/crypto/certificate	1.075s
+ok  	cryptoutil/internal/shared/crypto/digests	0.435s
+ok  	cryptoutil/internal/shared/crypto/hash	0.410s
+ok  	cryptoutil/internal/shared/crypto/jose	13.068s
+ok  	cryptoutil/internal/shared/crypto/keygen	7.126s
+ok  	cryptoutil/internal/shared/crypto/keygenpooltest	0.716s
+ok  	cryptoutil/internal/shared/crypto/password	2.004s
+ok  	cryptoutil/internal/shared/crypto/pbkdf2	2.820s
+ok  	cryptoutil/internal/shared/crypto/tls	0.071s
+ok  	cryptoutil/internal/shared/crypto/tls/hsm	0.015s
+ok  	cryptoutil/internal/shared/database	0.051s
+ok  	cryptoutil/internal/shared/dbtypes	0.009s
+ok  	cryptoutil/internal/shared/magic	0.019s
+ok  	cryptoutil/internal/shared/pool	0.723s
+ok  	cryptoutil/internal/shared/pwdgen	0.014s
+ok  	cryptoutil/internal/shared/telemetry	13.555s
+ok  	cryptoutil/internal/shared/testutil	0.022s
+ok  	cryptoutil/internal/shared/util	0.011s
+ok  	cryptoutil/internal/shared/util/cache	0.013s
+ok  	cryptoutil/internal/shared/util/combinations	0.014s
+ok  	cryptoutil/internal/shared/util/datetime	0.013s
+ok  	cryptoutil/internal/shared/util/files	0.028s
+ok  	cryptoutil/internal/shared/util/network	0.065s
+ok  	cryptoutil/internal/shared/util/poll	0.072s
+ok  	cryptoutil/internal/shared/util/random	0.022s
+ok  	cryptoutil/internal/shared/util/sysinfo	0.018s
+ok  	cryptoutil/internal/shared/util/thread	0.013s
+FAIL
+Ended UTC: 2026-11-02T00:44:23.133924+00:00
+Exit code: 1

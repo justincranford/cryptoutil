@@ -157,10 +157,10 @@ func TestOtelServerTLS_GRPC(t *testing.T) {
 	clientCert := cryptoutilTestOrchE2E.LoadClientCert(t, tlsPSIDSpec.OTelClientCertPath, tlsPSIDSpec.OTelClientKeyPath)
 
 	tlsCfg := &tls.Config{
-		MinVersion:         tls.VersionTLS13,
-		RootCAs:            caPool,
-		Certificates:       []tls.Certificate{clientCert},
-		InsecureSkipVerify: true, //nolint:gosec // E2E test intentionally skips verify to inspect server cert CN via PeerCertificates
+		MinVersion:   tls.VersionTLS13,
+		RootCAs:      caPool,
+		ServerName:   cryptoutilSharedMagic.IME2EOtelCollectorContainer,
+		Certificates: []tls.Certificate{clientCert},
 	}
 
 	addr := fmt.Sprintf("127.0.0.1:%d", tlsPSIDSpec.OTelGRPCPort)
@@ -189,10 +189,10 @@ func TestOtelServerTLS_HTTP(t *testing.T) {
 	clientCert := cryptoutilTestOrchE2E.LoadClientCert(t, tlsPSIDSpec.OTelClientCertPath, tlsPSIDSpec.OTelClientKeyPath)
 
 	tlsCfg := &tls.Config{
-		MinVersion:         tls.VersionTLS13,
-		RootCAs:            caPool,
-		Certificates:       []tls.Certificate{clientCert},
-		InsecureSkipVerify: true, //nolint:gosec // E2E test intentionally skips verify to inspect server cert CN via response
+		MinVersion:   tls.VersionTLS13,
+		RootCAs:      caPool,
+		ServerName:   cryptoutilSharedMagic.IME2EOtelCollectorContainer,
+		Certificates: []tls.Certificate{clientCert},
 	}
 
 	transport := &http.Transport{
@@ -236,9 +236,9 @@ func TestOtelMTLS_Rejection(t *testing.T) {
 
 	// No client cert — OTel must reject this connection.
 	tlsCfg := &tls.Config{
-		MinVersion:         tls.VersionTLS13,
-		RootCAs:            caPool,
-		InsecureSkipVerify: true, //nolint:gosec // E2E test intentionally skips verify to test mTLS rejection behavior
+		MinVersion: tls.VersionTLS13,
+		RootCAs:    caPool,
+		ServerName: cryptoutilSharedMagic.IME2EOtelCollectorContainer,
 		// Deliberately NO Certificates — tests Cat 8 client CA enforcement.
 	}
 

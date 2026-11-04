@@ -7,55 +7,25 @@ package apis
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	cryptoutilSkeletonTemplateServer "cryptoutil/api/skeleton-template/server"
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilAppsSkeletonTemplateServerModel "cryptoutil/internal/apps/skeleton-template/server/model"
 	cryptoutilAppsSkeletonTemplateServerRepository "cryptoutil/internal/apps/skeleton-template/server/repository"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 )
 
-// newHandlerTestDB creates a per-test in-memory SQLite DB with migrations applied.
-// Uses MaxOpenConns=1 so all queries share the same connection (required for
-// in-memory SQLite with cache=private mode).
+// newHandlerTestDB creates a uniquely named in-memory SQLite DB with migrations applied.
 func newHandlerTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
-
-	rawDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = rawDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = rawDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	// MaxOpenConns=1 forces all GORM operations to share a single connection,
-	// which is required for in-memory SQLite with cache=private so that all
-	// queries see the same in-memory database (the one where AutoMigrate ran).
-	rawDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	rawDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	rawDB.SetConnMaxLifetime(0)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: rawDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 	require.NoError(t, db.AutoMigrate(&cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{}))
-
-	t.Cleanup(func() { _ = rawDB.Close() })
 
 	return db
 }
@@ -65,25 +35,8 @@ func newHandlerTestDB(t *testing.T) *gorm.DB {
 func newHandlerNoTableDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
-
-	rawDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = rawDB.Close() })
-
-	rawDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	rawDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	rawDB.SetConnMaxLifetime(0)
-
 	// No AutoMigrate — template_items table does not exist.
-	db, err := gorm.Open(sqlite.Dialector{Conn: rawDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	return db
+	return cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 }
 
 func newHandlerTestServer(t *testing.T) *StrictServer {

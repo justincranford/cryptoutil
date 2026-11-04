@@ -1,4 +1,15 @@
 {
+  "bootstrap": {
+    "agentNodes": 2,
+    "apiHost": "127.0.0.1",
+    "apiPort": 6445,
+    "apiServiceIP": "10.43.0.1",
+    "gatewayHost": "127.0.0.1",
+    "gatewayPort": 8443,
+    "podCIDR": "10.42.0.0/16",
+    "serverNodes": 1,
+    "serviceCIDR": "10.43.0.0/16"
+  },
   "clusterDomain": "cluster.local",
   "infrastructure": {
     "collector": 2,
@@ -48,5 +59,5 @@
   },
   "revision": "r1",
   "run": "review",
-  "version": 1
+  "version": 2
 }

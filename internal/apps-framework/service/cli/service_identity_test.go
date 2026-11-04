@@ -85,7 +85,6 @@ func TestNewServiceIdentity_ServerFn(t *testing.T) {
 		{
 			name:            "starts server with settings bind addresses",
 			wantExitCode:    0,
-			wantReady:       true,
 			wantPublicURL:   "https://127.0.0.1:8443",
 			wantParseCalls:  1,
 			wantServerCalls: 1,

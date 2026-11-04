@@ -26,11 +26,58 @@ func TestIsKebabCase(t *testing.T) {
 		{"hello-", false},
 		{"hello--world", false},
 	}
+
 	for _, tc := range tests {
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 
 			require.Equal(t, tc.want, isKebabCase(tc.input))
+		})
+	}
+}
+
+func TestIsHelmChartMetadata(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		relativePath string
+		fileName     string
+		want         bool
+	}{
+		{
+			name:         "required Helm manifest",
+			relativePath: "k8s/charts/cryptoutil-runtime/Chart.yaml",
+			fileName:     helmChartMetadataFileName,
+			want:         true,
+		},
+		{
+			name:         "not chart metadata filename",
+			relativePath: "k8s/charts/cryptoutil-runtime/values.yaml",
+			fileName:     "values.yaml",
+		},
+		{
+			name:         "outside Kubernetes chart root",
+			relativePath: "k8s/Chart.yaml",
+			fileName:     helmChartMetadataFileName,
+		},
+		{
+			name:         "nested chart file",
+			relativePath: "k8s/charts/cryptoutil-runtime/templates/Chart.yaml",
+			fileName:     helmChartMetadataFileName,
+		},
+		{
+			name:         "non kebab chart directory",
+			relativePath: "k8s/charts/CryptoUtil/Chart.yaml",
+			fileName:     helmChartMetadataFileName,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, test.want, isHelmChartMetadata(test.relativePath, test.fileName))
 		})
 	}
 }

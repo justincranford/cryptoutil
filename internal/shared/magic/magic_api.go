@@ -7,6 +7,8 @@ package magic
 import "time"
 
 const (
+	// ReadinessStartupTimeout bounds initial dependency recovery without relaxing probe deadlines.
+	ReadinessStartupTimeout = 30 * time.Second
 	// FiberAppIDRequestAttribute - Fiber app ID request attribute key.
 	FiberAppIDRequestAttribute = "fiberAppID"
 
@@ -42,6 +44,8 @@ const (
 	DefaultBrowserHealthEndpoint = "/browser/api/v1/health"
 	// DefaultAdminLivezEndpoint is the admin liveness endpoint.
 	DefaultAdminLivezEndpoint = DefaultPrivateAdminAPIContextPath + PrivateAdminLivezRequestPath
+	// DefaultAdminStartupzEndpoint is the complete admin startup-probe path.
+	DefaultAdminStartupzEndpoint = DefaultPrivateAdminAPIContextPath + PrivateAdminStartupzRequestPath
 
 	// DatabaseHealthCheckTimeout - Database health check timeout.
 	DatabaseHealthCheckTimeout = 5 * time.Second

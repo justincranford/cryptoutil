@@ -109,7 +109,7 @@ func GetExpectedDeploymentsContents() map[string]string {
 // Secret filenames use hyphens without deployment-name prefixes.
 // Browser/service credentials use .secret.never markers (NEVER real secrets at suite/product level).
 func addSuiteProductSecrets(contents *map[string]string, dirName string) {
-	prefix := dirName + "/secrets/"
+	prefix := dirName + cryptoutilSharedMagic.DeploymentSecretsDirectoryPathSegment
 
 	(*contents)[prefix+"hash-pepper-v3.secret"] = RequiredFileStatus
 	(*contents)[prefix+"unseal-1of5.secret"] = RequiredFileStatus
@@ -135,7 +135,7 @@ func addProductServiceFiles(contents *map[string]string, serviceName string) {
 	(*contents)[serviceName+"/Dockerfile"] = RequiredFileStatus
 
 	// Required secrets.
-	prefix := serviceName + "/secrets/"
+	prefix := serviceName + cryptoutilSharedMagic.DeploymentSecretsDirectoryPathSegment
 
 	(*contents)[prefix+"hash-pepper-v3.secret"] = RequiredFileStatus
 	(*contents)[prefix+"unseal-1of5.secret"] = RequiredFileStatus

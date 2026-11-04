@@ -7,49 +7,23 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilAppsSkeletonTemplateServerModel "cryptoutil/internal/apps/skeleton-template/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-// newRepoTestDB opens a per-test in-memory SQLite DB and runs AutoMigrate.
-// MaxOpenConns=1 ensures all GORM operations share the same single connection,
-// which is required when using cache=private so that AutoMigrate tables are
-// visible to subsequent queries.
+// newRepoTestDB creates a uniquely named in-memory SQLite DB and runs AutoMigrate.
 func newRepoTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
-
-	rawDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = rawDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = rawDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	rawDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	rawDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	rawDB.SetConnMaxLifetime(0)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: rawDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 	require.NoError(t, db.AutoMigrate(&cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{}))
-
-	t.Cleanup(func() { _ = rawDB.Close() })
 
 	return db
 }
@@ -59,24 +33,7 @@ func newRepoTestDB(t *testing.T) *gorm.DB {
 func newRepoBrokenDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
-
-	rawDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	rawDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	rawDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	rawDB.SetConnMaxLifetime(0)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: rawDB}, &gorm.Config{SkipDefaultTransaction: true})
-	require.NoError(t, err)
-
-	t.Cleanup(func() { _ = rawDB.Close() })
-
-	return db
+	return cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 }
 
 func TestNewItemRepository(t *testing.T) {

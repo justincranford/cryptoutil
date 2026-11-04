@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net"
 	"testing"
+	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
@@ -91,6 +92,32 @@ func TestPublicServerBase_Shutdown_AppError(t *testing.T) {
 	err = base.Shutdown(context.Background())
 
 	require.ErrorContains(t, err, "injected Fiber shutdown failure")
+}
+
+func TestPublicServerBase_ShutdownAllowsHandlerStateReads(t *testing.T) {
+	t.Parallel()
+
+	base, err := NewPublicServerBase(&PublicServerConfig{
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+		TLSMaterial: &cryptoutilAppsFrameworkServiceConfig.TLSMaterial{},
+	})
+	require.NoError(t, err)
+
+	base.appShutdownFn = func(*fiber.App) error {
+		_ = base.ActualPort()
+
+		return nil
+	}
+
+	result := make(chan error, 1)
+	go func() { result <- base.Shutdown(t.Context()) }()
+
+	select {
+	case err := <-result:
+		require.NoError(t, err)
+	case <-time.After(time.Second):
+		t.Fatal("shutdown must not hold the state lock while draining handlers")
+	}
 }
 
 func TestApplication_TLSRootCAPoolAccessors(t *testing.T) {

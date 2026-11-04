@@ -5,59 +5,32 @@ package barrier_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps-framework/service/server/barrier"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // createIsolatedDB creates an isolated in-memory SQLite database for repository tests.
-func createIsolatedDB(t *testing.T) (*gorm.DB, func()) {
+func createIsolatedDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbUUID, err := googleUuid.NewV7()
+	db := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
+	sqlDB, err := db.DB()
 	require.NoError(t, err)
-
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbUUID.String())
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	ctx := context.Background()
-
-	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
 	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
-	sqlDB.SetConnMaxLifetime(0) // In-memory: never close connections.
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
 
 	// Create barrier tables.
-	err = createBarrierTables(sqlDB)
-	require.NoError(t, err)
+	require.NoError(t, createBarrierTables(sqlDB))
 
-	cleanup := func() {
-		if closeErr := sqlDB.Close(); closeErr != nil {
-			panic("failed to close SQL DB: " + closeErr.Error())
-		}
-	}
-
-	return db, cleanup
+	return db
 }
 
 // TestGormRepository_RootKey_Lifecycle tests complete root key lifecycle.
@@ -67,8 +40,7 @@ func TestGormRepository_RootKey_Lifecycle(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -169,8 +141,7 @@ func TestGormRepository_IntermediateKey_Lifecycle(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -269,8 +240,7 @@ func TestGormRepository_ContentKey_Lifecycle(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
@@ -360,8 +330,7 @@ func TestGormRepository_Transaction_Rollback(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated database for this test.
-	db, cleanup := createIsolatedDB(t)
-	defer cleanup()
+	db := createIsolatedDB(t)
 
 	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)

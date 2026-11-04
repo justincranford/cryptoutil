@@ -90,6 +90,110 @@ func TestFix_AddsTHelperToSetupFunc(t *testing.T) {
 	require.Contains(t, string(resultBytes), "t.Helper()")
 }
 
+func TestFix_SkipsRepositoryScanExcludedDirectories(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+	}{
+		{name: "git", dirName: cryptoutilSharedMagic.CICDExcludeDirGit},
+		{name: "hidden worktree container", dirName: cryptoutilSharedMagic.CICDExcludeDirDotWorktree},
+		{name: "worktree container", dirName: cryptoutilSharedMagic.CICDExcludeDirWorktree},
+		{name: cryptoutilSharedMagic.CICDExcludeDirVendor, dirName: cryptoutilSharedMagic.CICDExcludeDirVendor},
+		{name: cryptoutilSharedMagic.CICDExcludeDirTestOutput, dirName: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: "Python virtual environment", dirName: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies", dirName: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports", dirName: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			realFile := filepath.Join(rootDir, "real_test.go")
+			excludedFile := filepath.Join(rootDir, "nested", tc.dirName, "nested", "excluded_test.go")
+
+			for _, path := range []string{realFile, excludedFile} {
+				require.NoError(t, os.MkdirAll(filepath.Dir(path), cryptoutilSharedMagic.DirPermissions))
+				require.NoError(t, os.WriteFile(path, []byte(testContentSetupMissingHelper), cryptoutilSharedMagic.CacheFilePermissions))
+			}
+
+			excludedOriginal, err := os.ReadFile(excludedFile)
+			require.NoError(t, err)
+
+			processed, modified, fixed, err := Fix(cryptoutilCmdCicdCommon.NewLogger(t.Name()), rootDir)
+
+			require.NoError(t, err)
+			require.Equal(t, 1, processed)
+			require.Equal(t, 1, modified)
+			require.Equal(t, 1, fixed)
+
+			realResult, err := os.ReadFile(realFile)
+			require.NoError(t, err)
+			require.Contains(t, string(realResult), "t.Helper()")
+
+			excludedResult, err := os.ReadFile(excludedFile)
+			require.NoError(t, err)
+			require.Equal(t, excludedOriginal, excludedResult)
+		})
+	}
+}
+
+func TestFix_PreservesNestedCheckoutContents(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		markerIsDir bool
+	}{
+		{name: "git marker file"},
+		{name: "git marker directory", markerIsDir: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootDir := t.TempDir()
+			checkoutDir := filepath.Join(rootDir, "ordinary-named-checkout")
+			realFile := filepath.Join(rootDir, "real_test.go")
+			checkoutFile := filepath.Join(checkoutDir, "excluded_test.go")
+			require.NoError(t, os.MkdirAll(checkoutDir, cryptoutilSharedMagic.DirPermissions))
+
+			gitMarkerPath := filepath.Join(checkoutDir, cryptoutilSharedMagic.CICDExcludeDirGit)
+			if tc.markerIsDir {
+				require.NoError(t, os.Mkdir(gitMarkerPath, cryptoutilSharedMagic.DirPermissions))
+			} else {
+				require.NoError(t, os.WriteFile(gitMarkerPath, []byte("gitdir: ../.git/worktrees/ordinary-named-checkout"), cryptoutilSharedMagic.CacheFilePermissions))
+			}
+
+			for _, path := range []string{realFile, checkoutFile} {
+				require.NoError(t, os.WriteFile(path, []byte(testContentSetupMissingHelper), cryptoutilSharedMagic.CacheFilePermissions))
+			}
+
+			checkoutOriginal, err := os.ReadFile(checkoutFile)
+			require.NoError(t, err)
+
+			processed, modified, fixed, err := Fix(cryptoutilCmdCicdCommon.NewLogger(t.Name()), rootDir)
+
+			require.NoError(t, err)
+			require.Equal(t, 1, processed)
+			require.Equal(t, 1, modified)
+			require.Equal(t, 1, fixed)
+
+			realResult, err := os.ReadFile(realFile)
+			require.NoError(t, err)
+			require.Contains(t, string(realResult), "t.Helper()")
+
+			checkoutResult, err := os.ReadFile(checkoutFile)
+			require.NoError(t, err)
+			require.Equal(t, checkoutOriginal, checkoutResult)
+		})
+	}
+}
+
 func TestFix_AlreadyHasTHelper(t *testing.T) {
 	t.Parallel()
 

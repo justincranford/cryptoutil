@@ -47,7 +47,13 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn f
 
 		if info.IsDir() {
 			relDir, _ := filepath.Rel(rootDir, path)
-			if lintGoCommon.MagicShouldSkipPath(relDir) {
+
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary %s: %w", path, skipErr)
+			}
+
+			if shouldSkip || lintGoCommon.MagicShouldSkipPath(relDir) {
 				return filepath.SkipDir
 			}
 

@@ -9,13 +9,13 @@ package require_framework_naming
 import (
 	"bufio"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -39,22 +39,29 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir validates that no Go file under rootDir imports the banned path.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
-	return checkInDir(logger, rootDir, filepath.Walk)
+	return checkInDir(logger, rootDir, filepath.WalkDir)
 }
 
-func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error) error {
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, fs.WalkDirFunc) error) error {
 	logger.Log("Checking for banned internal/apps/template/ imports...")
 
 	var violations []string
 
-	err := walkFn(rootDir, func(path string, info os.FileInfo, err error) error {
+	err := walkFn(rootDir, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if info.IsDir() {
-			name := info.Name()
-			if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || strings.HasPrefix(name, "_") {
+		if entry.IsDir() {
+			name := entry.Name()
+
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip ||
+				strings.HasPrefix(name, "_") {
 				return filepath.SkipDir
 			}
 
@@ -93,7 +100,7 @@ func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn f
 
 // checkFile scans a single Go file for banned imports.
 func checkFile(filePath string) ([]string, error) {
-	f, err := os.Open(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
+	f, err := os.Open(filePath) //nolint:gosec // filePath from filepath.WalkDir, controlled
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", filePath, err)
 	}

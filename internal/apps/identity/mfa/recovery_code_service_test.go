@@ -3,16 +3,14 @@ package mfa_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
@@ -25,18 +23,10 @@ import (
 func createTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Use modernc.org/sqlite driver (CGO-free).
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file::memory:?cache=private")
-	require.NoError(t, err)
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 
 	// Auto-migrate schema.
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.RecoveryCode{})
-	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&cryptoutilIdentityDomain.RecoveryCode{}))
 
 	return db
 }

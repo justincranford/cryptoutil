@@ -38,6 +38,8 @@ func (authzServerErrorPathAdminServer) Shutdown(context.Context) error {
 	return nil
 }
 
+func (authzServerErrorPathAdminServer) SetReady(bool) {}
+
 func TestAuthzServer_NewFromConfigBuildFailure(t *testing.T) {
 	t.Parallel()
 

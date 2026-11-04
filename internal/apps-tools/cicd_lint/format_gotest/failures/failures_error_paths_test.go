@@ -381,7 +381,7 @@ func TestExample(t *testing.T) {
 func TestEnsureImportAs_ErrorAndAliasCollision(t *testing.T) {
 	t.Parallel()
 
-	_, err := ensureImportAs([]byte("package {"), "example.org/target", "target")
+	_, err := ensureImportAs([]byte("package {"), "example.org/target", cryptoutilSharedMagic.CICDExcludeDirTarget)
 	require.ErrorContains(t, err, "failed to parse file while adding import")
 
 	content := []byte("package example\nimport assert \"example.org/other\"\n")
@@ -396,7 +396,7 @@ func TestEnsureImportAs_InlineImportBlock(t *testing.T) {
 	content := []byte(`package example
 import ("testing")
 `)
-	updated, err := ensureImportAs(content, "example.org/target", "target")
+	updated, err := ensureImportAs(content, "example.org/target", cryptoutilSharedMagic.CICDExcludeDirTarget)
 	require.NoError(t, err)
 	require.Contains(t, string(updated), "import (\"testing\"\n\t\"example.org/target\"\n)")
 

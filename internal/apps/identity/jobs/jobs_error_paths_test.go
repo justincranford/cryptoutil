@@ -6,8 +6,6 @@ package jobs
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"log/slog"
 	"os"
 	"testing"
@@ -17,10 +15,10 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
@@ -33,26 +31,8 @@ const (
 func createRawMemoryDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dbID := googleUuid.Must(googleUuid.NewV7())
-	dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
-
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	dialector := sqlite.Dialector{Conn: sqlDB}
-
-	db, err := gorm.Open(dialector, &gorm.Config{
-		Logger:                 logger.Default.LogMode(logger.Silent),
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) //nolint:mnd // SQLite GORM transaction pattern requires 5 connections.
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) //nolint:mnd // SQLite GORM transaction pattern requires 5 connections.
-
-	t.Cleanup(func() {
-		_ = sqlDB.Close() //nolint:errcheck // Test cleanup, error not critical.
-	})
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+	db.Logger = logger.Default.LogMode(logger.Silent)
 
 	return db
 }

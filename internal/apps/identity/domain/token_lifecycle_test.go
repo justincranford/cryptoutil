@@ -2,10 +2,7 @@
 package domain_test
 
 import (
-	"context"
-	"database/sql"
 	json "encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -13,12 +10,9 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
-
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
@@ -26,8 +20,6 @@ import (
 // Satisfies R05-06: Token expiration enforcement.
 func TestTokenExpirationEnforcement(t *testing.T) {
 	t.Parallel()
-
-	ctx := context.Background()
 
 	tests := []struct {
 		name         string
@@ -92,42 +84,9 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Create unique in-memory database per test.
-			dbID, err := googleUuid.NewV7()
-			require.NoError(t, err)
-
-			dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
-
-			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-			require.NoError(t, err)
-
-			// Apply PRAGMA settings
-			_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-			require.NoError(t, err)
-
-			_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-			require.NoError(t, err)
-
-			dialector := sqlite.Dialector{Conn: sqlDB}
-
-			db, err := gorm.Open(dialector, &gorm.Config{
-				Logger:                 logger.Default.LogMode(logger.Silent),
-				SkipDefaultTransaction: true,
-			})
-			require.NoError(t, err)
-
-			gormDB, err := db.DB()
-			require.NoError(t, err)
-
-			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-
-			err = db.AutoMigrate(&cryptoutilIdentityDomain.Token{})
-			require.NoError(t, err)
-
-			t.Cleanup(func() {
-				_ = sqlDB.Close() //nolint:errcheck // Test cleanup
-			})
+			db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+			db.Logger = logger.Default.LogMode(logger.Silent)
+			require.NoError(t, db.AutoMigrate(&cryptoutilIdentityDomain.Token{}))
 
 			// Create test token with specified expiration time.
 			tokenID, err := googleUuid.NewV7()
@@ -176,8 +135,6 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 // Satisfies R05-04: Token revocation endpoint.
 func TestTokenRevocationEnforcement(t *testing.T) {
 	t.Parallel()
-
-	ctx := context.Background()
 
 	tests := []struct {
 		name            string
@@ -235,40 +192,9 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 			t.Parallel()
 
 			// Create unique in-memory database per test.
-			dbID, err := googleUuid.NewV7()
-			require.NoError(t, err)
-
-			dsn := fmt.Sprintf(cryptoutilSharedMagic.SQLiteInMemoryNamedDSNFormat, dbID.String())
-
-			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-			require.NoError(t, err)
-
-			_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-			require.NoError(t, err)
-
-			_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-			require.NoError(t, err)
-
-			dialector := sqlite.Dialector{Conn: sqlDB}
-
-			db, err := gorm.Open(dialector, &gorm.Config{
-				Logger:                 logger.Default.LogMode(logger.Silent),
-				SkipDefaultTransaction: true,
-			})
-			require.NoError(t, err)
-
-			gormDB, err := db.DB()
-			require.NoError(t, err)
-
-			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
-
-			err = db.AutoMigrate(&cryptoutilIdentityDomain.Token{})
-			require.NoError(t, err)
-
-			t.Cleanup(func() {
-				_ = sqlDB.Close() //nolint:errcheck // Test cleanup
-			})
+			db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
+			db.Logger = logger.Default.LogMode(logger.Silent)
+			require.NoError(t, db.AutoMigrate(&cryptoutilIdentityDomain.Token{}))
 
 			// Create test token with revocation status.
 			tokenID, err := googleUuid.NewV7()

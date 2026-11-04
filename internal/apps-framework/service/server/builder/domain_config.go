@@ -12,6 +12,7 @@ import (
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps-framework/service/config"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps-framework/service/server"
+	cryptoutilAppsFrameworkServiceServerReadiness "cryptoutil/internal/apps-framework/service/server/readiness"
 )
 
 // DomainConfig contains domain-specific configuration for a service.
@@ -31,6 +32,9 @@ type DomainConfig struct {
 	// Receives initialized PublicServerBase and ServiceResources.
 	// nil is valid (skeleton services with no domain routes).
 	RouteRegistration func(*cryptoutilAppsFrameworkServiceServer.PublicServerBase, *ServiceResources) error
+
+	// ReadinessChecks adds service-specific required dependency observations.
+	ReadinessChecks []cryptoutilAppsFrameworkServiceServerReadiness.Check
 }
 
 // Build constructs a complete service infrastructure using the domain config.
@@ -61,6 +65,8 @@ func Build(
 		if domain.RouteRegistration != nil {
 			b.WithPublicRouteRegistration(domain.RouteRegistration)
 		}
+
+		b.readinessChecks = append([]cryptoutilAppsFrameworkServiceServerReadiness.Check(nil), domain.ReadinessChecks...)
 	}
 
 	resources, err := b.Build()

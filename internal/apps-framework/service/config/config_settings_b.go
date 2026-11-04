@@ -259,6 +259,13 @@ var (
 		Usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
 		Description: "OTLP Endpoint",
 	})
+	otlpHealthEndpoint = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
+		Name:        "otlp-health-endpoint",
+		Shorthand:   "",
+		Value:       "",
+		Usage:       "HTTPS mTLS receiver health endpoint; required when OTLP is enabled and must return HTTP 200 only while accepting telemetry",
+		Description: "OTLP Receiver Health Endpoint",
+	})
 	otlpTLSCertFile = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "otlp-tls-cert-file",
 		Shorthand:   "",

@@ -5,42 +5,24 @@
 package domain_test
 
 import (
-	"database/sql"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	cryptoutilTestHelpDB "cryptoutil/internal/apps-framework/service/test_help_db"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
+
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
-
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
 func TestNullableUUID_SQLiteIntegration(t *testing.T) {
 	t.Parallel()
 
-	// Open in-memory SQLite database using modernc.org/sqlite (CGO-free).
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
-	require.NoError(t, err)
-
-	defer func() {
-		if closeErr := sqlDB.Close(); closeErr != nil {
-			t.Logf("Failed to close test database: %v", closeErr)
-		}
-	}()
-
-	// Wrap with GORM.
-
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
+	db := cryptoutilTestHelpDB.NewInMemorySQLiteDB(t)
 
 	// AutoMigrate to create table.
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.Client{})
+	err := db.AutoMigrate(&cryptoutilIdentityDomain.Client{})
 	require.NoError(t, err)
 
 	// Create client with nil ClientProfileID.

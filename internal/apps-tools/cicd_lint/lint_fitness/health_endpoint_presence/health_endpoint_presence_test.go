@@ -142,14 +142,39 @@ func TestCheckServiceHealth_PatternsFoundInSubdir(t *testing.T) {
 		[]byte("package sm\n// sets up livez and readyz\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	svc := serviceID{product: cryptoutilSharedMagic.SMProductName, service: "im"}
-	violations := checkServiceHealth(svc, filepath.Join(tmp, "internal", "apps"), os.ReadFile)
+	violations, err := checkServiceHealth(svc, filepath.Join(tmp, "internal", "apps"), os.ReadFile)
+	require.NoError(t, err)
 	require.Empty(t, violations)
+}
+
+func TestCheckServiceHealth_SkipsNestedCheckout(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	svcDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SMProductName, "im")
+	require.NoError(t, os.MkdirAll(svcDir, cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(svcDir, "server.go"),
+		[]byte("package sm\n// registers livez\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	nestedCheckout := filepath.Join(svcDir, "foreign")
+	require.NoError(t, os.MkdirAll(nestedCheckout, cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(nestedCheckout, cryptoutilSharedMagic.CICDExcludeDirGit), []byte("gitdir: elsewhere"),
+		cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(nestedCheckout, "routes.go"),
+		[]byte("package foreign\n// registers readyz\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	svc := serviceID{product: cryptoutilSharedMagic.SMProductName, service: "im"}
+	violations, err := checkServiceHealth(svc, filepath.Join(tmp, "internal", "apps"), os.ReadFile)
+	require.NoError(t, err)
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], `"readyz"`)
 }
 
 func TestCheckServiceHealth_MissingDirectory(t *testing.T) {
 	t.Parallel()
 
-	violations := checkServiceHealth(serviceID{product: cryptoutilSharedMagic.SMProductName, service: "missing"}, t.TempDir(), os.ReadFile)
+	violations, err := checkServiceHealth(serviceID{product: cryptoutilSharedMagic.SMProductName, service: "missing"}, t.TempDir(), os.ReadFile)
+	require.NoError(t, err)
 	require.Len(t, violations, 2)
 	require.Contains(t, violations[0], "missing health pattern")
 	require.Contains(t, violations[1], "missing health pattern")
@@ -208,11 +233,8 @@ func TestCheckServiceHealth_ReadFileError(t *testing.T) {
 	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, func(_ string) ([]byte, error) {
 		return nil, fmt.Errorf("injected read error")
 	})
-	// ReadFile errors inside Walk are returned by WalkFunc, but Walk result
-	// is discarded (_ = filepath.Walk(...)), so patterns simply aren't found
-	// and the function reports missing-health-pattern violations instead.
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "health endpoint presence violations")
+	require.ErrorContains(t, err, "failed to inspect health endpoints")
+	require.ErrorContains(t, err, "injected read error")
 }
 
 func findProjectRoot() (string, error) {

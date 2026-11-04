@@ -86,7 +86,7 @@ func TestRunWithWorkflowsDir_DryRun(t *testing.T) {
 
 	tempDir := t.TempDir()
 	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
-	outputDir := filepath.Join(tempDir, "output")
+	outputDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirOutput)
 
 	result := runWithWorkflowsDir([]string{
 		workflowTestArgWorkflowsMock,
@@ -103,7 +103,7 @@ func TestRunWithWorkflowsDir_DryRun_DastWorkflow(t *testing.T) {
 
 	tempDir := t.TempDir()
 	wfDir := makeWorkflowsDir(t, cryptoutilSharedMagic.WorkflowNameDAST)
-	outputDir := filepath.Join(tempDir, "output")
+	outputDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirOutput)
 
 	result := runWithWorkflowsDir([]string{
 		"-workflows=dast",
@@ -120,7 +120,7 @@ func TestRunWithWorkflowsDir_DryRun_WithActArgs(t *testing.T) {
 
 	tempDir := t.TempDir()
 	wfDir := makeWorkflowsDir(t, workflowTestNameQuality)
-	outputDir := filepath.Join(tempDir, "output")
+	outputDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirOutput)
 
 	result := runWithWorkflowsDir([]string{
 		"-workflows=quality",
@@ -138,7 +138,7 @@ func TestRunWithWorkflowsDir_NonDryRun_UsesInjectedCommand(t *testing.T) {
 
 	tempDir := t.TempDir()
 	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
-	outputDir := filepath.Join(tempDir, "output")
+	outputDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirOutput)
 
 	dependencies := newWorkflowDependencies()
 	dependencies.commandContextFn = func(ctx context.Context, _ string, _ ...string) *exec.Cmd {
@@ -159,7 +159,7 @@ func TestRunWithWorkflowsDir_NonDryRun_ActNotFound(t *testing.T) {
 
 	tempDir := t.TempDir()
 	wfDir := makeWorkflowsDir(t, workflowTestNameMock)
-	outputDir := filepath.Join(tempDir, "output")
+	outputDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirOutput)
 
 	result := runWithWorkflowsDir([]string{
 		workflowTestArgWorkflowsMock,

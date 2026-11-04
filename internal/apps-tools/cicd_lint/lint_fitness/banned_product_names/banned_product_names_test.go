@@ -129,6 +129,9 @@ func TestCheckInDir_SkipsExcludedDirs(t *testing.T) {
 		{name: "vendor dir skipped", subDir: cryptoutilSharedMagic.CICDExcludeDirVendor},
 		{name: "docs dir skipped", subDir: cryptoutilSharedMagic.CICDExcludeDirDocs},
 		{name: "test-output dir skipped", subDir: cryptoutilSharedMagic.CICDExcludeDirTestOutput},
+		{name: "Python virtual environment skipped", subDir: cryptoutilSharedMagic.CICDExcludeDirVenv},
+		{name: "Node.js dependencies skipped", subDir: cryptoutilSharedMagic.CICDExcludeDirNodeModules},
+		{name: "workflow reports skipped", subDir: cryptoutilSharedMagic.CICDExcludeDirWorkflowReports},
 		{name: "banned_product_names dir skipped", subDir: cryptoutilSharedMagic.CICDExcludeDirBannedProductNamesCheck},
 	}
 

@@ -29,19 +29,16 @@ var bannedPhrases = []string{
 // scannedExtensions lists the file extensions checked for banned phrases.
 var scannedExtensions = []string{".go", ".yml", ".yaml", ".sql", ".md"}
 
-// excludedDirs is the list of directory names that are skipped during scanning.
+// excludedDirs lists checker-specific directories that are skipped during scanning.
 // Planning docs (docs/) may reference banned phrases when documenting the migration;
 // this directory is excluded to avoid false positives.
 // The banned_product_names/ directory itself defines the banned phrase constants
-// and is excluded to prevent self-referential false positives.
-// The test-output/ directory contains historical session artifacts and is excluded.
+// and is excluded to prevent self-referential false positives. Common machine-owned
+// directories are excluded by IsRepositoryScanExcludedDir.
 // The .github/ directory contains instruction and skill files that document what
 // is banned; this directory is excluded to avoid false positives.
 var excludedDirs = []string{
-	cryptoutilSharedMagic.CICDExcludeDirGit,
-	cryptoutilSharedMagic.CICDExcludeDirVendor,
 	cryptoutilSharedMagic.CICDExcludeDirDocs,
-	cryptoutilSharedMagic.CICDExcludeDirTestOutput,
 	cryptoutilSharedMagic.CICDExcludeDirBannedProductNamesCheck,
 	cryptoutilSharedMagic.CICDExcludeDirGithubInstructions,
 }
@@ -89,6 +86,15 @@ func FindViolationsInDir(rootDir string) ([]Violation, error) {
 		}
 
 		if d.IsDir() {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
+				return filepath.SkipDir
+			}
+
 			for _, excluded := range excludedDirs {
 				if d.Name() == excluded {
 					return filepath.SkipDir

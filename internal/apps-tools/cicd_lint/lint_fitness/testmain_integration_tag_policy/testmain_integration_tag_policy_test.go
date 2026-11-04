@@ -228,8 +228,15 @@ func TestFindViolations_SkipsGitAndVendorDirs(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(gitDir, "testmain_test.go"), []byte(taggedTestMain), cryptoutilSharedMagic.FilePermissionsDefault))
 	require.NoError(t, os.WriteFile(filepath.Join(vendorDir, "testmain_test.go"), []byte(taggedTestMain), cryptoutilSharedMagic.FilePermissionsDefault))
 
+	// A nested checkout with an ordinary directory name must also be skipped.
+	nestedCheckoutDir := makeInternalDir(t, dir, "apps/sm-kms/nested-checkout")
+	require.NoError(t, os.WriteFile(filepath.Join(nestedCheckoutDir, cryptoutilSharedMagic.CICDExcludeDirGit),
+		[]byte("gitdir: elsewhere"), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(filepath.Join(nestedCheckoutDir, "testmain_test.go"),
+		[]byte(taggedTestMain), cryptoutilSharedMagic.FilePermissionsDefault))
+
 	violations, err := lintFitnessTestmainIntegrationTagPolicy.FindViolations(dir)
 
 	require.NoError(t, err)
-	require.Empty(t, violations, "testmain files in .git and vendor should be skipped")
+	require.Empty(t, violations, "testmain files in excluded directories and nested checkouts should be skipped")
 }

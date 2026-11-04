@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -105,8 +104,12 @@ func findViolationsWithReader(rootDir string, readFileFn readFileFunc) ([]Violat
 		}
 
 		if d.IsDir() {
-			// Skip hidden and vendor directories.
-			if d.Name() == cryptoutilSharedMagic.CICDExcludeDirGit || d.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(internalDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary: %w", skipErr)
+			}
+
+			if shouldSkip {
 				return filepath.SkipDir
 			}
 

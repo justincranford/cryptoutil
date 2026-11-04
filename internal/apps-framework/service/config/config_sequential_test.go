@@ -71,6 +71,7 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	require.Equal(t, otlpEnvironment.Value, s.OTLPEnvironment)
 	require.Equal(t, otlpHostname.Value, s.OTLPHostname)
 	require.Equal(t, otlpEndpoint.Value, s.OTLPEndpoint)
+	require.Equal(t, otlpHealthEndpoint.Value, s.OTLPHealthEndpoint)
 	require.Equal(t, unsealMode.Value, s.UnsealMode)
 	unsealFilesSlice, ok := unsealFiles.Value.([]string)
 	require.True(t, ok, "unsealFiles.value should be []string")
@@ -133,6 +134,10 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--otlp-environment=development",
 		"--otlp-hostname=example.com",
 		"--otlp-endpoint=grpc://example.com:4317",
+		"--otlp-health-endpoint=https://example.com:13133/health",
+		"--otlp-tls-ca-file=/secrets/otlp-ca.pem",
+		"--otlp-tls-cert-file=/secrets/otlp-client.pem",
+		"--otlp-tls-key-file=/secrets/otlp-client-key.pem",
 		"--server-admin-tls-client-policy=require-and-verify",
 		"--server-public-tls-client-policy=verify-if-given",
 		"--unseal-mode=2-of-3",

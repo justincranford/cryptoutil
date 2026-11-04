@@ -21,26 +21,18 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps-framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerDomain "cryptoutil/internal/apps-framework/service/server/domain"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps-framework/service/server/repository"
-
-	// Use modernc SQLite driver (CGO-free).
-	_ "modernc.org/sqlite"
+	cryptoutilAppsFrameworkTestDB "cryptoutil/internal/apps-framework/service/test_help_db"
 )
 
 func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 	t.Parallel()
 
 	// Create empty database for this test only
-	emptyDB, err := gorm.Open(sqlite.Dialector{
-		DriverName: cryptoutilSharedMagic.TestDatabaseSQLite,
-		DSN:        cryptoutilSharedMagic.SQLiteInMemoryDSN,
-	}, &gorm.Config{})
-	require.NoError(t, err)
+	emptyDB := cryptoutilAppsFrameworkTestDB.NewInMemorySQLiteDB(t)
 
 	// Run migrations on empty DB
 	require.NoError(t, emptyDB.AutoMigrate(&cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest{}))

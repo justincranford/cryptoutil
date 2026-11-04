@@ -40,7 +40,7 @@ func TestComposeManagerDirectOperations_WrapErrors(t *testing.T) {
 			name: "command output",
 			operation: func() error {
 				_, err := runCommandOutputWithFn(context.Background(), "docker", nil, func(*exec.Cmd) ([]byte, error) {
-					return []byte("output"), injectedErr
+					return []byte(cryptoutilSharedMagic.CICDExcludeDirOutput), injectedErr
 				})
 
 				return err
@@ -224,7 +224,7 @@ func TestComposeManagerSyncCertOutputDirFromPkiInitMakesHostCertTreeWritableBefo
 	hostCACertPath := filepath.Join(tempDir, "deep", "one", "two", "three", "four", "ca.pem")
 	hostCertsDir := filepath.Clean(filepath.Join(hostCACertPath, "..", "..", "..", ".."))
 	adminDir := filepath.Join(hostCertsDir, "admin")
-	adminKeyPath := filepath.Join(adminDir, "admin.key")
+	adminKeyPath := filepath.Join(adminDir, cryptoutilSharedMagic.AdminPrivateKeyFileName)
 	require.NoError(t, os.MkdirAll(adminDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(adminKeyPath, []byte("private key"), cryptoutilSharedMagic.CacheFilePermissions))
 	t.Cleanup(func() {

@@ -68,8 +68,6 @@ func StartServiceServer[S any](args []string, stdout, stderr io.Writer, opts Ser
 		return 1
 	}
 
-	srv.SetReady(true)
-
 	publicAddress, publicPort, adminAddress, adminPort := opts.BindAddresses(settings)
 
 	_, _ = fmt.Fprintf(stdout, "🚀 Starting %s service...\n", opts.ServiceLabel)

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps-tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // helperFunctionPatterns are naming patterns that indicate test helper functions.
@@ -23,7 +24,7 @@ var helperFunctionPatterns = []string{
 	"verify",
 	"helper",
 	"create",
-	"build",
+	cryptoutilSharedMagic.CICDExcludeDirBuild,
 	"mock",
 }
 
@@ -37,8 +38,21 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) (int, int, int,
 			return err
 		}
 
+		if info.IsDir() {
+			shouldSkip, skipErr := cryptoutilCmdCicdCommon.ShouldSkipRepositoryScanDir(rootDir, path)
+			if skipErr != nil {
+				return fmt.Errorf("inspect repository scan boundary %s: %w", path, skipErr)
+			}
+
+			if shouldSkip {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
 		// Only process test files.
-		if info.IsDir() || !strings.HasSuffix(path, "_test.go") {
+		if !strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
 
